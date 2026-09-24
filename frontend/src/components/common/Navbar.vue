@@ -9,7 +9,6 @@ import {
   Bell,
   Search,
   LogOut,
-  ChevronDown,
   PanelLeft,
   FolderKanban
 } from 'lucide-vue-next';
@@ -122,23 +121,28 @@ const isUserMenuOpen = ref(false);
       <div class="relative">
         <button
           @click="isUserMenuOpen = !isUserMenuOpen"
-          class="flex items-center space-x-2.5 pl-1.5 pr-2.5 py-1.5 rounded-lg hover:bg-slate-100 border border-transparent hover:border-slate-200 transition"
+          class="flex items-center justify-center p-0.5 rounded-full hover:ring-2 hover:ring-blue-500/30 transition focus:outline-none"
+          :title="authStore.user?.full_name || 'Profil Pengguna'"
         >
           <img
             :src="authStore.user?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'"
             alt="Avatar"
-            class="w-7 h-7 rounded-full bg-slate-200 ring-1 ring-slate-300"
+            class="w-8 h-8 rounded-full bg-slate-200 ring-1 ring-slate-300 object-cover"
           />
-          <span class="text-sm font-semibold text-slate-800 hidden md:inline max-w-[120px] truncate">
-            {{ authStore.user?.full_name || 'User' }}
-          </span>
-          <ChevronDown class="w-3.5 h-3.5 text-slate-400" />
         </button>
+
+        <!-- Backdrop to close on click outside -->
+        <div
+          v-if="isUserMenuOpen"
+          class="fixed inset-0 z-40"
+          @click="isUserMenuOpen = false"
+        ></div>
 
         <!-- User Menu Dropdown -->
         <div
           v-if="isUserMenuOpen"
-          class="absolute right-0 mt-1 w-60 glass-dropdown rounded-xl p-2 z-50 animate-slide-up shadow-xl"
+          class="absolute right-0 mt-2 w-60 glass-dropdown rounded-xl p-2 z-50 animate-slide-up shadow-xl"
+          @click.stop
         >
           <div class="px-3.5 py-2.5 border-b border-slate-100">
             <p class="text-sm font-bold text-slate-900 truncate">{{ authStore.user?.full_name }}</p>
