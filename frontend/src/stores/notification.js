@@ -34,11 +34,38 @@ export const useNotificationStore = defineStore('notification', () => {
     unreadCount.value = 0;
   }
 
+  function playNotificationChime() {
+    try {
+      if (localStorage.getItem('epictask_sound_enabled') === 'false') return;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch (e) {
+      // Audio might be blocked until user interacts with the page
+    }
+  }
+
   // Real-time WS notification listener
   wsClient.subscribe((msg) => {
     if (msg && msg.event === 'NOTIFICATION') {
       const title = msg.data?.title || 'EpicTask Notification';
       const body = msg.data?.message || '';
+      playNotificationChime();
       sendDesktopNotification(title, body);
       fetchNotifications();
     }

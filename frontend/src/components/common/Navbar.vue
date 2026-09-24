@@ -10,7 +10,8 @@ import {
   Search,
   LogOut,
   PanelLeft,
-  FolderKanban
+  FolderKanban,
+  Settings
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -20,7 +21,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['toggle-sidebar']);
+const emit = defineEmits(['toggle-sidebar', 'open-settings']);
 
 const authStore = useAuthStore();
 const projectStore = useProjectStore();
@@ -42,23 +43,17 @@ const isUserMenuOpen = ref(false);
         <PanelLeft class="w-4 h-4" />
       </button>
 
-      <div class="flex items-center space-x-2 text-sm">
-        <span class="text-slate-500 font-medium hidden sm:inline">
-          {{ authStore.currentWorkspace?.name || 'Workspace' }}
+      <div class="flex items-center space-x-1.5 font-bold text-slate-900 text-base">
+        <FolderKanban class="w-4 h-4 text-blue-600 shrink-0" />
+        <span class="truncate max-w-[200px]">
+          {{ projectStore.currentProject ? projectStore.currentProject.name : 'Pilih Projek' }}
         </span>
-        <span class="text-slate-400 hidden sm:inline">/</span>
-        <div class="flex items-center space-x-1.5 font-bold text-slate-900 text-base">
-          <FolderKanban class="w-4 h-4 text-blue-600 shrink-0" />
-          <span class="truncate max-w-[200px]">
-            {{ projectStore.currentProject ? projectStore.currentProject.name : 'Pilih Projek' }}
-          </span>
-          <span
-            v-if="projectStore.currentProject?.key"
-            class="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600"
-          >
-            {{ projectStore.currentProject.key }}
-          </span>
-        </div>
+        <span
+          v-if="projectStore.currentProject?.key"
+          class="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600"
+        >
+          {{ projectStore.currentProject.key }}
+        </span>
       </div>
     </div>
 
@@ -115,6 +110,15 @@ const isUserMenuOpen = ref(false);
           v-if="notifStore.unreadCount > 0"
           class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"
         ></span>
+      </button>
+
+      <!-- Settings Button -->
+      <button
+        @click="emit('open-settings')"
+        class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/60 shadow-2xs transition"
+        title="Pengaturan"
+      >
+        <Settings class="w-4 h-4" />
       </button>
 
       <!-- User Avatar / Profile Menu -->

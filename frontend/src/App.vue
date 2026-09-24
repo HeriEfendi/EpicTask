@@ -16,6 +16,7 @@ import CreateIssueModal from '@/components/issue/CreateIssueModal.vue';
 import AutomationModal from '@/components/automation/AutomationModal.vue';
 import WorkflowModal from '@/components/project/WorkflowModal.vue';
 import NotificationPopover from '@/components/notification/NotificationPopover.vue';
+import SettingsModal from '@/components/common/SettingsModal.vue';
 import AuthModal from '@/components/auth/AuthModal.vue';
 
 const authStore = useAuthStore();
@@ -24,6 +25,7 @@ const notifStore = useNotificationStore();
 
 const isSidebarCollapsed = ref(false);
 const isWorkflowModalOpen = ref(false);
+const isSettingsModalOpen = ref(false);
 
 onMounted(async () => {
   const ok = await authStore.fetchMe();
@@ -56,6 +58,7 @@ onMounted(async () => {
         <Navbar
           :is-sidebar-collapsed="isSidebarCollapsed"
           @toggle-sidebar="isSidebarCollapsed = !isSidebarCollapsed"
+          @open-settings="isSettingsModalOpen = true"
         />
 
         <!-- Secondary Filter/View Tabs -->
@@ -76,6 +79,10 @@ onMounted(async () => {
       <WorkflowModal
         :is-open="isWorkflowModalOpen"
         @close="isWorkflowModalOpen = false"
+      />
+      <SettingsModal
+        :is-open="isSettingsModalOpen"
+        @close="isSettingsModalOpen = false"
       />
       <NotificationPopover />
     </template>

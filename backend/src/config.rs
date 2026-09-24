@@ -13,10 +13,13 @@ impl Config {
         dotenvy::dotenv().ok();
 
         let database_url = env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "mysql://remot:PasW0rd123@127.0.0.1:3307/epictask".to_string());
+            .expect("DATABASE_URL must be set in .env or environment variables");
+
         let jwt_secret = env::var("JWT_SECRET")
-            .unwrap_or_else(|_| "super_secret_epictask_jwt_token_key_for_dev_and_prod_32chars!".to_string());
+            .expect("JWT_SECRET must be set in .env or environment variables");
+
         let host = env::var("HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
+
         let port = env::var("PORT")
             .ok()
             .and_then(|p| p.parse().ok())
