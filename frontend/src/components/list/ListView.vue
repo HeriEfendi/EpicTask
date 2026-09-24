@@ -6,10 +6,7 @@ import {
   ListTodo,
   Plus,
   Trash2,
-  ExternalLink,
-  CheckCircle2,
-  Calendar,
-  AlertCircle
+  ExternalLink
 } from 'lucide-vue-next';
 
 const projectStore = useProjectStore();
@@ -30,7 +27,7 @@ async function handleQuickCreate() {
     });
     quickSummary.value = '';
   } catch (e) {
-    alert(e.message || 'Failed to create issue');
+    alert(e.message || 'Gagal membuat tiket');
   }
 }
 
@@ -38,7 +35,7 @@ async function handleStatusChange(issue, newStatusId) {
   try {
     await projectStore.moveIssue(issue.id, Number(newStatusId));
   } catch (e) {
-    alert(e.message || 'Status transition rejected by workflow rules');
+    alert(e.message || 'Transisi status ditolak oleh aturan workflow');
   }
 }
 
@@ -46,7 +43,7 @@ async function handlePriorityChange(issue, newPriority) {
   try {
     await projectStore.updateIssue(issue.id, { priority: newPriority });
   } catch (e) {
-    alert(e.message || 'Failed to update priority');
+    alert(e.message || 'Gagal mengubah prioritas');
   }
 }
 
@@ -56,7 +53,7 @@ async function handleAssigneeChange(issue, newAssigneeId) {
       assignee_id: newAssigneeId ? Number(newAssigneeId) : null,
     });
   } catch (e) {
-    alert(e.message || 'Failed to update assignee');
+    alert(e.message || 'Gagal mengubah penugasan');
   }
 }
 
@@ -64,7 +61,7 @@ async function handleDueDateChange(issue, newDate) {
   try {
     await projectStore.updateIssue(issue.id, { due_date: newDate || null });
   } catch (e) {
-    alert(e.message || 'Failed to update due date');
+    alert(e.message || 'Gagal mengubah tenggat waktu');
   }
 }
 
@@ -72,12 +69,12 @@ async function handlePointsChange(issue, newPoints) {
   try {
     await projectStore.updateIssue(issue.id, { story_points: Number(newPoints) || 0 });
   } catch (e) {
-    alert(e.message || 'Failed to update points');
+    alert(e.message || 'Gagal mengubah story points');
   }
 }
 
 async function handleDelete(issueId) {
-  if (confirm('Are you sure you want to delete this issue?')) {
+  if (confirm('Yakin ingin menghapus tiket ini?')) {
     await projectStore.deleteIssue(issueId);
   }
 }
@@ -86,41 +83,41 @@ async function handleDelete(issueId) {
 <template>
   <div class="flex-1 p-6 flex flex-col overflow-hidden bg-slate-50">
     <div class="flex items-center justify-between pb-4 border-b border-slate-200">
-      <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-        <ListTodo class="w-4 h-4 text-blue-600" />
-        <span>Spreadsheet List View (Instant Inline Editing)</span>
+      <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+        <ListTodo class="w-5 h-5 text-blue-600" />
+        <span>Spreadsheet List View (Edit Langsung di Baris)</span>
       </h2>
-      <span class="text-xs text-slate-500 font-medium">
-        {{ projectStore.filteredIssues.length }} items
+      <span class="text-sm text-slate-600 font-medium">
+        {{ projectStore.filteredIssues.length }} item tiket
       </span>
     </div>
 
     <!-- Table Container -->
     <div class="flex-1 overflow-auto mt-4 border border-slate-200 rounded-xl bg-white shadow-xs">
-      <table class="w-full text-left text-xs divide-y divide-slate-200 select-none">
-        <!-- Table Header -->
-        <thead class="bg-slate-100 text-slate-600 font-semibold sticky top-0 z-10 border-b border-slate-200">
+      <table class="w-full text-left text-sm divide-y divide-slate-200 select-none">
+        <!-- Table Header (Enlarged to text-sm font-bold) -->
+        <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 z-10 border-b border-slate-200">
           <tr>
-            <th class="py-3 px-3 w-28">Key</th>
-            <th class="py-3 px-3 w-28">Type</th>
-            <th class="py-3 px-3 min-w-[280px]">Summary</th>
-            <th class="py-3 px-3 w-36">Status</th>
-            <th class="py-3 px-3 w-32">Priority</th>
-            <th class="py-3 px-3 w-36">Assignee</th>
-            <th class="py-3 px-3 w-24">Points</th>
-            <th class="py-3 px-3 w-36">Due Date</th>
-            <th class="py-3 px-3 w-20 text-center">Actions</th>
+            <th class="py-3 px-3.5 w-28">Key</th>
+            <th class="py-3 px-3.5 w-28">Tipe</th>
+            <th class="py-3 px-3.5 min-w-[300px]">Ringkasan Tiket</th>
+            <th class="py-3 px-3.5 w-40">Status</th>
+            <th class="py-3 px-3.5 w-36">Prioritas</th>
+            <th class="py-3 px-3.5 w-44">Ditugaskan Ke</th>
+            <th class="py-3 px-3.5 w-24 text-center">Poin</th>
+            <th class="py-3 px-3.5 w-40">Tenggat</th>
+            <th class="py-3 px-3.5 w-24 text-center">Aksi</th>
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-slate-100 text-slate-700">
+        <tbody class="divide-y divide-slate-100 text-slate-800">
           <!-- Quick Inline Add Row -->
           <tr class="bg-blue-50/50 hover:bg-blue-50 transition border-b border-blue-100">
-            <td class="py-2.5 px-3 font-mono text-[11px] text-blue-600 font-bold">+ New</td>
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5 font-mono text-xs text-blue-600 font-bold">+ Baru</td>
+            <td class="py-3 px-3.5">
               <select
                 v-model="quickType"
-                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500 shadow-2xs"
+                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-600 shadow-2xs"
               >
                 <option value="TASK">TASK</option>
                 <option value="STORY">STORY</option>
@@ -128,19 +125,19 @@ async function handleDelete(issueId) {
                 <option value="EPIC">EPIC</option>
               </select>
             </td>
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5">
               <input
                 v-model="quickSummary"
-                placeholder="What needs to be done? Press Enter to add..."
-                class="w-full bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-2xs"
+                placeholder="Apa yang perlu dikerjakan? Tekan Enter..."
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-2xs"
                 @keyup.enter="handleQuickCreate"
               />
             </td>
-            <td class="py-2.5 px-3 text-slate-400 italic text-[11px]">To Do</td>
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5 text-slate-400 italic text-xs">To Do</td>
+            <td class="py-3 px-3.5">
               <select
                 v-model="quickPriority"
-                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none shadow-2xs"
+                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none shadow-2xs"
               >
                 <option value="HIGHEST">HIGHEST</option>
                 <option value="HIGH">HIGH</option>
@@ -148,15 +145,15 @@ async function handleDelete(issueId) {
                 <option value="LOW">LOW</option>
               </select>
             </td>
-            <td class="py-2.5 px-3 text-slate-400 italic text-[11px]">Unassigned</td>
-            <td class="py-2.5 px-3 text-slate-400 text-center">-</td>
-            <td class="py-2.5 px-3 text-slate-400 italic text-[11px]">None</td>
-            <td class="py-2.5 px-3 text-center">
+            <td class="py-3 px-3.5 text-slate-400 italic text-xs">Belum ditugaskan</td>
+            <td class="py-3 px-3.5 text-slate-400 text-center text-xs">-</td>
+            <td class="py-3 px-3.5 text-slate-400 italic text-xs">Tidak ada</td>
+            <td class="py-3 px-3.5 text-center">
               <button
                 @click="handleQuickCreate"
-                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-md font-semibold text-xs shadow-xs transition"
+                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-semibold text-xs shadow-xs transition"
               >
-                Add
+                Tambah
               </button>
             </td>
           </tr>
@@ -165,20 +162,20 @@ async function handleDelete(issueId) {
           <tr
             v-for="issue in projectStore.filteredIssues"
             :key="issue.id"
-            class="hover:bg-slate-50 transition group"
+            class="hover:bg-slate-50 transition group text-sm"
           >
             <!-- Key -->
             <td
               @click="projectStore.openIssueDetail(issue.id)"
-              class="py-2.5 px-3 font-mono font-semibold text-blue-600 cursor-pointer hover:underline"
+              class="py-3 px-3.5 font-mono font-semibold text-blue-600 cursor-pointer hover:underline text-xs"
             >
               {{ issue.key }}
             </td>
 
             <!-- Type -->
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5">
               <span
-                class="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase"
+                class="text-xs font-semibold px-2 py-0.5 rounded uppercase"
                 :class="`badge-type-${issue.issue_type}`"
               >
                 {{ issue.issue_type }}
@@ -188,25 +185,25 @@ async function handleDelete(issueId) {
             <!-- Summary -->
             <td
               @click="projectStore.openIssueDetail(issue.id)"
-              class="py-2.5 px-3 font-medium text-slate-800 cursor-pointer group-hover:text-blue-600"
+              class="py-3 px-3.5 font-medium text-slate-900 cursor-pointer group-hover:text-blue-600"
             >
               <div class="flex items-center space-x-2">
-                <span class="truncate max-w-md">{{ issue.summary }}</span>
+                <span class="truncate max-w-lg">{{ issue.summary }}</span>
                 <span
                   v-if="issue.epic_summary && issue.issue_type !== 'EPIC'"
-                  class="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200"
+                  class="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 shrink-0 font-medium"
                 >
                   {{ issue.epic_summary }}
                 </span>
               </div>
             </td>
 
-            <!-- Status Dropdown (Inline Edit with transition rule check) -->
-            <td class="py-2.5 px-3">
+            <!-- Status Dropdown (Inline Edit) -->
+            <td class="py-3 px-3.5">
               <select
                 :value="issue.status_id"
                 @change="(e) => handleStatusChange(issue, e.target.value)"
-                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-50 shadow-2xs"
+                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer hover:bg-slate-50 shadow-2xs font-medium"
               >
                 <option
                   v-for="status in projectStore.statuses"
@@ -219,11 +216,11 @@ async function handleDelete(issueId) {
             </td>
 
             <!-- Priority Dropdown (Inline Edit) -->
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5">
               <select
                 :value="issue.priority"
                 @change="(e) => handlePriorityChange(issue, e.target.value)"
-                class="border border-slate-200 rounded-md px-2 py-1 text-xs focus:outline-none cursor-pointer shadow-2xs"
+                class="border border-slate-200 rounded-lg px-2 py-1 text-xs font-semibold focus:outline-none cursor-pointer shadow-2xs"
                 :class="`badge-priority-${issue.priority}`"
               >
                 <option value="HIGHEST">🔴 Highest</option>
@@ -234,13 +231,13 @@ async function handleDelete(issueId) {
             </td>
 
             <!-- Assignee Dropdown (Inline Edit) -->
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5">
               <select
                 :value="issue.assignee_id || ''"
                 @change="(e) => handleAssigneeChange(issue, e.target.value)"
-                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-800 focus:outline-none cursor-pointer hover:bg-slate-50 max-w-[130px] truncate shadow-2xs"
+                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none cursor-pointer hover:bg-slate-50 max-w-[150px] truncate shadow-2xs font-medium"
               >
-                <option value="">Unassigned</option>
+                <option value="">Belum Ditugaskan</option>
                 <option
                   v-for="u in authStore.allUsers"
                   :key="u.id"
@@ -252,43 +249,43 @@ async function handleDelete(issueId) {
             </td>
 
             <!-- Story Points (Inline Edit) -->
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5 text-center">
               <input
                 type="number"
                 min="0"
                 max="99"
                 :value="issue.story_points || 0"
                 @change="(e) => handlePointsChange(issue, e.target.value)"
-                class="w-14 bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-center text-slate-800 focus:outline-none focus:border-blue-500 shadow-2xs"
+                class="w-14 bg-white border border-slate-300 rounded-lg px-2 py-1 text-xs font-semibold text-center text-slate-800 focus:outline-none focus:border-blue-600 shadow-2xs"
               />
             </td>
 
             <!-- Due Date (Inline Edit) -->
-            <td class="py-2.5 px-3">
+            <td class="py-3 px-3.5">
               <input
                 type="date"
                 :value="issue.due_date || ''"
                 @change="(e) => handleDueDateChange(issue, e.target.value)"
-                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
+                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs font-medium"
               />
             </td>
 
             <!-- Actions -->
-            <td class="py-2.5 px-3 text-center">
-              <div class="flex items-center justify-center space-x-1">
+            <td class="py-3 px-3.5 text-center">
+              <div class="flex items-center justify-center space-x-1.5">
                 <button
                   @click="projectStore.openIssueDetail(issue.id)"
-                  class="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
-                  title="Open Issue Details"
+                  class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                  title="Buka Detail Tiket"
                 >
-                  <ExternalLink class="w-3.5 h-3.5" />
+                  <ExternalLink class="w-4 h-4" />
                 </button>
                 <button
                   @click="handleDelete(issue.id)"
-                  class="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
-                  title="Delete Issue"
+                  class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+                  title="Hapus Tiket"
                 >
-                  <Trash2 class="w-3.5 h-3.5" />
+                  <Trash2 class="w-4 h-4" />
                 </button>
               </div>
             </td>

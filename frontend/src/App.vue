@@ -5,6 +5,7 @@ import { useProjectStore } from '@/stores/project';
 import { useNotificationStore } from '@/stores/notification';
 import { wsClient } from '@/services/websocket';
 
+import Sidebar from '@/components/common/Sidebar.vue';
 import Navbar from '@/components/common/Navbar.vue';
 import ViewTabs from '@/components/common/ViewTabs.vue';
 import KanbanBoard from '@/components/kanban/KanbanBoard.vue';
@@ -21,6 +22,7 @@ const authStore = useAuthStore();
 const projectStore = useProjectStore();
 const notifStore = useNotificationStore();
 
+const isSidebarCollapsed = ref(false);
 const isWorkflowModalOpen = ref(false);
 
 onMounted(async () => {
@@ -35,24 +37,37 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+  <div class="h-screen bg-slate-50 text-slate-900 flex font-sans overflow-hidden">
     <!-- Unauthenticated State -->
     <AuthModal v-if="!authStore.isAuthenticated" />
 
-    <!-- Authenticated App Shell -->
+    <!-- Authenticated App Layout with Sidebar -->
     <template v-else>
-      <Navbar />
+      <!-- Side Menu -->
+      <Sidebar
+        :is-collapsed="isSidebarCollapsed"
+        @toggle-collapse="isSidebarCollapsed = !isSidebarCollapsed"
+        @open-workflow-modal="isWorkflowModalOpen = true"
+      />
 
-      <main class="flex-1 flex flex-col overflow-hidden">
+      <!-- Main Application Container -->
+      <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+        <!-- Streamlined Header -->
+        <Navbar
+          :is-sidebar-collapsed="isSidebarCollapsed"
+          @toggle-sidebar="isSidebarCollapsed = !isSidebarCollapsed"
+        />
+
+        <!-- Secondary Filter/View Tabs -->
         <ViewTabs @open-workflow-modal="isWorkflowModalOpen = true" />
 
-        <div class="flex-1 flex flex-col overflow-hidden relative">
-          <!-- Views Switcher (FR-2.2 Multi-View Board) -->
+        <!-- Views Viewport -->
+        <main class="flex-1 flex flex-col overflow-hidden relative">
           <KanbanBoard v-if="projectStore.activeView === 'kanban'" />
           <TimelineView v-else-if="projectStore.activeView === 'timeline'" />
           <ListView v-else-if="projectStore.activeView === 'list'" />
-        </div>
-      </main>
+        </main>
+      </div>
 
       <!-- Modals & Overlays -->
       <IssueDetailModal />

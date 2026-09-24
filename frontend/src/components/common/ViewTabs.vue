@@ -9,11 +9,8 @@ import {
   ListTodo,
   Bot,
   Workflow,
-  Filter,
   X,
   UserCheck,
-  Flag,
-  Layers,
   ChevronDown
 } from 'lucide-vue-next';
 
@@ -51,109 +48,109 @@ function toggleMyIssues() {
 </script>
 
 <template>
-  <div class="px-6 py-2.5 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-3">
+  <div class="px-5 py-2.5 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-3 shadow-2xs">
     <!-- Left: Views Switcher (Kanban, Timeline, List) -->
-    <div class="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/80">
+    <div class="inline-flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200/80">
       <button
         @click="projectStore.activeView = 'kanban'"
-        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs transition"
+        class="flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm transition"
         :class="projectStore.activeView === 'kanban' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 font-medium'"
       >
-        <Kanban class="w-3.5 h-3.5" :class="projectStore.activeView === 'kanban' ? 'text-blue-600' : 'text-slate-500'" />
+        <Kanban class="w-4 h-4" :class="projectStore.activeView === 'kanban' ? 'text-blue-600' : 'text-slate-500'" />
         <span>Kanban</span>
       </button>
 
       <button
         @click="projectStore.activeView = 'timeline'"
-        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs transition"
+        class="flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm transition"
         :class="projectStore.activeView === 'timeline' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 font-medium'"
       >
-        <CalendarRange class="w-3.5 h-3.5" :class="projectStore.activeView === 'timeline' ? 'text-blue-600' : 'text-slate-500'" />
+        <CalendarRange class="w-4 h-4" :class="projectStore.activeView === 'timeline' ? 'text-blue-600' : 'text-slate-500'" />
         <span>Timeline</span>
       </button>
 
       <button
         @click="projectStore.activeView = 'list'"
-        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs transition"
+        class="flex items-center space-x-2 px-3 py-1.5 rounded-md text-sm transition"
         :class="projectStore.activeView === 'list' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 font-medium'"
       >
-        <ListTodo class="w-3.5 h-3.5" :class="projectStore.activeView === 'list' ? 'text-blue-600' : 'text-slate-500'" />
+        <ListTodo class="w-4 h-4" :class="projectStore.activeView === 'list' ? 'text-blue-600' : 'text-slate-500'" />
         <span>List</span>
       </button>
     </div>
 
-    <!-- Center/Right: Filters & Management Buttons -->
-    <div class="flex items-center flex-wrap gap-2">
+    <!-- Right: Filter Options & Tools -->
+    <div class="flex items-center flex-wrap gap-2.5">
       <!-- "Only My Issues" Quick Filter -->
       <button
         @click="toggleMyIssues"
-        class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg text-xs transition shadow-2xs"
+        class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm transition shadow-2xs"
         :class="projectStore.filterAssignee === authStore.user?.id ? 'bg-blue-50 border border-blue-500 text-blue-700 font-semibold' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium'"
       >
-        <UserCheck class="w-3.5 h-3.5" :class="projectStore.filterAssignee === authStore.user?.id ? 'text-blue-600' : 'text-slate-500'" />
-        <span>Only My Issues</span>
+        <UserCheck class="w-4 h-4" :class="projectStore.filterAssignee === authStore.user?.id ? 'text-blue-600' : 'text-slate-500'" />
+        <span>Tiket Saya</span>
       </button>
 
       <!-- Priority Filter Dropdown -->
       <div class="relative">
         <select
           v-model="projectStore.filterPriority"
-          class="bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-blue-500 appearance-none pr-7 cursor-pointer shadow-2xs transition font-medium"
+          class="bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:border-blue-600 appearance-none pr-8 cursor-pointer shadow-2xs transition font-medium"
         >
-          <option :value="null">Priority: All</option>
-          <option value="HIGHEST">🔴 Highest</option>
-          <option value="HIGH">🟠 High</option>
-          <option value="MEDIUM">🟡 Medium</option>
-          <option value="LOW">🔵 Low</option>
+          <option :value="null">Semua Prioritas</option>
+          <option value="HIGHEST">🔴 Tertinggi (Highest)</option>
+          <option value="HIGH">🟠 Tinggi (High)</option>
+          <option value="MEDIUM">🟡 Sedang (Medium)</option>
+          <option value="LOW">🔵 Rendah (Low)</option>
         </select>
-        <ChevronDown class="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <ChevronDown class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
       </div>
 
       <!-- Epic Filter Dropdown -->
       <div class="relative" v-if="projectStore.epics.length > 0">
         <select
           v-model="projectStore.filterEpic"
-          class="bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:border-blue-500 appearance-none pr-7 cursor-pointer shadow-2xs transition font-medium max-w-[150px] truncate"
+          class="bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:border-blue-600 appearance-none pr-8 cursor-pointer shadow-2xs transition font-medium max-w-[180px] truncate"
         >
-          <option :value="null">Epic: All</option>
+          <option :value="null">Semua Epic</option>
           <option v-for="epic in projectStore.epics" :key="epic.id" :value="epic.id">
             🟣 {{ epic.summary }}
           </option>
         </select>
-        <ChevronDown class="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        <ChevronDown class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
       </div>
 
       <!-- Clear Filters -->
       <button
         v-if="hasActiveFilters"
         @click="clearFilters"
-        class="flex items-center space-x-1 px-2.5 py-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition font-medium"
-        title="Clear all filters"
+        class="flex items-center space-x-1.5 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg border border-red-200 transition font-semibold"
+        title="Reset semua filter"
       >
-        <X class="w-3 h-3" />
-        <span>Clear</span>
+        <X class="w-3.5 h-3.5" />
+        <span>Reset</span>
       </button>
 
-      <div class="h-4 w-[1px] bg-slate-200 hidden sm:block mx-1"></div>
+      <div class="h-5 w-[1px] bg-slate-200 hidden sm:block mx-0.5"></div>
 
-      <!-- Automations Engine Button (EPIC 5) -->
+      <!-- Automations Engine Button -->
       <button
         @click="autoStore.isRuleModalOpen = true"
-        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 transition shadow-2xs"
-        title="Configure No-Code Automation Rules"
+        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 transition shadow-2xs"
+        title="Konfigurasi Aturan Otomasi"
       >
-        <Bot class="w-3.5 h-3.5 text-purple-600" />
-        <span>Automation</span>
+        <Bot class="w-4 h-4 text-purple-600" />
+        <span>Otomasi</span>
       </button>
 
-      <!-- Workflow Rules Button (FR-2.3) -->
+      <!-- Workflow Rules Button -->
       <button
         @click="emit('open-workflow-modal')"
-        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 transition shadow-2xs"
-        title="Manage Statuses and Workflow Transition Guards"
+        class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 hover:text-slate-900 transition shadow-2xs"
+        title="Aturan Alur Kerja & Guard Transisi"
       >
-        <Workflow class="w-3.5 h-3.5 text-blue-600" />
-        <span>Workflow Rules</span>
+        <Workflow class="w-4 h-4 text-blue-600" />
+        <span>Aturan Workflow</span>
       </button>
     </div>
   </div>

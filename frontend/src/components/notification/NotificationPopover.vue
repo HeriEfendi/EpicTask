@@ -31,10 +31,10 @@ async function handleNotificationClick(notif) {
       <div class="flex items-center justify-between pb-3 border-b border-slate-200 select-none">
         <div class="flex items-center space-x-2">
           <Bell class="w-4 h-4 text-blue-600" />
-          <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Notifications</h3>
+          <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Notifications</h3>
           <span
             v-if="notifStore.unreadCount > 0"
-            class="px-1.5 py-0.2 bg-blue-600 text-white text-[10px] font-bold rounded-full"
+            class="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full"
           >
             {{ notifStore.unreadCount }} new
           </span>
@@ -44,7 +44,7 @@ async function handleNotificationClick(notif) {
           <button
             v-if="notifStore.unreadCount > 0"
             @click="notifStore.markAllAsRead"
-            class="text-[11px] text-blue-600 hover:text-blue-700 font-semibold flex items-center space-x-1"
+            class="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center space-x-1"
           >
             <CheckCheck class="w-3.5 h-3.5" />
             <span>Mark read</span>
@@ -62,7 +62,7 @@ async function handleNotificationClick(notif) {
       <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 mt-2">
         <div
           v-if="notifStore.notifications.length === 0"
-          class="py-8 text-center text-slate-400 text-xs flex flex-col items-center justify-center"
+          class="py-8 text-center text-slate-400 text-sm flex flex-col items-center justify-center"
         >
           <Bell class="w-8 h-8 text-slate-300 mb-2" />
           <span>No notifications yet</span>
@@ -72,7 +72,7 @@ async function handleNotificationClick(notif) {
           v-for="notif in notifStore.notifications"
           :key="notif.id"
           @click="handleNotificationClick(notif)"
-          class="p-3 hover:bg-slate-50 rounded-xl transition cursor-pointer flex items-start space-x-3 text-xs"
+          class="p-3 hover:bg-slate-50 rounded-xl transition cursor-pointer flex items-start space-x-3 text-sm"
           :class="!notif.is_read ? 'bg-blue-50/50' : ''"
         >
           <!-- Unread dot -->
@@ -83,12 +83,12 @@ async function handleNotificationClick(notif) {
 
           <div class="flex-1">
             <div class="flex items-center justify-between mb-0.5">
-              <span class="font-bold text-slate-800 truncate">{{ notif.title }}</span>
-              <span class="text-[10px] text-slate-400">{{ new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
+              <span class="font-bold text-slate-800 truncate text-sm">{{ notif.title }}</span>
+              <span class="text-xs text-slate-400">{{ new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}</span>
             </div>
-            <p class="text-slate-600 text-[11px] line-clamp-2 leading-relaxed">{{ notif.message }}</p>
+            <p class="text-slate-600 text-xs line-clamp-2 leading-relaxed">{{ notif.message }}</p>
             <div v-if="notif.issue_key" class="mt-1">
-              <span class="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-100 border border-slate-200 text-blue-600">
+              <span class="font-mono text-xs font-bold px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-blue-600">
                 {{ notif.issue_key }}
               </span>
             </div>

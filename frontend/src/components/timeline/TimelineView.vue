@@ -5,9 +5,6 @@ import {
   CalendarRange,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  Layers,
-  Calendar,
   AlertCircle
 } from 'lucide-vue-next';
 
@@ -29,9 +26,9 @@ const timelineDays = computed(() => {
     days.push({
       date: d,
       dateString: d.toISOString().split('T')[0],
-      dayName: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      dayName: d.toLocaleDateString('id-ID', { weekday: 'short' }),
       dayNumber: d.getDate(),
-      monthName: d.toLocaleDateString('en-US', { month: 'short' }),
+      monthName: d.toLocaleDateString('id-ID', { month: 'short' }),
       isToday: isSameDay(d, new Date()),
       isWeekend: d.getDay() === 0 || d.getDay() === 6,
     });
@@ -101,11 +98,11 @@ function getBarColor(issue) {
     <!-- Header Controls -->
     <div class="flex items-center justify-between pb-4 border-b border-slate-200">
       <div class="flex items-center space-x-3">
-        <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-          <CalendarRange class="w-4 h-4 text-blue-600" />
-          <span>Project Timeline & Gantt Schedule</span>
+        <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <CalendarRange class="w-5 h-5 text-blue-600" />
+          <span>Timeline & Jadwal Gantt Projek</span>
         </h2>
-        <span class="text-xs text-slate-500 font-medium hidden sm:inline">
+        <span class="text-sm text-slate-600 font-semibold hidden sm:inline">
           {{ timelineDays[0].monthName }} {{ timelineDays[0].dayNumber }} - {{ timelineDays[timelineDays.length - 1].monthName }} {{ timelineDays[timelineDays.length - 1].dayNumber }}
         </span>
       </div>
@@ -113,23 +110,23 @@ function getBarColor(issue) {
       <div class="flex items-center space-x-2">
         <button
           @click="shiftDays(-7)"
-          class="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
-          title="Previous week"
+          class="p-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+          title="Minggu sebelumnya"
         >
           <ChevronLeft class="w-4 h-4" />
         </button>
 
         <button
           @click="resetToToday"
-          class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+          class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
         >
-          Today
+          Hari Ini
         </button>
 
         <button
           @click="shiftDays(7)"
-          class="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
-          title="Next week"
+          class="p-2 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
+          title="Minggu berikutnya"
         >
           <ChevronRight class="w-4 h-4" />
         </button>
@@ -141,8 +138,8 @@ function getBarColor(issue) {
       <!-- Calendar Dates Header -->
       <div class="flex border-b border-slate-200 sticky top-0 bg-slate-100 z-20">
         <!-- Issues Label Column -->
-        <div class="w-72 shrink-0 p-3 font-semibold text-xs text-slate-600 border-r border-slate-200 bg-slate-100">
-          Issue / Milestone
+        <div class="w-72 shrink-0 p-3.5 font-bold text-sm text-slate-700 border-r border-slate-200 bg-slate-100">
+          Tiket / Milestone
         </div>
 
         <!-- Days Grid -->
@@ -150,16 +147,16 @@ function getBarColor(issue) {
           <div
             v-for="d in timelineDays"
             :key="d.dateString"
-            class="flex-1 min-w-[34px] py-2 px-1 text-center border-r border-slate-200 flex flex-col items-center justify-center transition"
+            class="flex-1 min-w-[36px] py-2 px-1 text-center border-r border-slate-200 flex flex-col items-center justify-center transition"
             :class="{
               'bg-blue-50 border-b-2 border-b-blue-600': d.isToday,
               'bg-slate-50/80': d.isWeekend && !d.isToday,
             }"
           >
-            <span class="text-[10px] uppercase font-bold" :class="d.isToday ? 'text-blue-600 font-extrabold' : 'text-slate-500'">
+            <span class="text-xs uppercase font-bold" :class="d.isToday ? 'text-blue-600 font-extrabold' : 'text-slate-500'">
               {{ d.dayName[0] }}
             </span>
-            <span class="text-[11px] font-mono mt-0.5" :class="d.isToday ? 'text-blue-700 font-bold' : 'text-slate-700'">
+            <span class="text-sm font-mono mt-0.5" :class="d.isToday ? 'text-blue-700 font-bold' : 'text-slate-700'">
               {{ d.dayNumber }}
             </span>
           </div>
@@ -171,21 +168,21 @@ function getBarColor(issue) {
         <div
           v-for="issue in projectStore.filteredIssues"
           :key="issue.id"
-          class="flex items-center hover:bg-slate-50/80 group transition"
+          class="flex items-center hover:bg-slate-50/80 group transition text-sm"
         >
           <!-- Left: Issue Label -->
           <div
             @click="projectStore.openIssueDetail(issue.id)"
-            class="w-72 shrink-0 p-3 border-r border-slate-200 flex items-center space-x-2.5 cursor-pointer bg-white group-hover:bg-slate-50 transition"
+            class="w-72 shrink-0 p-3.5 border-r border-slate-200 flex items-center space-x-2.5 cursor-pointer bg-white group-hover:bg-slate-50 transition"
           >
             <span
-              class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase"
+              class="text-xs font-semibold px-2 py-0.5 rounded uppercase shrink-0"
               :class="`badge-type-${issue.issue_type}`"
             >
               {{ issue.issue_type[0] }}
             </span>
-            <span class="font-mono text-xs font-semibold text-blue-600">{{ issue.key }}</span>
-            <span class="text-xs text-slate-800 truncate max-w-[140px]" :title="issue.summary">{{ issue.summary }}</span>
+            <span class="font-mono text-xs font-semibold text-blue-600 shrink-0">{{ issue.key }}</span>
+            <span class="text-sm text-slate-800 truncate font-medium" :title="issue.summary">{{ issue.summary }}</span>
           </div>
 
           <!-- Right: Horizontal Bar Track -->
@@ -195,7 +192,7 @@ function getBarColor(issue) {
               <div
                 v-for="d in timelineDays"
                 :key="d.dateString"
-                class="flex-1 min-w-[34px] border-r border-slate-100"
+                class="flex-1 min-w-[36px] border-r border-slate-100"
                 :class="{ 'bg-blue-50/40': d.isToday }"
               ></div>
             </div>
@@ -205,29 +202,29 @@ function getBarColor(issue) {
               v-if="getBarStyle(issue)"
               :style="getBarStyle(issue)"
               @click="projectStore.openIssueDetail(issue.id)"
-              class="absolute h-7 rounded-lg border shadow-xs px-2 flex items-center justify-between text-xs font-medium cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] z-10 overflow-hidden"
+              class="absolute h-8 rounded-lg border shadow-xs px-2.5 flex items-center justify-between text-xs font-semibold cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] z-10 overflow-hidden"
               :class="getBarColor(issue)"
-              :title="`${issue.key}: ${issue.summary}\n${issue.start_date || 'Start'} -> ${issue.due_date || 'End'}`"
+              :title="`${issue.key}: ${issue.summary}\n${issue.start_date || 'Mulai'} -> ${issue.due_date || 'Tenggat'}`"
             >
               <div class="flex items-center space-x-1.5 truncate">
-                <span class="font-mono font-bold text-[11px]">{{ issue.key }}</span>
-                <span class="truncate text-[11px] hidden sm:inline">{{ issue.summary }}</span>
+                <span class="font-mono font-bold text-xs">{{ issue.key }}</span>
+                <span class="truncate text-xs hidden sm:inline">{{ issue.summary }}</span>
               </div>
               <img
                 v-if="issue.assignee_avatar"
                 :src="issue.assignee_avatar"
                 :alt="issue.assignee_name || 'Assignee'"
-                class="w-4 h-4 rounded-full ring-1 ring-white/60 shrink-0 ml-1"
+                class="w-5 h-5 rounded-full ring-1 ring-white/60 shrink-0 ml-1.5"
               />
             </div>
 
             <!-- Unscheduled Warning if no dates -->
             <div
               v-else
-              class="text-[11px] text-slate-400 italic pl-3 flex items-center space-x-1"
+              class="text-xs text-slate-400 italic pl-3 flex items-center space-x-1.5 font-medium"
             >
-              <AlertCircle class="w-3 h-3 text-slate-400" />
-              <span>Dates not scheduled</span>
+              <AlertCircle class="w-3.5 h-3.5 text-slate-400" />
+              <span>Jadwal belum ditentukan</span>
             </div>
           </div>
         </div>

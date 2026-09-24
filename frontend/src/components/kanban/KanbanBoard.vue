@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useProjectStore } from '@/stores/project';
 import KanbanCard from './KanbanCard.vue';
-import { Plus, AlertCircle, CheckCircle, ShieldAlert } from 'lucide-vue-next';
+import { Plus, AlertCircle, ShieldAlert } from 'lucide-vue-next';
 
 const projectStore = useProjectStore();
 
@@ -40,7 +40,7 @@ async function handleDrop(e, statusId) {
   try {
     await projectStore.moveIssue(issueId, statusId);
   } catch (err) {
-    showToast(err.message || 'Cannot move issue to this status');
+    showToast(err.message || 'Tidak dapat memindahkan tiket ke status ini');
   }
 }
 
@@ -56,7 +56,7 @@ function openCreateForStatus(statusId) {
     <transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0 -translate-y-4" enter-to-class="opacity-100 translate-y-0" leave-active-class="transition duration-150 ease-in" leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 -translate-y-4">
       <div
         v-if="errorMessage"
-        class="fixed top-16 right-6 z-50 max-w-md bg-white border border-red-200 rounded-xl p-3.5 shadow-xl flex items-start space-x-3 text-red-700 text-xs"
+        class="fixed top-16 right-6 z-50 max-w-md bg-white border border-red-200 rounded-xl p-4 shadow-xl flex items-start space-x-3 text-red-700 text-sm"
       >
         <ShieldAlert class="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
         <div class="flex-1">
@@ -68,34 +68,34 @@ function openCreateForStatus(statusId) {
     </transition>
 
     <!-- Empty Project State -->
-    <div v-if="projectStore.statuses.length === 0" class="flex-1 flex flex-col items-center justify-center text-slate-400 py-16">
-      <AlertCircle class="w-12 h-12 text-slate-300 mb-3" />
-      <h3 class="text-base font-semibold text-slate-700 mb-1">No Columns Configured</h3>
-      <p class="text-xs text-slate-500 mb-4">Add workflow statuses to get started with your Kanban board.</p>
+    <div v-if="projectStore.statuses.length === 0" class="flex-1 flex flex-col items-center justify-center text-slate-400 py-20">
+      <AlertCircle class="w-14 h-14 text-slate-300 mb-3" />
+      <h3 class="text-lg font-bold text-slate-700 mb-1">Belum Ada Kolom Alur Kerja</h3>
+      <p class="text-sm text-slate-500 mb-4">Tambahkan status workflow untuk mulai menggunakan Kanban board.</p>
     </div>
 
     <!-- Kanban Columns Container -->
-    <div v-else class="flex gap-4 items-start pb-4 min-h-[calc(100vh-160px)]">
+    <div v-else class="flex gap-5 items-start pb-4 min-h-[calc(100vh-160px)]">
       <div
         v-for="status in projectStore.statuses"
         :key="status.id"
-        class="w-80 shrink-0 bg-slate-100/90 rounded-xl border border-slate-200/90 flex flex-col max-h-[calc(100vh-170px)] transition-all kanban-column shadow-2xs"
+        class="w-80 shrink-0 bg-slate-100/90 rounded-2xl border border-slate-200/90 flex flex-col max-h-[calc(100vh-170px)] transition-all kanban-column shadow-2xs"
         :class="{ 'drag-over': dragOverColumnId === status.id }"
         @dragover="(e) => handleDragOver(e, status.id)"
         @dragleave="(e) => handleDragLeave(e, status.id)"
         @drop="(e) => handleDrop(e, status.id)"
       >
         <!-- Column Header -->
-        <div class="p-3 border-b border-slate-200/70 flex items-center justify-between select-none">
+        <div class="p-3.5 border-b border-slate-200/70 flex items-center justify-between select-none">
           <div class="flex items-center space-x-2">
             <span
-              class="w-2.5 h-2.5 rounded-full"
+              class="w-3 h-3 rounded-full"
               :style="{ backgroundColor: status.color || '#3b82f6' }"
             ></span>
-            <span class="text-xs font-bold text-slate-700 tracking-wide uppercase">
+            <span class="text-sm font-bold text-slate-800 tracking-wide uppercase">
               {{ status.name }}
             </span>
-            <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200/80 shadow-2xs">
+            <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200/80 shadow-2xs">
               {{ (projectStore.issuesByStatus[status.id] || []).length }}
             </span>
           </div>
@@ -103,14 +103,14 @@ function openCreateForStatus(statusId) {
           <button
             @click="openCreateForStatus(status.id)"
             class="p-1 rounded-md hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 transition"
-            title="Create issue in this column"
+            title="Tambah tiket di kolom ini"
           >
             <Plus class="w-4 h-4" />
           </button>
         </div>
 
         <!-- Cards List -->
-        <div class="p-2.5 overflow-y-auto space-y-2.5 flex-1 min-h-[140px]">
+        <div class="p-3 overflow-y-auto space-y-3 flex-1 min-h-[140px]">
           <KanbanCard
             v-for="issue in (projectStore.issuesByStatus[status.id] || [])"
             :key="issue.id"
@@ -120,21 +120,21 @@ function openCreateForStatus(statusId) {
           <!-- Empty Column Drop Zone Placeholder -->
           <div
             v-if="(projectStore.issuesByStatus[status.id] || []).length === 0"
-            class="h-28 border border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center text-slate-400 text-[11px] select-none"
+            class="h-32 border border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center text-slate-400 text-xs select-none"
           >
-            <span>No issues in this column</span>
-            <span class="text-[10px] text-slate-400 mt-1">Drag tickets here</span>
+            <span class="font-medium">Belum ada tiket di kolom ini</span>
+            <span class="text-slate-400 mt-1">Tarik & lepas tiket ke sini</span>
           </div>
         </div>
 
         <!-- Column Footer: Quick Add Button -->
-        <div class="p-2 border-t border-slate-200/60 bg-slate-100/70 rounded-b-xl">
+        <div class="p-2 border-t border-slate-200/60 bg-slate-100/70 rounded-b-2xl">
           <button
             @click="openCreateForStatus(status.id)"
-            class="w-full py-1.5 px-3 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-white hover:border-slate-300 hover:shadow-2xs border border-transparent flex items-center justify-center space-x-1.5 transition"
+            class="w-full py-2 px-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-white hover:border-slate-300 hover:shadow-2xs border border-transparent flex items-center justify-center space-x-1.5 transition"
           >
-            <Plus class="w-3.5 h-3.5 text-slate-500" />
-            <span>Create Issue</span>
+            <Plus class="w-4 h-4 text-slate-500" />
+            <span>Tambah Tiket</span>
           </button>
         </div>
       </div>
