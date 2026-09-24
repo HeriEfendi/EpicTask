@@ -1,13 +1,17 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '@/stores/project';
 import { useAuthStore } from '@/stores/auth';
 import {
   ListTodo,
   Plus,
   Trash2,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  Loader2
 } from 'lucide-vue-next';
+
+const PAGE_SIZE = 20;
 
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
@@ -17,6 +21,59 @@ const quickSummary = ref('');
 const quickType = ref('TASK');
 const quickPriority = ref('MEDIUM');
 
+// --- Infinite Scroll State ---
+const visibleCount = ref(PAGE_SIZE);
+const isLoadingMore = ref(false);
+const tableScrollRef = ref(null); // ref to the scrollable div
+
+// Reset visible count whenever the filtered dataset changes (filter/search)
+watch(
+  () => projectStore.filteredIssues.length,
+  () => {
+    visibleCount.value = PAGE_SIZE;
+  }
+);
+
+// Sliced rows shown in the table
+const visibleIssues = computed(() =>
+  projectStore.filteredIssues.slice(0, visibleCount.value)
+);
+
+const totalCount = computed(() => projectStore.filteredIssues.length);
+const hasMore = computed(() => visibleCount.value < totalCount.value);
+
+function loadMore() {
+  if (isLoadingMore.value || !hasMore.value) return;
+  isLoadingMore.value = true;
+  // Simulate a brief async pause so the loader is visible
+  setTimeout(() => {
+    visibleCount.value = Math.min(visibleCount.value + PAGE_SIZE, totalCount.value);
+    isLoadingMore.value = false;
+  }, 150);
+}
+
+// Scroll listener — trigger loadMore when near bottom
+function handleScroll(e) {
+  const el = e.target;
+  const threshold = 100; // px from bottom
+  if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
+    loadMore();
+  }
+}
+
+onMounted(() => {
+  if (tableScrollRef.value) {
+    tableScrollRef.value.addEventListener('scroll', handleScroll);
+  }
+});
+
+onUnmounted(() => {
+  if (tableScrollRef.value) {
+    tableScrollRef.value.removeEventListener('scroll', handleScroll);
+  }
+});
+
+// --- Issue Handlers ---
 async function handleQuickCreate() {
   if (!quickSummary.value.trim()) return;
   try {
@@ -88,14 +145,17 @@ async function handleDelete(issueId) {
         <span>Spreadsheet List View (Edit Langsung di Baris)</span>
       </h2>
       <span class="text-sm text-slate-600 font-medium">
-        {{ projectStore.filteredIssues.length }} item tiket
+        {{ totalCount }} item tiket
       </span>
     </div>
 
-    <!-- Table Container -->
-    <div class="flex-1 overflow-auto mt-4 border border-slate-200 rounded-xl bg-white shadow-xs">
+    <!-- Table Container with scroll listener -->
+    <div
+      ref="tableScrollRef"
+      class="flex-1 overflow-auto mt-4 border border-slate-200 rounded-xl bg-white shadow-xs"
+    >
       <table class="w-full text-left text-sm divide-y divide-slate-200 select-none">
-        <!-- Table Header (Enlarged to text-sm font-bold) -->
+        <!-- Table Header -->
         <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 z-10 border-b border-slate-200">
           <tr>
             <th class="py-3 px-3.5 w-28">Key</th>
@@ -158,9 +218,9 @@ async function handleDelete(issueId) {
             </td>
           </tr>
 
-          <!-- Issues Rows -->
+          <!-- Issues Rows (sliced to visibleIssues) -->
           <tr
-            v-for="issue in projectStore.filteredIssues"
+            v-for="issue in visibleIssues"
             :key="issue.id"
             class="hover:bg-slate-50 transition group text-sm"
           >
@@ -198,7 +258,7 @@ async function handleDelete(issueId) {
               </div>
             </td>
 
-            <!-- Status Dropdown (Inline Edit) -->
+            <!-- Status Dropdown -->
             <td class="py-3 px-3.5">
               <select
                 :value="issue.status_id"
@@ -215,7 +275,7 @@ async function handleDelete(issueId) {
               </select>
             </td>
 
-            <!-- Priority Dropdown (Inline Edit) -->
+            <!-- Priority Dropdown -->
             <td class="py-3 px-3.5">
               <select
                 :value="issue.priority"
@@ -230,7 +290,7 @@ async function handleDelete(issueId) {
               </select>
             </td>
 
-            <!-- Assignee Dropdown (Inline Edit) -->
+            <!-- Assignee Dropdown -->
             <td class="py-3 px-3.5">
               <select
                 :value="issue.assignee_id || ''"
@@ -248,7 +308,7 @@ async function handleDelete(issueId) {
               </select>
             </td>
 
-            <!-- Story Points (Inline Edit) -->
+            <!-- Story Points -->
             <td class="py-3 px-3.5 text-center">
               <input
                 type="number"
@@ -260,7 +320,7 @@ async function handleDelete(issueId) {
               />
             </td>
 
-            <!-- Due Date (Inline Edit) -->
+            <!-- Due Date -->
             <td class="py-3 px-3.5">
               <input
                 type="date"
@@ -290,8 +350,63 @@ async function handleDelete(issueId) {
               </div>
             </td>
           </tr>
+
+          <!-- Load More Spinner Row (shown while loading next batch) -->
+          <tr v-if="isLoadingMore">
+            <td colspan="9" class="py-4 text-center">
+              <div class="flex items-center justify-center space-x-2 text-slate-400">
+                <Loader2 class="w-4 h-4 animate-spin" />
+                <span class="text-xs font-medium">Memuat lebih banyak data...</span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty state -->
+          <tr v-if="totalCount === 0">
+            <td colspan="9" class="py-16 text-center text-slate-400">
+              <ListTodo class="w-10 h-10 mx-auto mb-3 text-slate-300" />
+              <p class="text-sm font-medium">Belum ada tiket. Buat tiket pertama di baris atas!</p>
+            </td>
+          </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Footer: row count + Load More button -->
+    <div class="mt-3 flex items-center justify-between px-1">
+      <!-- Row counter: "Menampilkan X dari Y tiket" -->
+      <div class="flex items-center space-x-2">
+        <div class="h-1.5 bg-slate-200 rounded-full w-32 overflow-hidden">
+          <div
+            class="h-full bg-blue-500 rounded-full transition-all duration-300"
+            :style="{ width: totalCount > 0 ? `${(visibleCount / totalCount) * 100}%` : '0%' }"
+          ></div>
+        </div>
+        <span class="text-xs text-slate-500 font-medium">
+          Menampilkan
+          <span class="font-bold text-slate-800">{{ Math.min(visibleCount, totalCount) }}</span>
+          dari
+          <span class="font-bold text-slate-800">{{ totalCount }}</span>
+          tiket
+        </span>
+      </div>
+
+      <!-- Load More button (visible only if there's more data) -->
+      <button
+        v-if="hasMore"
+        @click="loadMore"
+        :disabled="isLoadingMore"
+        class="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition disabled:opacity-60"
+      >
+        <Loader2 v-if="isLoadingMore" class="w-3.5 h-3.5 animate-spin text-blue-500" />
+        <ChevronDown v-else class="w-3.5 h-3.5 text-slate-500" />
+        <span>{{ isLoadingMore ? 'Memuat...' : `Muat 20 lagi` }}</span>
+      </button>
+
+      <!-- All loaded indicator -->
+      <span v-else-if="totalCount > 0" class="text-xs text-slate-400 font-medium italic">
+        ✓ Semua tiket ditampilkan
+      </span>
     </div>
   </div>
 </template>

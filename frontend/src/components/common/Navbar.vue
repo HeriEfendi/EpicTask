@@ -40,7 +40,10 @@ const isUserMenuOpen = ref(false);
         class="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 shadow-2xs transition"
         :title="isSidebarOpen ? 'Tutup Side Menu' : 'Buka Side Menu'"
       >
-        <PanelLeft class="w-4 h-4" />
+        <PanelLeft
+          class="w-4 h-4 transition-transform duration-200"
+          :class="isSidebarOpen ? 'scale-x-[-1]' : 'scale-x-100'"
+        />
       </button>
 
       <div class="flex items-center space-x-1.5 font-bold text-slate-900 text-base">
