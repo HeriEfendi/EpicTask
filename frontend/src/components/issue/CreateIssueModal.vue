@@ -67,7 +67,7 @@ async function handleCreate() {
 <template>
   <div
     v-if="projectStore.isCreateModalOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
   >
     <div class="glass-modal w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 flex flex-col shadow-2xl animate-slide-up max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
@@ -91,10 +91,10 @@ async function handleCreate() {
         <!-- Issue Type & Status -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Issue Type</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Issue Type</label>
             <select
               v-model="issueType"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs"
             >
               <option value="TASK">Task (Standard Issue)</option>
               <option value="STORY">Story (Feature / User Story)</option>
@@ -104,10 +104,10 @@ async function handleCreate() {
           </div>
 
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Initial Status</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Initial Status</label>
             <select
               v-model="statusId"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs"
             >
               <option v-for="s in projectStore.statuses" :key="s.id" :value="s.id">
                 {{ s.name }} ({{ s.category }})
@@ -118,11 +118,11 @@ async function handleCreate() {
 
         <!-- Summary -->
         <div>
-          <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Summary *</label>
+          <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Summary *</label>
           <input
             v-model="summary"
             placeholder="e.g. Implement Webhook retry policies"
-            class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white placeholder-slate-400 font-medium"
+            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 placeholder-slate-400 font-medium shadow-2xs"
             autofocus
             @keyup.enter="handleCreate"
           />
@@ -130,22 +130,22 @@ async function handleCreate() {
 
         <!-- Description -->
         <div>
-          <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Description</label>
+          <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Description</label>
           <textarea
             v-model="description"
             rows="3"
             placeholder="Detailed description, requirements, or steps to reproduce..."
-            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-xs text-slate-800 focus:outline-none focus:border-blue-500 focus:bg-white placeholder-slate-400"
+            class="w-full bg-white border border-slate-300 rounded-lg p-3 text-xs text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 placeholder-slate-400 shadow-2xs"
           ></textarea>
         </div>
 
         <!-- Assignee & Priority -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Assignee</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Assignee</label>
             <select
               v-model="assigneeId"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none shadow-2xs"
             >
               <option :value="null">Unassigned</option>
               <option v-for="u in authStore.allUsers" :key="u.id" :value="u.id">
@@ -155,10 +155,10 @@ async function handleCreate() {
           </div>
 
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Priority</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Priority</label>
             <select
               v-model="priority"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none shadow-2xs"
             >
               <option value="HIGHEST">🔴 Highest</option>
               <option value="HIGH">🟠 High</option>
@@ -171,10 +171,10 @@ async function handleCreate() {
         <!-- Epic & Story Points -->
         <div class="grid grid-cols-2 gap-3">
           <div v-if="issueType !== 'EPIC'">
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Parent Epic</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Parent Epic</label>
             <select
               v-model="epicId"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none shadow-2xs"
             >
               <option :value="null">No Epic</option>
               <option v-for="e in projectStore.epics" :key="e.id" :value="e.id">
@@ -184,12 +184,12 @@ async function handleCreate() {
           </div>
 
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Story Points</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Story Points</label>
             <input
               v-model.number="storyPoints"
               type="number"
               min="0"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none shadow-2xs"
             />
           </div>
         </div>
@@ -197,20 +197,20 @@ async function handleCreate() {
         <!-- Start Date & Due Date -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Start Date</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Start Date</label>
             <input
               v-model="startDate"
               type="date"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none shadow-2xs"
             />
           </div>
 
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">Due Date</label>
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">Due Date</label>
             <input
               v-model="dueDate"
               type="date"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:bg-white"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none shadow-2xs"
             />
           </div>
         </div>
@@ -219,13 +219,13 @@ async function handleCreate() {
         <div class="flex justify-end space-x-2 pt-3 border-t border-slate-200">
           <button
             @click="projectStore.isCreateModalOpen = false"
-            class="px-4 py-2 text-xs text-slate-500 hover:text-slate-800"
+            class="px-4 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
           >
             Cancel
           </button>
           <button
             @click="handleCreate"
-            class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-600/30 active:scale-95 transition"
+            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-xs transition"
           >
             Create Issue
           </button>

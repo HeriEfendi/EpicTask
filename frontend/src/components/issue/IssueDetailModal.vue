@@ -146,7 +146,7 @@ async function handleDelete() {
 <template>
   <div
     v-if="projectStore.isDetailModalOpen && issue"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
   >
     <div class="glass-modal w-full max-w-4xl rounded-2xl border border-slate-200 bg-white max-h-[92vh] flex flex-col shadow-2xl animate-slide-up overflow-hidden">
       <!-- Modal Top Header -->
@@ -203,20 +203,20 @@ async function handleDelete() {
             <input
               :value="issue.summary"
               @change="(e) => handleUpdateField({ summary: e.target.value })"
-              class="w-full text-lg font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-slate-50 rounded px-1 py-1 transition focus:outline-none"
+              class="w-full text-lg font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-600 focus:bg-slate-50 rounded px-1 py-1 transition focus:outline-none"
               placeholder="Issue title..."
             />
           </div>
 
           <!-- Description Section -->
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Description</label>
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Description</label>
             <textarea
               :value="issue.description || ''"
               @change="(e) => handleUpdateField({ description: e.target.value })"
               rows="4"
               placeholder="Add detailed description, acceptance criteria, markdown notes..."
-              class="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition leading-relaxed"
+              class="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-xl p-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition leading-relaxed shadow-2xs"
             ></textarea>
           </div>
 
@@ -246,7 +246,7 @@ async function handleDelete() {
               <div
                 v-for="sub in projectStore.activeIssueSubtasks"
                 :key="sub.id"
-                class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition"
+                class="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 hover:border-slate-300 transition shadow-2xs"
               >
                 <div class="flex items-center space-x-2.5 truncate">
                   <input
@@ -278,12 +278,12 @@ async function handleDelete() {
               <input
                 v-model="newSubtaskSummary"
                 placeholder="Add new subtask item..."
-                class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-2xs"
                 @keyup.enter="handleAddSubtask"
               />
               <button
                 @click="handleAddSubtask"
-                class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1"
+                class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-2xs transition"
               >
                 <Plus class="w-3.5 h-3.5" />
                 <span>Add</span>
@@ -326,13 +326,13 @@ async function handleDelete() {
                     v-model="newCommentText"
                     rows="2"
                     placeholder="Add a comment... (Type @name to mention team members)"
-                    class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white"
+                    class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs"
                   ></textarea>
                   <div class="flex justify-between items-center">
                     <span class="text-[11px] text-slate-500">Tip: @mentions send instant push notifications</span>
                     <button
                       @click="handleAddComment"
-                      class="px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-xs"
+                      class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-xs transition"
                     >
                       <Send class="w-3 h-3" />
                       <span>Post</span>
@@ -374,37 +374,37 @@ async function handleDelete() {
                 </div>
                 <button
                   @click="isLoggingWork = !isLoggingWork"
-                  class="px-2.5 py-1 bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold"
+                  class="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-emerald-500 text-emerald-700 rounded-lg text-xs font-semibold shadow-2xs transition"
                 >
                   + Log Work
                 </button>
               </div>
 
               <!-- Log Work Inline Form -->
-              <div v-if="isLoggingWork" class="p-3 bg-white border border-emerald-400 rounded-xl space-y-2.5">
+              <div v-if="isLoggingWork" class="p-3 bg-white border border-emerald-400 rounded-xl space-y-2.5 shadow-xs">
                 <div class="flex items-center space-x-3">
                   <div class="w-32">
-                    <label class="block text-[10px] text-slate-500 mb-1">Time Spent (Hours)</label>
+                    <label class="block text-[10px] text-slate-600 mb-1">Time Spent (Hours)</label>
                     <input
                       v-model.number="logHours"
                       type="number"
                       step="0.25"
                       min="0.1"
-                      class="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 focus:bg-white"
+                      class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 shadow-2xs"
                     />
                   </div>
                   <div class="flex-1">
-                    <label class="block text-[10px] text-slate-500 mb-1">Work Description</label>
+                    <label class="block text-[10px] text-slate-600 mb-1">Work Description</label>
                     <input
                       v-model="logDescription"
                       placeholder="What work was completed?..."
-                      class="w-full bg-slate-50 border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 focus:bg-white"
+                      class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 shadow-2xs"
                     />
                   </div>
                 </div>
                 <div class="flex justify-end space-x-2">
-                  <button @click="isLoggingWork = false" class="px-2 py-1 text-xs text-slate-500">Cancel</button>
-                  <button @click="handleLogWork" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-medium">Save Log</button>
+                  <button @click="isLoggingWork = false" class="px-2.5 py-1 text-xs font-medium text-slate-600 hover:text-slate-900">Cancel</button>
+                  <button @click="handleLogWork" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-semibold shadow-xs">Save Log</button>
                 </div>
               </div>
 
@@ -413,7 +413,7 @@ async function handleDelete() {
                 <div
                   v-for="tl in projectStore.activeIssueTimeLogs"
                   :key="tl.id"
-                  class="p-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-xs"
+                  class="p-2.5 bg-white border border-slate-200 rounded-lg flex items-center justify-between text-xs shadow-2xs"
                 >
                   <div>
                     <span class="font-bold text-slate-800">{{ tl.user_name || 'Member' }}: </span>
@@ -432,13 +432,13 @@ async function handleDelete() {
         <div class="p-6 space-y-5 bg-slate-50/70 text-xs">
           <!-- Status Dropdown (with Workflow Transition rules) -->
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[11px] mb-1.5">
               Status (Workflow)
             </label>
             <select
               :value="issue.status_id"
               @change="handleStatusChange"
-              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs"
             >
               <option
                 v-for="s in projectStore.statuses"
@@ -452,13 +452,13 @@ async function handleDelete() {
 
           <!-- Priority -->
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[11px] mb-1.5">
               Priority
             </label>
             <select
               :value="issue.priority"
               @change="(e) => handleUpdateField({ priority: e.target.value })"
-              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none cursor-pointer"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold focus:outline-none cursor-pointer shadow-2xs"
               :class="`badge-priority-${issue.priority}`"
             >
               <option value="HIGHEST">🔴 Highest</option>
@@ -470,13 +470,13 @@ async function handleDelete() {
 
           <!-- Assignee -->
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[11px] mb-1.5">
               Assignee
             </label>
             <select
               :value="issue.assignee_id || ''"
               @change="(e) => handleUpdateField({ assignee_id: e.target.value ? Number(e.target.value) : null })"
-              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none cursor-pointer"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-800 focus:outline-none cursor-pointer shadow-2xs"
             >
               <option value="">Unassigned</option>
               <option
@@ -491,7 +491,7 @@ async function handleDelete() {
 
           <!-- Story Points (Estimation) -->
           <div>
-            <label class="block text-slate-500 font-bold uppercase tracking-wider text-[11px] mb-1.5">
+            <label class="block text-slate-600 font-bold uppercase tracking-wider text-[11px] mb-1.5">
               Story Points (Fibonacci)
             </label>
             <div class="flex items-center space-x-1.5">
@@ -499,8 +499,8 @@ async function handleDelete() {
                 v-for="p in [1, 2, 3, 5, 8, 13]"
                 :key="p"
                 @click="handleUpdateField({ story_points: p })"
-                class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center border"
-                :class="issue.story_points === p ? 'bg-blue-600 text-white border-blue-600 ring-2 ring-blue-300' : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+                class="w-7 h-7 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center border shadow-2xs"
+                :class="issue.story_points === p ? 'bg-blue-600 text-white border-blue-600 ring-2 ring-blue-200' : 'bg-white border-slate-300 text-slate-700 hover:text-slate-900 hover:bg-slate-50'"
               >
                 {{ p }}
               </button>
@@ -510,26 +510,26 @@ async function handleDelete() {
           <!-- Dates: Start Date & Due Date -->
           <div class="space-y-3 pt-1 border-t border-slate-200">
             <div>
-              <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">
+              <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">
                 Start Date
               </label>
               <input
                 type="date"
                 :value="issue.start_date || ''"
                 @change="(e) => handleUpdateField({ start_date: e.target.value || null })"
-                class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none"
+                class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none shadow-2xs"
               />
             </div>
 
             <div>
-              <label class="block text-slate-500 font-bold uppercase tracking-wider text-[10px] mb-1">
+              <label class="block text-slate-600 font-bold uppercase tracking-wider text-[10px] mb-1">
                 Due Date
               </label>
               <input
                 type="date"
                 :value="issue.due_date || ''"
                 @change="(e) => handleUpdateField({ due_date: e.target.value || null })"
-                class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none"
+                class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none shadow-2xs"
               />
             </div>
           </div>

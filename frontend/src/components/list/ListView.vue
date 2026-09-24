@@ -120,7 +120,7 @@ async function handleDelete(issueId) {
             <td class="py-2.5 px-3">
               <select
                 v-model="quickType"
-                class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500"
+                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500 shadow-2xs"
               >
                 <option value="TASK">TASK</option>
                 <option value="STORY">STORY</option>
@@ -132,7 +132,7 @@ async function handleDelete(issueId) {
               <input
                 v-model="quickSummary"
                 placeholder="What needs to be done? Press Enter to add..."
-                class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                class="w-full bg-white border border-slate-300 rounded-md px-2.5 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-2xs"
                 @keyup.enter="handleQuickCreate"
               />
             </td>
@@ -140,7 +140,7 @@ async function handleDelete(issueId) {
             <td class="py-2.5 px-3">
               <select
                 v-model="quickPriority"
-                class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none"
+                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none shadow-2xs"
               >
                 <option value="HIGHEST">HIGHEST</option>
                 <option value="HIGH">HIGH</option>
@@ -154,7 +154,7 @@ async function handleDelete(issueId) {
             <td class="py-2.5 px-3 text-center">
               <button
                 @click="handleQuickCreate"
-                class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-medium text-xs shadow-xs"
+                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-md font-semibold text-xs shadow-xs transition"
               >
                 Add
               </button>
@@ -206,7 +206,7 @@ async function handleDelete(issueId) {
               <select
                 :value="issue.status_id"
                 @change="(e) => handleStatusChange(issue, e.target.value)"
-                class="bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-50"
+                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-800 focus:outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-50 shadow-2xs"
               >
                 <option
                   v-for="status in projectStore.statuses"
@@ -223,7 +223,7 @@ async function handleDelete(issueId) {
               <select
                 :value="issue.priority"
                 @change="(e) => handlePriorityChange(issue, e.target.value)"
-                class="border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none cursor-pointer"
+                class="border border-slate-200 rounded-md px-2 py-1 text-xs focus:outline-none cursor-pointer shadow-2xs"
                 :class="`badge-priority-${issue.priority}`"
               >
                 <option value="HIGHEST">🔴 Highest</option>
@@ -238,7 +238,7 @@ async function handleDelete(issueId) {
               <select
                 :value="issue.assignee_id || ''"
                 @change="(e) => handleAssigneeChange(issue, e.target.value)"
-                class="bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-800 focus:outline-none cursor-pointer hover:bg-slate-50 max-w-[130px] truncate"
+                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-800 focus:outline-none cursor-pointer hover:bg-slate-50 max-w-[130px] truncate shadow-2xs"
               >
                 <option value="">Unassigned</option>
                 <option
@@ -259,7 +259,7 @@ async function handleDelete(issueId) {
                 max="99"
                 :value="issue.story_points || 0"
                 @change="(e) => handlePointsChange(issue, e.target.value)"
-                class="w-14 bg-white border border-slate-200 rounded px-2 py-1 text-xs text-center text-slate-800 focus:outline-none focus:border-blue-500"
+                class="w-14 bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-center text-slate-800 focus:outline-none focus:border-blue-500 shadow-2xs"
               />
             </td>
 
@@ -269,7 +269,7 @@ async function handleDelete(issueId) {
                 type="date"
                 :value="issue.due_date || ''"
                 @change="(e) => handleDueDateChange(issue, e.target.value)"
-                class="bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
+                class="bg-white border border-slate-300 rounded-md px-2 py-1 text-xs text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
               />
             </td>
 
@@ -278,14 +278,14 @@ async function handleDelete(issueId) {
               <div class="flex items-center justify-center space-x-1">
                 <button
                   @click="projectStore.openIssueDetail(issue.id)"
-                  class="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                  class="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
                   title="Open Issue Details"
                 >
                   <ExternalLink class="w-3.5 h-3.5" />
                 </button>
                 <button
                   @click="handleDelete(issue.id)"
-                  class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
+                  class="p-1 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
                   title="Delete Issue"
                 >
                   <Trash2 class="w-3.5 h-3.5" />

@@ -69,7 +69,7 @@ async function handleDeleteTransition(tid) {
 <template>
   <div
     v-if="isOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
   >
     <div class="glass-modal w-full max-w-2xl rounded-2xl p-6 border border-slate-200 bg-white max-h-[90vh] flex flex-col shadow-2xl animate-slide-up">
       <!-- Header -->
@@ -132,11 +132,11 @@ async function handleDeleteTransition(tid) {
             <input
               v-model="newStatusName"
               placeholder="New status name (e.g. QA Testing)..."
-              class="flex-1 min-w-[160px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+              class="flex-1 min-w-[160px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs"
             />
             <select
               v-model="newStatusCategory"
-              class="bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none"
+              class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none shadow-2xs"
             >
               <option value="TODO">Category: TODO</option>
               <option value="IN_PROGRESS">Category: IN PROGRESS</option>
@@ -145,12 +145,12 @@ async function handleDeleteTransition(tid) {
             <input
               v-model="newStatusColor"
               type="color"
-              class="w-8 h-8 rounded border border-slate-300 bg-white cursor-pointer p-0.5"
+              class="w-8 h-8 rounded border border-slate-300 bg-white cursor-pointer p-0.5 shadow-2xs"
               title="Pick column color"
             />
             <button
               @click="handleCreateStatus"
-              class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-xs"
+              class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-xs transition"
             >
               <Plus class="w-3.5 h-3.5" />
               <span>Add Status</span>
@@ -186,7 +186,7 @@ async function handleDeleteTransition(tid) {
 
               <button
                 @click="handleDeleteTransition(t.id)"
-                class="p-1 text-slate-400 hover:text-red-600 transition"
+                class="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition"
                 title="Remove rule"
               >
                 <Trash2 class="w-3.5 h-3.5" />
@@ -196,10 +196,10 @@ async function handleDeleteTransition(tid) {
 
           <!-- Add Transition Form -->
           <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-wrap items-center gap-2">
-            <span class="text-xs text-slate-500 font-medium">Allow moving from</span>
+            <span class="text-xs text-slate-600 font-medium">Allow moving from</span>
             <select
               v-model="fromStatusId"
-              class="bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none"
+              class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none shadow-2xs"
             >
               <option :value="null">Select origin...</option>
               <option v-for="s in projectStore.statuses" :key="s.id" :value="s.id">
@@ -207,10 +207,10 @@ async function handleDeleteTransition(tid) {
               </option>
             </select>
 
-            <span class="text-xs text-slate-500 font-medium">to</span>
+            <span class="text-xs text-slate-600 font-medium">to</span>
             <select
               v-model="toStatusId"
-              class="bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-xs text-slate-700 focus:outline-none"
+              class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none shadow-2xs"
             >
               <option :value="null">Select target...</option>
               <option v-for="s in projectStore.statuses" :key="s.id" :value="s.id">
@@ -220,7 +220,7 @@ async function handleDeleteTransition(tid) {
 
             <button
               @click="handleCreateTransition"
-              class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-xs"
+              class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-xs transition"
             >
               <Plus class="w-3.5 h-3.5" />
               <span>Allow Transition</span>

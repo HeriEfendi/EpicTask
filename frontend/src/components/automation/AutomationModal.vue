@@ -82,7 +82,7 @@ function applyTemplate(name, trigger, action) {
 <template>
   <div
     v-if="autoStore.isRuleModalOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
   >
     <div class="glass-modal w-full max-w-2xl rounded-2xl p-6 border border-slate-200 bg-white max-h-[90vh] flex flex-col shadow-2xl animate-slide-up">
       <!-- Header -->
@@ -138,7 +138,7 @@ function applyTemplate(name, trigger, action) {
             <h3 class="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
               <Zap class="w-3.5 h-3.5" /> Rule Builder (IF - THEN - THAT)
             </h3>
-            <button @click="isCreating = false" class="text-xs text-slate-500 hover:text-slate-800">Cancel</button>
+            <button @click="isCreating = false" class="text-xs font-medium text-slate-500 hover:text-slate-800">Cancel</button>
           </div>
 
           <div>
@@ -146,19 +146,19 @@ function applyTemplate(name, trigger, action) {
             <input
               v-model="ruleName"
               placeholder="e.g. Close Subtasks When Epic Finishes"
-              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-500"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs"
             />
           </div>
 
           <!-- Visual IF block -->
-          <div class="p-3 bg-white rounded-lg border border-slate-200 flex items-center space-x-3">
-            <span class="px-2 py-0.5 rounded font-black text-xs bg-amber-50 text-amber-700 border border-amber-200">
+          <div class="p-3 bg-white rounded-lg border border-slate-200 flex items-center space-x-3 shadow-2xs">
+            <span class="px-2 py-0.5 rounded font-bold text-xs bg-amber-50 text-amber-700 border border-amber-200">
               IF TRIGGER
             </span>
             <div class="flex-1">
               <select
                 v-model="selectedTrigger"
-                class="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800 focus:outline-none"
+                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-600"
               >
                 <option value="STATUS_CHANGED">When issue status changes to "Done"</option>
                 <option value="DUE_DATE_NEAR">When Due Date is within 24 hours</option>
@@ -172,14 +172,14 @@ function applyTemplate(name, trigger, action) {
           </div>
 
           <!-- Visual THEN block -->
-          <div class="p-3 bg-white rounded-lg border border-slate-200 flex items-center space-x-3">
-            <span class="px-2 py-0.5 rounded font-black text-xs bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <div class="p-3 bg-white rounded-lg border border-slate-200 flex items-center space-x-3 shadow-2xs">
+            <span class="px-2 py-0.5 rounded font-bold text-xs bg-emerald-50 text-emerald-700 border border-emerald-200">
               THEN ACTION
             </span>
             <div class="flex-1">
               <select
                 v-model="selectedAction"
-                class="w-full bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800 focus:outline-none"
+                class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-600"
               >
                 <option value="CASCADE_SUBTASKS_DONE">Automatically set all child subtasks to Done</option>
                 <option value="ASSIGN_TO_REPORTER">Reassign ticket back to the original Reporter</option>
@@ -190,13 +190,13 @@ function applyTemplate(name, trigger, action) {
           <div class="flex justify-end space-x-2 pt-2">
             <button
               @click="isCreating = false"
-              class="px-3 py-1.5 rounded-lg text-xs text-slate-500 hover:text-slate-800"
+              class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-200/50"
             >
               Cancel
             </button>
             <button
               @click="handleCreateRule"
-              class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-600/30"
+              class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-xs"
             >
               Save Rule
             </button>
@@ -207,7 +207,7 @@ function applyTemplate(name, trigger, action) {
         <div v-else class="flex justify-end">
           <button
             @click="isCreating = true"
-            class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow-xs transition"
+            class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-xs transition"
           >
             <Plus class="w-3.5 h-3.5" />
             <span>Create Custom Rule</span>

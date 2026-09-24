@@ -87,12 +87,12 @@ function getBarStyle(issue) {
 
 function getBarColor(issue) {
   if (issue.status_category === 'DONE') {
-    return 'bg-emerald-600 hover:bg-emerald-500 border-emerald-500 text-white';
+    return 'bg-emerald-600 hover:bg-emerald-700 border-emerald-700 text-white';
   }
   if (issue.status_category === 'IN_PROGRESS') {
-    return 'bg-amber-500 hover:bg-amber-400 border-amber-400 text-white';
+    return 'bg-amber-500 hover:bg-amber-600 border-amber-600 text-white';
   }
-  return 'bg-blue-600 hover:bg-blue-500 border-blue-500 text-white';
+  return 'bg-blue-600 hover:bg-blue-700 border-blue-700 text-white';
 }
 </script>
 
@@ -113,7 +113,7 @@ function getBarColor(issue) {
       <div class="flex items-center space-x-2">
         <button
           @click="shiftDays(-7)"
-          class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition shadow-xs"
+          class="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
           title="Previous week"
         >
           <ChevronLeft class="w-4 h-4" />
@@ -121,14 +121,14 @@ function getBarColor(issue) {
 
         <button
           @click="resetToToday"
-          class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition shadow-xs"
+          class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-2xs"
         >
           Today
         </button>
 
         <button
           @click="shiftDays(7)"
-          class="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition shadow-xs"
+          class="p-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition shadow-2xs"
           title="Next week"
         >
           <ChevronRight class="w-4 h-4" />
