@@ -1,0 +1,84 @@
+# ==========================================
+# Rust & Cargo
+# ==========================================
+/target/
+**/target/
+**/*.rs.bk
+*.pdb
+
+# ==========================================
+# Node.js & Frontend (Vite / React)
+# ==========================================
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# Tauri
+# ==========================================
+src-tauri/target/
+**/src-tauri/target/
+src-tauri/gen/schemas/
+**/src-tauri/gen/schemas/
+
+# ==========================================
+# Environment & Secrets (.env)
+# ==========================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+
+# ==========================================
+# Database & Media / Uploads / Temp
+# ==========================================
+*.db
+*.sqlite
+*.sqlite3
+*.log
+uploads/
+**/uploads/
+storage/
+**/storage/
+tmp/
+temp/
+
+# ==========================================
+# IDEs & Editors
+# ==========================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+
+# ==========================================
+# OS Generated Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
