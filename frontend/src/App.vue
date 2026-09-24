@@ -23,7 +23,8 @@ const authStore = useAuthStore();
 const projectStore = useProjectStore();
 const notifStore = useNotificationStore();
 
-const isSidebarCollapsed = ref(false);
+// Sidebar only has 2 states: open (true) or hidden (false)
+const isSidebarOpen = ref(true);
 const isWorkflowModalOpen = ref(false);
 const isSettingsModalOpen = ref(false);
 
@@ -39,37 +40,37 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="h-screen bg-slate-50 text-slate-900 flex font-sans overflow-hidden">
+  <div class="h-screen bg-slate-50 text-slate-900 flex flex-col font-sans overflow-hidden">
     <!-- Unauthenticated State -->
     <AuthModal v-if="!authStore.isAuthenticated" />
 
-    <!-- Authenticated App Layout with Sidebar -->
+    <!-- Authenticated App Layout -->
     <template v-else>
-      <!-- Side Menu -->
-      <Sidebar
-        :is-collapsed="isSidebarCollapsed"
-        @toggle-collapse="isSidebarCollapsed = !isSidebarCollapsed"
-        @open-workflow-modal="isWorkflowModalOpen = true"
+      <!-- Navbar: always full-width at top, never shifts with sidebar -->
+      <Navbar
+        :is-sidebar-open="isSidebarOpen"
+        @toggle-sidebar="isSidebarOpen = !isSidebarOpen"
+        @open-settings="isSettingsModalOpen = true"
       />
 
-      <!-- Main Application Container -->
-      <div class="flex-1 flex flex-col overflow-hidden min-w-0">
-        <!-- Streamlined Header -->
-        <Navbar
-          :is-sidebar-collapsed="isSidebarCollapsed"
-          @toggle-sidebar="isSidebarCollapsed = !isSidebarCollapsed"
-          @open-settings="isSettingsModalOpen = true"
+      <!-- Body row: Sidebar left + Main right, fills remaining height -->
+      <div class="flex flex-1 overflow-hidden min-h-0">
+        <!-- Sidebar: open = w-64, hidden = w-0 with overflow-hidden -->
+        <Sidebar
+          :is-open="isSidebarOpen"
+          @open-workflow-modal="isWorkflowModalOpen = true"
         />
 
-        <!-- Secondary Filter/View Tabs -->
-        <ViewTabs @open-workflow-modal="isWorkflowModalOpen = true" />
+        <!-- Main content column -->
+        <div class="flex-1 flex flex-col overflow-hidden min-w-0">
+          <ViewTabs @open-workflow-modal="isWorkflowModalOpen = true" />
 
-        <!-- Views Viewport -->
-        <main class="flex-1 flex flex-col overflow-hidden relative">
-          <KanbanBoard v-if="projectStore.activeView === 'kanban'" />
-          <TimelineView v-else-if="projectStore.activeView === 'timeline'" />
-          <ListView v-else-if="projectStore.activeView === 'list'" />
-        </main>
+          <main class="flex-1 flex flex-col overflow-hidden relative">
+            <KanbanBoard v-if="projectStore.activeView === 'kanban'" />
+            <TimelineView v-else-if="projectStore.activeView === 'timeline'" />
+            <ListView v-else-if="projectStore.activeView === 'list'" />
+          </main>
+        </div>
       </div>
 
       <!-- Modals & Overlays -->

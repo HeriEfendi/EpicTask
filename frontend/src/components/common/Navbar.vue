@@ -15,9 +15,9 @@ import {
 } from 'lucide-vue-next';
 
 const props = defineProps({
-  isSidebarCollapsed: {
+  isSidebarOpen: {
     type: Boolean,
-    default: false,
+    default: true,
   }
 });
 
@@ -34,11 +34,11 @@ const isUserMenuOpen = ref(false);
   <header class="h-14 border-b border-slate-200 bg-white px-5 flex items-center justify-between z-20 sticky top-0 shadow-2xs">
     <!-- Left: Sidebar Toggle & Active Project Breadcrumb -->
     <div class="flex items-center space-x-3">
+      <!-- Sidebar Toggle: always visible, toggles open/closed -->
       <button
-        v-if="isSidebarCollapsed"
         @click="emit('toggle-sidebar')"
         class="p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 border border-slate-200 shadow-2xs transition"
-        title="Buka Side Menu"
+        :title="isSidebarOpen ? 'Tutup Side Menu' : 'Buka Side Menu'"
       >
         <PanelLeft class="w-4 h-4" />
       </button>

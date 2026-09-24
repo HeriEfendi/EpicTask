@@ -16,23 +16,18 @@ import {
   Plus,
   CheckCircle2,
   ChevronDown,
-  ChevronRight,
-  PanelLeftClose,
-  PanelLeft,
   UserCheck,
-  Monitor,
-  Sparkles,
-  Layers
+  Sparkles
 } from 'lucide-vue-next';
 
 const props = defineProps({
-  isCollapsed: {
+  isOpen: {
     type: Boolean,
-    default: false,
+    default: true,
   }
 });
 
-const emit = defineEmits(['toggle-collapse', 'open-workflow-modal']);
+const emit = defineEmits(['open-workflow-modal']);
 
 const authStore = useAuthStore();
 const projectStore = useProjectStore();
@@ -101,53 +96,14 @@ function toggleMyIssues() {
 
 <template>
   <aside
-    class="bg-white border-r border-slate-200 flex flex-col transition-all duration-200 z-30 shrink-0 select-none shadow-2xs"
-    :class="isCollapsed ? 'w-16' : 'w-64'"
+    class="bg-white border-r border-slate-200 flex flex-col shrink-0 select-none shadow-2xs transition-all duration-200 overflow-hidden"
+    :class="isOpen ? 'w-64' : 'w-0'"
   >
-    <!-- Top Brand / Sidebar Toggle -->
-    <div class="h-14 border-b border-slate-200 px-3.5 flex items-center justify-between">
-      <div v-if="!isCollapsed" class="flex items-center space-x-2.5 overflow-hidden">
-        <img src="/src/assets/logo.svg" alt="EpicTask" class="w-8 h-8 rounded-lg shadow-2xs shrink-0" />
-        <div class="flex flex-col truncate">
-          <span class="font-bold text-lg tracking-tight text-slate-900 leading-tight">
-            Epic<span class="text-blue-600">Task</span>
-          </span>
-          <span v-if="isTauri()" class="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
-            <Monitor class="w-3 h-3 text-slate-400" /> Desktop
-          </span>
-        </div>
-      </div>
-
-      <div v-else class="w-full flex justify-center">
-        <img src="/src/assets/logo.svg" alt="EpicTask" class="w-8 h-8 rounded-lg shadow-2xs" />
-      </div>
-
-      <button
-        v-if="!isCollapsed"
-        @click="emit('toggle-collapse')"
-        class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
-        title="Collapse Sidebar"
-      >
-        <PanelLeftClose class="w-4 h-4" />
-      </button>
-    </div>
-
-    <!-- Collapsed Toggle Button when collapsed -->
-    <div v-if="isCollapsed" class="p-2 border-b border-slate-200 flex justify-center">
-      <button
-        @click="emit('toggle-collapse')"
-        class="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition"
-        title="Expand Sidebar"
-      >
-        <PanelLeft class="w-4 h-4" />
-      </button>
-    </div>
-
     <!-- Scrollable Sidebar Body -->
     <div class="flex-1 overflow-y-auto px-3 py-3 space-y-4">
       <!-- 1. Workspace Selector Section -->
       <div>
-        <div v-if="!isCollapsed" class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
           Workspace
         </div>
 
@@ -161,21 +117,20 @@ function toggleMyIssues() {
               <div class="w-7 h-7 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center shrink-0">
                 <Building2 class="w-4 h-4 text-blue-600" />
               </div>
-              <div v-if="!isCollapsed" class="truncate">
+              <div class="truncate">
                 <p class="text-sm font-semibold text-slate-900 truncate">
                   {{ authStore.currentWorkspace?.name || 'Pilih Workspace' }}
                 </p>
                 <p class="text-xs text-slate-500">Ruang Kerja</p>
               </div>
             </div>
-            <ChevronDown v-if="!isCollapsed" class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+            <ChevronDown class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
           </button>
 
           <!-- Workspace Dropdown Menu -->
           <div
             v-if="isWorkspaceMenuOpen"
             class="absolute left-0 mt-1 w-64 glass-dropdown rounded-xl p-2 z-50 animate-slide-up shadow-xl"
-            :class="isCollapsed ? 'left-14 top-0' : 'left-0'"
           >
             <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 py-1">
               Daftar Workspace
@@ -232,7 +187,7 @@ function toggleMyIssues() {
 
       <!-- 2. Project Selector Section -->
       <div v-if="authStore.currentWorkspace">
-        <div v-if="!isCollapsed" class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
           Projek
         </div>
 
@@ -246,7 +201,7 @@ function toggleMyIssues() {
               <div class="w-7 h-7 rounded-md bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0">
                 <FolderKanban class="w-4 h-4 text-indigo-600" />
               </div>
-              <div v-if="!isCollapsed" class="truncate">
+              <div class="truncate">
                 <p class="text-sm font-semibold text-slate-900 truncate">
                   {{ projectStore.currentProject?.name || 'Pilih Projek' }}
                 </p>
@@ -255,14 +210,13 @@ function toggleMyIssues() {
                 </p>
               </div>
             </div>
-            <ChevronDown v-if="!isCollapsed" class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+            <ChevronDown class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
           </button>
 
           <!-- Project Dropdown Menu -->
           <div
             v-if="isProjectMenuOpen"
             class="absolute left-0 mt-1 w-72 glass-dropdown rounded-xl p-2 z-50 animate-slide-up shadow-xl"
-            :class="isCollapsed ? 'left-14 top-0' : 'left-0'"
           >
             <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 py-1">
               Daftar Projek
@@ -330,7 +284,7 @@ function toggleMyIssues() {
 
       <!-- 3. Navigation Views Section -->
       <div class="space-y-1">
-        <div v-if="!isCollapsed" class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
           Tampilan Board
         </div>
 
@@ -341,9 +295,9 @@ function toggleMyIssues() {
           title="Kanban Board"
         >
           <Kanban class="w-4 h-4 shrink-0" :class="projectStore.activeView === 'kanban' ? 'text-blue-600' : 'text-slate-500'" />
-          <span v-if="!isCollapsed" class="flex-1 text-left truncate">Kanban Board</span>
+          <span class="flex-1 text-left truncate">Kanban Board</span>
           <span
-            v-if="!isCollapsed && projectStore.filteredIssues.length > 0"
+            v-if="projectStore.filteredIssues.length > 0"
             class="text-xs font-semibold px-2 py-0.5 rounded-full"
             :class="projectStore.activeView === 'kanban' ? 'bg-blue-200/80 text-blue-800' : 'bg-slate-100 text-slate-600'"
           >
@@ -358,7 +312,7 @@ function toggleMyIssues() {
           title="Timeline / Gantt"
         >
           <CalendarRange class="w-4 h-4 shrink-0" :class="projectStore.activeView === 'timeline' ? 'text-blue-600' : 'text-slate-500'" />
-          <span v-if="!isCollapsed" class="flex-1 text-left truncate">Timeline / Gantt</span>
+          <span class="flex-1 text-left truncate">Timeline / Gantt</span>
         </button>
 
         <button
@@ -368,7 +322,7 @@ function toggleMyIssues() {
           title="List View"
         >
           <ListTodo class="w-4 h-4 shrink-0" :class="projectStore.activeView === 'list' ? 'text-blue-600' : 'text-slate-500'" />
-          <span v-if="!isCollapsed" class="flex-1 text-left truncate">List Spreadsheet</span>
+          <span class="flex-1 text-left truncate">List Spreadsheet</span>
         </button>
       </div>
 
@@ -376,7 +330,7 @@ function toggleMyIssues() {
 
       <!-- 4. Tools & Configuration Section -->
       <div class="space-y-1">
-        <div v-if="!isCollapsed" class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
+        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
           Otomasi & Aturan
         </div>
 
@@ -386,7 +340,7 @@ function toggleMyIssues() {
           title="Automation Engine"
         >
           <Bot class="w-4 h-4 text-purple-600 shrink-0" />
-          <span v-if="!isCollapsed" class="truncate">No-Code Automation</span>
+          <span class="truncate">No-Code Automation</span>
         </button>
 
         <button
@@ -395,12 +349,12 @@ function toggleMyIssues() {
           title="Workflow Rules"
         >
           <Workflow class="w-4 h-4 text-blue-600 shrink-0" />
-          <span v-if="!isCollapsed" class="truncate">Workflow Guard Rules</span>
+          <span class="truncate">Workflow Guard Rules</span>
         </button>
       </div>
     </div>
 
-    <!-- 5. Bottom Sidebar User & Live Sync Info -->
+    <!-- 5. Bottom Filter Toggle -->
     <div class="p-3 border-t border-slate-200 bg-slate-50/70">
       <button
         @click="toggleMyIssues"
@@ -409,7 +363,7 @@ function toggleMyIssues() {
         title="Filter issue saya"
       >
         <UserCheck class="w-4 h-4 shrink-0" :class="projectStore.filterAssignee === authStore.user?.id ? 'text-blue-600' : 'text-slate-500'" />
-        <span v-if="!isCollapsed" class="truncate">Filter Tiket Saya</span>
+        <span class="truncate">Filter Tiket Saya</span>
       </button>
     </div>
   </aside>
