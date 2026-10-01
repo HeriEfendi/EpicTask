@@ -52,6 +52,7 @@ const emit = defineEmits(['update:modelValue', 'save']);
 const editorRef = ref(null);
 const fileInputRef = ref(null);
 const isFullscreen = ref(false);
+const isInsideTable = ref(false);
 const isRawMode = ref(false);
 const rawHtml = ref('');
 
@@ -104,16 +105,29 @@ const bgColors = [
 ];
 
 // Initialize content
+function updateTableContext() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || !editorRef.value) {
+    isInsideTable.value = false;
+    return;
+  }
+  let node = sel.getRangeAt(0).startContainer;
+  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  isInsideTable.value = !!node.closest?.('table') && editorRef.value.contains(node);
+}
+
 onMounted(() => {
   if (editorRef.value) {
     editorRef.value.innerHTML = props.modelValue || '';
     updateStats();
   }
   document.addEventListener('click', handleOutsideClick);
+  document.addEventListener('selectionchange', updateTableContext);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleOutsideClick);
+  document.removeEventListener('selectionchange', updateTableContext);
   if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
 });
 
@@ -890,8 +904,9 @@ function handleOutsideClick(e) {
       </div>
     </div>
 
-    <!-- ── TABLE CONTEXTUAL QUICK BAR (Shown when editing inside table) ── -->
+    <!-- ── TABLE CONTEXTUAL QUICK BAR (Shown only when cursor is inside a table) ── -->
     <div
+      v-show="isInsideTable"
       class="bg-blue-50/70 border-b border-blue-200 px-3 py-1 flex items-center gap-2 text-xs text-blue-900"
     >
       <span class="font-semibold flex items-center gap-1 text-[11px] text-blue-700">

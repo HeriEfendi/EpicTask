@@ -16,10 +16,7 @@ const PAGE_SIZE = 20;
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
 
-// Inline quick create row state
-const quickSummary = ref('');
-const quickType = ref('TASK');
-const quickPriority = ref('MEDIUM');
+
 
 // --- Infinite Scroll State ---
 const visibleCount = ref(PAGE_SIZE);
@@ -73,20 +70,7 @@ onUnmounted(() => {
   }
 });
 
-// --- Issue Handlers ---
-async function handleQuickCreate() {
-  if (!quickSummary.value.trim()) return;
-  try {
-    await projectStore.createIssue({
-      summary: quickSummary.value.trim(),
-      issue_type: quickType.value,
-      priority: quickPriority.value,
-    });
-    quickSummary.value = '';
-  } catch (e) {
-    alert(e.message || 'Gagal membuat tiket');
-  }
-}
+
 
 async function handleStatusChange(issue, newStatusId) {
   try {
@@ -171,52 +155,7 @@ async function handleDelete(issueId) {
         </thead>
 
         <tbody class="divide-y divide-slate-100 text-slate-800">
-          <!-- Quick Inline Add Row -->
-          <tr class="bg-blue-50/50 hover:bg-blue-50 transition border-b border-blue-100">
-            <td class="py-3 px-3.5 font-mono text-xs text-blue-600 font-bold">+ Baru</td>
-            <td class="py-3 px-3.5">
-              <select
-                v-model="quickType"
-                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-blue-600 shadow-2xs"
-              >
-                <option value="TASK">TASK</option>
-                <option value="STORY">STORY</option>
-                <option value="BUG">BUG</option>
-                <option value="EPIC">EPIC</option>
-              </select>
-            </td>
-            <td class="py-3 px-3.5">
-              <input
-                v-model="quickSummary"
-                placeholder="Apa yang perlu dikerjakan? Tekan Enter..."
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-2xs"
-                @keyup.enter="handleQuickCreate"
-              />
-            </td>
-            <td class="py-3 px-3.5 text-slate-400 italic text-xs">To Do</td>
-            <td class="py-3 px-3.5">
-              <select
-                v-model="quickPriority"
-                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none shadow-2xs"
-              >
-                <option value="HIGHEST">HIGHEST</option>
-                <option value="HIGH">HIGH</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="LOW">LOW</option>
-              </select>
-            </td>
-            <td class="py-3 px-3.5 text-slate-400 italic text-xs">Belum ditugaskan</td>
-            <td class="py-3 px-3.5 text-slate-400 text-center text-xs">-</td>
-            <td class="py-3 px-3.5 text-slate-400 italic text-xs">Tidak ada</td>
-            <td class="py-3 px-3.5 text-center">
-              <button
-                @click="handleQuickCreate"
-                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-semibold text-xs shadow-xs transition"
-              >
-                Tambah
-              </button>
-            </td>
-          </tr>
+
 
           <!-- Issues Rows (sliced to visibleIssues) -->
           <tr
