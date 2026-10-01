@@ -97,7 +97,7 @@ pub async fn init_db(pool: &MySqlPool) -> Result<(), Box<dyn std::error::Error>>
             epic_id BIGINT DEFAULT NULL,
             `key` VARCHAR(20) UNIQUE NOT NULL,
             summary VARCHAR(255) NOT NULL,
-            description TEXT,
+            description LONGTEXT,
             issue_type VARCHAR(20) NOT NULL DEFAULT 'TASK',
             status_id BIGINT NOT NULL,
             priority VARCHAR(20) DEFAULT 'MEDIUM',
