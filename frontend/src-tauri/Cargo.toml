@@ -1,6 +1,6 @@
 [package]
 name = "epictask-desktop"
-version = "0.1.2"
+version = "0.1.3"
 description = "EpicTask Desktop - Modern Project & Issue Tracking"
 edition = "2021"
 

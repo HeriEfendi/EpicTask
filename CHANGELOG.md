@@ -1,5 +1,15 @@
 # EpicTask Changelog
 
+## [v0.1.3] - 2026-10-01
+
+### 🚀 Fitur Baru (Features)
+- integrate vue-toastification for professional toast notifications (9e84937)
+- standardize CreateIssueModal with RichTextEditor and clean up ListView inline row (a539462)
+
+### ⚡ Peningkatan & Refactoring
+- align description label and editor hint horizontally in IssueDetailModal (f042e25)
+- unify IssueDetailModal and CreateIssueModal into single consolidated component (835b091)
+
 ## [v0.1.2] - 2026-10-01
 
 ### 🐛 Perbaikan Masalah (Bug Fixes)
