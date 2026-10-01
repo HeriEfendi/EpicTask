@@ -4,98 +4,108 @@
 [![Backend](https://img.shields.io/badge/Backend-Rust%20%7C%20Axum%20%7C%20SQLx-dea584?style=flat-square)](https://www.rust-lang.org/)
 [![Database](https://img.shields.io/badge/Database-MariaDB-003545?style=flat-square)](https://mariadb.org/)
 [![Desktop](https://img.shields.io/badge/Desktop-Tauri%20v2-24c8db?style=flat-square)](https://tauri.app/)
+[![CI/CD](https://img.shields.io/badge/Release-Automated%20CI%2FCD-blueviolet?style=flat-square)](https://github.com/HeriEfendi/EpicTask/actions)
 
-**EpicTask** adalah platform manajemen proyek dan pelacakan isu modern berkecepatan tinggi yang dirancang untuk tim rekayasa perangkat lunak modern. EpicTask menyediakan fungsionalitas esensial pelacakan kerja (Hierarki Isu, Custom Workflows, Multi-View Board, dan No-Code Automation) dengan UI/UX yang jauh lebih cepat, responsif, dan fleksibel baik untuk Web Application maupun Native Cross-Platform Desktop App (Linux, macOS, Windows via Tauri).
+**EpicTask** adalah platform manajemen proyek agile dan pelacakan isu berkinerja tinggi yang dirancang untuk tim rekayasa perangkat lunak modern. EpicTask menggabungkan fungsionalitas esensial pelacakan kerja (Hierarki Isu, Custom Workflows, Multi-View Board, No-Code Automation, dan Enterprise Analytics Reporting) dengan antarmuka yang cepat, responsif, dan fleksibel untuk Web Application maupun Native Cross-Platform Desktop App (Linux, macOS, Windows via Tauri).
 
 ---
 
 ## 🏛️ Arsitektur Sistem
 
-EpicTask menggunakan pola **Hybrid Architecture**: backend Rust Axum menyajikan RESTful API dan WebSocket server, melayani frontend Vue 3 baik pada browser biasa maupun di dalam window native Tauri Desktop.
+EpicTask menggunakan arsitektur **Hybrid Monorepo**: backend Rust Axum menyajikan RESTful API, Analytics Engine, dan WebSocket real-time broadcast hub, yang melayani frontend Vue 3 SPA baik di peramban web maupun di dalam window native Tauri Desktop.
 
 ```mermaid
 graph TD
-    subgraph Clients ["Klien Kebutuhan Ganda"]
-        Web["🌐 Web Client (Browser)<br/>http://localhost:1420"]
-        Desktop["🖥️ Desktop Client (Tauri v2)<br/>Native Window & Notifications"]
+    subgraph Clients ["Klien Multi-Platform"]
+        Web["🌐 Web Client (SPA)<br/>http://localhost:1420"]
+        Desktop["🖥️ Desktop Client (Tauri v2)<br/>Linux (.deb, .rpm, .AppImage, .pkg.tar.zst) | Win (.exe, .msi) | macOS (.dmg)"]
     end
 
     subgraph FrontendApp ["Vue 3 SPA (Composition API)"]
-        Pinia["Pinia Stores<br/>(Auth, Project, Automation, Notifications)"]
-        Views["Multi-View Board<br/>Kanban | Timeline / Gantt | List Spreadsheet"]
-        WSClient["WebSocket Client<br/>(Auto Reconnect & Optimistic UI)"]
+        Pinia["Pinia Stores<br/>(Auth, Project, Report, Automation, Notification)"]
+        Views["Multi-View Workspace<br/>Kanban | Timeline Gantt | List Spreadsheet | Laporan & Analytics"]
+        RichEditor["RichTextEditor (Word-like WYSIWYG)<br/>Tables, Image Paste, Code Blocks"]
+        ToastLayer["Vue-Toastification Layer<br/>Sleek Floating Notifications"]
+        WSClient["WebSocket Client<br/>(Auto Reconnect & Live Sync)"]
     end
 
     subgraph Backend ["Rust High-Performance Service (Axum)"]
         Router["Axum HTTP Router & Middleware<br/>Port 8088"]
         AuthLayer["JWT Auth & Bcrypt Security"]
-        WSHub["tokio::sync::broadcast<br/>Real-Time Multi-Peer Sync"]
+        AnalyticsEngine["Analytics & Report Handlers<br/>(Velocity, CFD, Timesheets)"]
+        WSHub["tokio::sync::broadcast<br/>Real-Time Multi-Peer Broadcast"]
         AutoEngine["No-Code Automation Engine<br/>Status Triggers & Cascades"]
     end
 
     subgraph Database ["MariaDB Enterprise Database"]
-        DB[(epictask DB<br/>Port 3307 / 3306<br/>InnoDB utf8mb4)]
+        DB[(epictask DB<br/>Port 3307 / 3306<br/>InnoDB utf8mb4 | LONGTEXT Specs)]
     end
 
     Web --> Views
     Desktop --> Views
+    Views --> RichEditor
+    Views --> ToastLayer
     Views --> Pinia
     Pinia --> Router
     WSClient <--> WSHub
     Router --> AuthLayer
+    Router --> AnalyticsEngine
     Router --> AutoEngine
     AuthLayer --> DB
+    AnalyticsEngine --> DB
     AutoEngine --> DB
     Router --> DB
 ```
 
 ---
 
-## 🚀 Fitur Unggulan (Berdasarkan PRD)
+## 🚀 Fitur Unggulan (Core Features)
 
-### 1. EPIC 1: User, Workspace & Role Management
-* **JWT Authentication:** Registrasi, Login, dan Logout menggunakan JWT bearer tokens dan hashing password aman menggunakan `bcrypt`.
-* **Multi-Workspace:** Satu akun dapat memiliki dan beralih di antara beberapa workspace terpisah.
+### 1. User, Workspace & Role Management
+* **JWT Authentication:** Registrasi, Login, dan Logout menggunakan JWT bearer tokens serta hashing password aman dengan `bcrypt`.
+* **Multi-Workspace Support:** Satu akun dapat memiliki dan mengelola beberapa ruang kerja mandiri.
 * **Role-Based Access Control (RBAC):** Peran terstruktur tingkat Workspace: `OWNER`, `ADMIN`, `MEMBER`, dan `VIEWER`.
 
-### 2. EPIC 2: Project & Board Management (Multi-View)
-* **Kanban View:** Kolom status dinamis dengan Drag-and-Drop native beranimasi mulus, indikator WIP (Work-in-Progress), dan drop indicator.
-* **Timeline / Gantt View:** Visualisasi diagram batang horizontal interaktif yang memplot tanggal mulai (*Start Date*) dan tenggat (*Due Date*), navigasi minggu/hari, dan status milestone.
-* **Spreadsheet List View:** Tampilan tabular spreadsheet berkecepatan tinggi dengan kemampuan inline-editing instan untuk Summary, Type, Status, Priority, Assignee, Points, dan Due Date tanpa perlu membuka dialog.
+### 2. Multi-View Project Workspace
+* **Kanban View:** Kolom status dinamis dengan Drag-and-Drop beranimasi halus, indikator WIP (Work-in-Progress), dan drop guides.
+* **Timeline / Gantt View:** Diagram batang horizontal interaktif yang memvisualisasikan rentang tanggal mulai (*Start Date*) dan tenggat (*Due Date*), navigasi waktu, dan status milestone.
+* **Spreadsheet List View:** Tampilan tabular dengan kemampuan inline-editing instan untuk Status, Priority, Assignee, Points, dan Due Date tanpa perlu membuka modal.
+* **Laporan & Analytics Suite:** Dasbor pelaporan lengkap mencakup Executive Summary, Sprint Velocity Chart & Burndown, Cumulative Flow Diagram (CFD), dan Timesheet Log kerja teragregasi.
 * **Custom Workflows & Transition Guards:**
-  * Penambahan status/kolom dinamis (dengan kategori `TODO`, `IN_PROGRESS`, `DONE` dan custom color picker).
-  * **Workflow Transition Rules:** Admin dapat mengunci alur perpindahan status (contoh: tiket di *Backlog* dilarang langsung digeser ke *Done* sebelum melewati *To Do* & *In Progress*). Sistem otomatis menolak perpindahan ilegal dengan pesan guard yang jelas.
+  * Penambahan status/kolom dinamis (kategori `TODO`, `IN_PROGRESS`, `DONE` dengan custom color picker).
+  * **Workflow Transition Rules:** Admin dapat mengunci alur perpindahan status (misal: tiket di *Backlog* dilarang langsung digeser ke *Done* sebelum melewati *To Do* & *In Progress*). Sistem otomatis menolak perpindahan ilegal dengan pesan guard yang jelas.
 
-### 3. EPIC 3: Issue/Task Lifecycle
-* **Issue Hierarchy:** Dukungan tipe hierarkis lengkap: **Epic** (inisiatif besar), **Story / Task** (pekerjaan standar), dan **Subtask** (anak dari tiket utama).
-* **Atomic Issue Key Generation:** Penomoran tiket (`EPIC-1`, `EPIC-2`, dst.) dibuat secara aman dari race condition menggunakan transaksi terisolasi `SELECT ... FOR UPDATE` pada MariaDB.
-* **Metadata Lengkap:** Summary, Rich Description, Priority (Highest, High, Medium, Low), Story Points (Deret Fibonacci: 1, 2, 3, 5, 8, 13), Start Date, Due Date, Assignee, Reporter, dan Relasi Antar-Isu (*Blocks*, *Is Blocked By*, *Relates To*).
+### 3. Issue Lifecycle & Rich Word-Like Editor
+* **Issue Hierarchy:** Dukungan hierarki lengkap: **Epic** (inisiatif besar), **Story / Task** (pekerjaan standar), dan **Subtask** (sub-pekerjaan).
+* **Atomic Issue Key Generation:** Penomoran tiket (`PROJECT-1`, `PROJECT-2`, dst.) bebas race-condition dengan transaksi terisolasi `SELECT ... FOR UPDATE` pada MariaDB.
+* **Jira/Word-Grade Rich Text Editor:**
+  * Formatting teks lengkap (Bold, Italic, Underline, Heading 1-3, Quote, Code blocks, Text Color, Highlight).
+  * **Tabel Spesifikasi Dinamis:** Pembuatan dan manipulasi tabel langsung (+ Baris, + Kolom, Hapus Baris, Hapus Tabel) dengan floating bar kontekstual yang otomatis muncul hanya saat kursor aktif di dalam sel tabel.
+  * **Lampiran Gambar Instan:** Dukungan paste gambar langsung dari clipboard (`Ctrl+V`) serta file upload picker.
+  * Penyimpanan berkapasitas besar menggunakan tipe kolom `LONGTEXT`.
+* **Unified Modal (Single Source of Truth):** Modal terpadu lebar 1440px responsif ([IssueDetailModal.vue](file:///home/lenovo/www/EpicTask/frontend/src/components/issue/IssueDetailModal.vue)) yang melayani proses pembuatan tiket baru maupun pengeditan detail secara seamless.
 
-### 4. EPIC 4: Execution & Tracking
-* **Time Tracking (Log Work):** Input konsumsi jam kerja nyata dengan riwayat catatan pekerjaan dan kalkulator total jam kerja.
-* **Interactive Comments & @Mentions:** Kolom komentar interaktif dengan deteksi otomatis `@username` yang langsung memicu notifikasi internal ke pengguna terkait.
-* **Subtask Checklist:** Progress bar interaktif yang otomatis menghitung persentase subtask berstatus `DONE` terhadap total subtask, dengan checkbox cepat untuk toggle status.
+### 4. Tracking, Collaboration & Notifications
+* **Time Tracking (Work Log):** Pencatatan jam kerja nyata per user dan per tiket dengan riwayat catatan pekerjaan.
+* **Interactive Comments & @Mentions:** Kolom komentar interaktif dengan deteksi otomatis `@username` yang langsung mengirim notifikasi instan.
+* **Subtask Checklist:** Progress bar interaktif yang otomatis menghitung persentase subtask selesai, dilengkapi toggle centang satu-klik.
+* **Vue-Toastification:** Seluruh feedback aksi, peringatan alur kerja, dan error ditangani oleh notifikasi toast modern menggantikan dialog alert browser bawaan.
 
-### 5. EPIC 5: No-Code Automation Engine
-* **Visual Rule Builder (IF-THEN-THAT):** Antarmuka intuitif untuk menyusun otomasi tanpa menulis kode.
-* **Core Triggers:**
-  * *Status Changed:* Memicu aksi saat status berubah (misalnya menjadi `DONE`).
-  * *Due Date Alert:* Pengecekan otomatis di background jika batas waktu tersisa < 24 jam.
-* **Core Actions:**
-  * *Cascade Subtasks:* Otomatis mengubah seluruh anak subtask menjadi `Done` ketika tiket induknya selesai.
-  * *Reassign to Reporter:* Menugaskan kembali tiket ke pembuat aslinya saat pekerjaan rampung.
-  * *Notify Assignee:* Mengirim notifikasi otomatis pengingat tenggat waktu.
+### 5. No-Code Automation Engine
+* **Visual Rule Builder (IF-THEN):** Antarmuka intuitif untuk menyusun otomasi tanpa kode.
+* **Triggers:** Status Changed (misal: saat tiket berubah menjadi `DONE`), Due Date Alert (< 24 jam).
+* **Actions:** Cascade Subtasks (otomatis menyelesaikan semua subtask), Reassign to Reporter, Notify Assignee.
 
-### 6. EPIC 6: Real-time Collaboration & Notifications
-* **WebSocket Synchronization:** Mutasi papan (geser kartu, edit, hapus, tambah komentar) langsung disiarkan instan ke seluruh klien yang terhubung melalui Axum WebSocket.
-* **Activity Stream (Audit Log):** Pencatatan riwayat setiap aksi penting (pembuatan isu, pemindahan status, eksekusi otomatisasi, pencatatan waktu).
-* **Notification Center:** Ikon lonceng di navbar dengan penghitung lencana *unread*, menu popover detail notifikasi, dan integrasi desktop native notification via Tauri API.
+### 6. Real-time Live Synchronization
+* **WebSocket Multi-Peer Broadcasting:** Setiap perubahan (geser kartu, edit, hapus, komentar, time log) disiarkan instan ke seluruh pengguna yang terhubung tanpa perlu refresh halaman.
 
 ---
 
-## 👥 Demo Accounts (Pre-Seeded)
+## 👥 Akun Demo & Data Uji Historis 1 Tahun
 
-Database telah dilengkapi dengan seed data komprehensif. Anda dapat langsung login menggunakan tombol **1-Click Quick Login** di antarmuka atau memasukkan kredensial berikut:
+Database MariaDB telah dilengkapi generator data uji otomatis mencakup 1 tahun riwayat aktivitas realistis (Januari 2025 – 2026) untuk kebutuhan visualisasi grafik velocity, CFD, dan timesheet.
+
+Anda dapat langsung login menggunakan tombol **1-Click Quick Login** di antarmuka atau menggunakan kredensial:
 
 | Akun | Email | Password | Role |
 |---|---|---|---|
@@ -106,50 +116,47 @@ Database telah dilengkapi dengan seed data komprehensif. Anda dapat langsung log
 
 ---
 
-## 🛠️ Panduan Menjalankan Aplikasi
+## 🛠️ Panduan Menjalankan & Rilis Otomatis
 
-### 1. Prasyarat Sistem
-* **Rust:** 1.80+ (`rustc`, `cargo`)
-* **Node.js:** v18+ & `npm`
-* **MariaDB:** Berjalan pada port `3307` (atau `3306`) dengan user `remot` / `PasW0rd123` atau sesuaikan pada `.env`.
-
-### 2. Menjalankan Backend (Rust Axum)
+### 1. Menjalankan Backend (Rust Axum)
 ```bash
-# Masuk ke direktori backend
-cd /home/lenovo/www/EpicTask/backend
-
-# Jalankan server
+cd backend
 cargo run
 ```
-* Backend akan otomatis memverifikasi tabel database MariaDB dan menjalankan server pada:
-  **`http://127.0.0.1:8088`**
-* WebSocket endpoint:
-  **`ws://127.0.0.1:8088/ws`**
+* REST API: `http://127.0.0.1:8088`
+* WebSocket: `ws://127.0.0.1:8088/ws`
 
-### 3. Menjalankan Frontend (Vue 3 + Vite)
+### 2. Menjalankan Frontend (Vue 3 + Vite)
 ```bash
-# Masuk ke direktori frontend
-cd /home/lenovo/www/EpicTask/frontend
-
-# Install dependencies (jika belum)
+cd frontend
 npm install
-
-# Jalankan Vite dev server
 npm run dev
 ```
-* Antarmuka Web App dapat langsung diakses di browser pada:
-  **`http://localhost:1420`**
+* Akses aplikasi web di: `http://localhost:1420`
 
-### 4. Menjalankan Versi Desktop (Tauri v2)
+### 3. Menjalankan Aplikasi Desktop (Tauri v2)
 ```bash
-cd /home/lenovo/www/EpicTask/frontend
-
-# Menjalankan desktop app dalam mode development
+cd frontend
 npm run tauri dev
-
-# Mengompilasi binary executable desktop (.deb, .appimage, atau binary native)
-npm run tauri build
 ```
+
+### 4. 🚀 Satu Perintah Rilis Otomatis Multi-Platform (`npm run release`)
+Proyek ini dilengkapi script otomatisasi rilis terpadu (`scripts/release.mjs`) dan CI/CD GitHub Actions:
+
+```bash
+# Jalankan dari root direktori proyek:
+npm run release 0.17.1
+```
+
+**Proses yang dijalankan secara otomatis:**
+1. Sinkronisasi branch Git dan update histori commit.
+2. Generate changelog rilis otomatis ke `CHANGELOG.md`.
+3. Sinkronisasi nomor versi di `package.json`, `frontend/package.json`, `tauri.conf.json`, dan `Cargo.toml`.
+4. Pembuatan Git Commit & Git Tag `v0.17.1`.
+5. Otomatis `git push` ke GitHub dan memicu GitHub Actions Matrix Workflow untuk kompilasi multi-platform:
+   * 🐧 **Linux:** `.deb`, `.rpm`, `.AppImage`, `.pkg.tar.zst` (Arch Linux package)
+   * 🪟 **Windows:** `.exe` (NSIS Installer), `.msi`
+   * 🍏 **macOS:** `.dmg` (Universal / Apple Silicon & Intel)
 
 ---
 
@@ -157,6 +164,13 @@ npm run tauri build
 
 ```
 EpicTask/
+├── .github/
+│   └── workflows/
+│       └── release.yml              # GitHub Actions CI/CD matrix build multi-platform
+├── scripts/
+│   ├── release.mjs                  # Script rilis 1-perintah (npm run release <ver>)
+│   └── create-arch-pkg.mjs          # Generator paket Arch Linux (.pkg.tar.zst)
+├── CHANGELOG.md                     # Histori perubahan otomatis
 ├── Cargo.toml                       # Root Cargo workspace (backend + frontend/src-tauri)
 ├── package.json                     # Monorepo scripts
 ├── EpicTask_PRD.md                  # PRD Spesifikasi Produk
@@ -167,23 +181,24 @@ EpicTask/
 │   └── src/
 │       ├── main.rs                  # Entrypoint, DB pool, Background workers, Router
 │       ├── config.rs                # Environment loader
-│       ├── db.rs                    # Skema otomatis MariaDB
+│       ├── db.rs                    # Skema otomatis MariaDB (InnoDB, LONGTEXT specs)
 │       ├── routes.rs                # Definisi route REST & WebSocket
 │       ├── auth/
 │       │   ├── jwt.rs               # Pembuatan & validasi JWT token
 │       │   └── middleware.rs        # Axum extractor untuk AuthUser
-│       ├── models/                  # Struct model data (Issue, Status, User, Workflows)
+│       ├── models/                  # Struct model data (Issue, Status, User, Workflows, Reports)
 │       ├── handlers/                # HTTP Controller handlers
 │       │   ├── auth.rs              # Login, Register, Me
 │       │   ├── workspaces.rs        # Workspace & Member management
 │       │   ├── projects.rs          # Project, Statuses, Workflow transitions
 │       │   ├── issues.rs            # Atomic key generator, Move guard, Detail
+│       │   ├── reports.rs           # Executive metrics, Velocity, CFD, Timesheets
 │       │   ├── comments.rs          # Komentar dengan @mention parser
 │       │   ├── time_logs.rs         # Log work time tracking
 │       │   ├── automation.rs        # No-code rule configurations
 │       │   ├── notifications.rs     # Pusat notifikasi
 │       │   ├── activities.rs        # Activity log audit stream
-│       │   └── seed.rs              # Demo seed data generator
+│       │   └── seed.rs              # Generator data demo 1 tahun historis
 │       ├── ws/
 │       │   └── mod.rs               # WebSocket broadcast hub
 │       └── automation/
@@ -191,27 +206,33 @@ EpicTask/
 └── frontend/                        # Vue 3 Frontend & Tauri Desktop Wrapper
     ├── package.json
     ├── vite.config.js               # Proxy ke Axum API & WS (Port 8088)
-    ├── tailwind.config.js           # Desain token & tema gelap modern
+    ├── tailwind.config.js           # Desain token & tema modern
     ├── index.html                   # HTML entrypoint dengan Inter typography
     ├── src/
-    │   ├── main.js                  # App bootstrap & Pinia mount
+    │   ├── main.js                  # App bootstrap, Pinia & Vue-Toastification setup
     │   ├── App.vue                  # Root layout & view orchestrator
     │   ├── assets/
-    │   │   ├── main.css             # Glassmorphism, badges, dan utilities
+    │   │   ├── main.css             # Glassmorphism, toast styles, badges & custom scrollbars
     │   │   └── logo.svg             # Ikon logo EpicTask
+    │   ├── utils/
+    │   │   └── toast.js             # Unified toast notification helper
     │   ├── services/
     │   │   ├── api.js               # HTTP client dengan Bearer token
     │   │   ├── websocket.js         # WS client dengan auto-reconnect
     │   │   └── tauri.js             # Bridge integrasi desktop Tauri
     │   ├── stores/
     │   │   ├── auth.js              # State autentikasi & workspace aktif
-    │   │   ├── project.js           # State papan, filter, DnD, & isu aktif
+    │   │   ├── project.js           # State papan, multi-assignee filter, DnD, & isu aktif
+    │   │   ├── report.js            # State analytics, velocity, CFD, & timesheet
     │   │   ├── automation.js        # State rule otomasi
     │   │   └── notification.js      # State notifikasi & badge unread
     │   └── components/
     │       ├── common/
     │       │   ├── Navbar.vue       # Header navigasi, status live WS, profile
-    │       │   └── ViewTabs.vue     # Switcher Kanban/Timeline/List & filter
+    │       │   ├── ViewTabs.vue     # Switcher 2 baris (Tabs + Otomasi/Workflow + Multi-filter)
+    │       │   ├── RichTextEditor.vue # Editor Word-like WYSIWYG, tabel pintar, image paste
+    │       │   ├── Sidebar.vue      # Sidebar navigasi proyek & workspace
+    │       │   └── SettingsModal.vue # Pengaturan workspace, profil, reset seed data
     │       ├── kanban/
     │       │   ├── KanbanBoard.vue  # Board kolom DnD & transition violation alert
     │       │   └── KanbanCard.vue   # Kartu isu, subtask checklist bar, badges
@@ -219,13 +240,15 @@ EpicTask/
     │       │   └── TimelineView.vue # Horizontal Gantt chart interaktif
     │       ├── list/
     │       │   └── ListView.vue     # Tabular spreadsheet dengan inline-edit
+    │       ├── reports/
+    │       │   └── ReportsView.vue  # Dasbor laporan, velocity burndown, CFD, timesheet
     │       ├── automation/
     │       │   └── AutomationModal.vue # Rule builder IF-THEN visual
     │       ├── project/
     │       │   └── WorkflowModal.vue   # Manajemen kolom & transition guards
     │       ├── issue/
-    │       │   ├── IssueDetailModal.vue # Dialog detail tiket, subtask, komentar, time log
-    │       │   └── CreateIssueModal.vue # Formulir pembuatan tiket baru
+    │       │   ├── IssueDetailModal.vue # Modal terpadu (Create + Edit), subtask, komentar, time log
+    │       │   └── CreateIssueModal.vue # Proxy ke IssueDetailModal
     │       ├── notification/
     │       │   └── NotificationPopover.vue # Popover notifikasi interaktif
     │       └── auth/
@@ -241,57 +264,47 @@ EpicTask/
 
 ---
 
-## 🧪 Pengujian Fitur Inti (CLI Curl Reference)
+## 🧪 Pengujian API Backend (CLI Curl Reference)
 
-Berikut beberapa contoh pengujian endpoint API backend:
-
-### 1. Login & Dapatkan Token
+### 1. Login & Ambil Token
 ```bash
 TOKEN=$(curl -s -X POST http://127.0.0.1:8088/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"sarah@epictask.dev","password":"password123"}' | grep -o '"token":"[^"]*' | cut -d'"' -f4)
 ```
 
-### 2. Uji Workflow Transition Guard (Mencegah Perpindahan Status Ilegal)
+### 2. Uji Workflow Transition Guard
 ```bash
-# Perpindahan ilegal: Dari Backlog (Status 1) langsung ke Done (Status 5) -> DITOLAK (HTTP 400)
+# Perpindahan ilegal: Backlog (Status 1) -> Done (Status 5) -> DITOLAK (HTTP 400)
 curl -s -X POST http://127.0.0.1:8088/api/issues/8/move \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"target_status_id": 5}'
 
 # Output: {"error":"Workflow rule violation: Transition directly from 'Backlog' to 'Done' is not allowed."}
-
-# Perpindahan legal: Dari Backlog (Status 1) ke To Do (Status 2) -> BERHASIL (HTTP 200)
-curl -s -X POST http://127.0.0.1:8088/api/issues/8/move \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"target_status_id": 2}'
 ```
 
-### 3. Uji Atomic Issue Key Generation
+### 3. Uji Endpoint Analytics & Laporan
 ```bash
-curl -s -X POST http://127.0.0.1:8088/api/projects/1/issues \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "summary": "Membuat Integrasi CI/CD",
-    "issue_type": "TASK",
-    "priority": "HIGH",
-    "story_points": 3
-  }'
-# Tiket baru dibuat dengan penomoran unik berurutan yang aman dari konkurensi (SELECT FOR UPDATE).
+# Ambil ringkasan metrik proyek
+curl -s http://127.0.0.1:8088/api/projects/1/reports/overview \
+  -H "Authorization: Bearer $TOKEN"
+
+# Ambil data Cumulative Flow Diagram (CFD)
+curl -s http://127.0.0.1:8088/api/projects/1/reports/cfd \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ---
 
-## ⚡ Non-Functional Requirements & Performance Summary
+## ⚡ Ringkasan Kinerja & Kualitas Rekayasa
 
-1. **Atomic Concurrency:** Penggunaan transaksi MariaDB `SELECT ... FOR UPDATE` menjamin penomoran Issue Key tidak pernah bentrok meskipun ratusan request bersamaan.
-2. **Keamanan:** Password di-hash menggunakan algoritma `bcrypt`, komunikasi API terenkripsi JWT token, dan sanitasi input database via prepared statements `sqlx`.
-3. **High Performance Initial Load:** Bundle frontend produksi hanya berukuran 189 kB (58 kB gzipped), memungkinkan waktu muat awal di bawah 300 ms, melampaui target PRD (< 1.5 detik).
-4. **WebSocket Live Sync:** Real-time state broadcasting memastikan setiap pembaruan langsung terlihat oleh seluruh rekan tim tanpa perlu merefresh halaman.
+1. **Atomic Concurrency:** Transaksi MariaDB `SELECT ... FOR UPDATE` menjamin penomoran Issue Key selalu unik dan berurutan secara konsisten.
+2. **Keamanan Data:** Enkripsi password menggunakan `bcrypt`, otentikasi JWT Bearer token, dan prepared statement `sqlx`.
+3. **Penyimpanan Spesifikasi Luas:** Kolom deskripsi mendukung format dokumen panjang dan tabel kompleks (`LONGTEXT`).
+4. **Waktu Muat Cepat:** Bundle frontend produksi teroptimasi Vite dengan waktu kompilasi < 4 detik dan muat awal di bawah 300 ms.
+5. **Real-time Synchronization:** State terdistribusi secara live via Axum WebSocket broadcast channel.
 
 ---
 
-*Selamat menggunakan EpicTask! Silakan buka http://localhost:1420 untuk mencoba antarmuka web, atau jalankan `npm run tauri dev` untuk mencoba versi desktop native.*
+*Selamat berkarya bersama EpicTask! Buka http://localhost:1420 di browser atau jalankan `npm run tauri dev` untuk desktop app.*
