@@ -23,6 +23,7 @@ import {
   Sparkles,
   Users
 } from 'lucide-vue-next';
+import { toast } from '@/utils/toast';
 
 const props = defineProps({
   isOpen: {
@@ -160,12 +161,13 @@ async function handleResetDemoData() {
   try {
     await api.post('/seed');
     resetSuccess.value = true;
+    toast.success('Data demo berhasil direset ke kondisi awal');
     await authStore.fetchMe();
     if (authStore.currentWorkspace) {
       await projectStore.fetchProjects(authStore.currentWorkspace.id);
     }
   } catch (e) {
-    alert('Gagal mereset data: ' + (e.message || 'Error'));
+    toast.error('Gagal mereset data: ' + (e.message || 'Error'));
   } finally {
     isResetting.value = false;
   }

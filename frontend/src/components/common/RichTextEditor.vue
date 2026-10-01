@@ -35,6 +35,7 @@ import {
   Sparkles,
   ChevronDown
 } from 'lucide-vue-next';
+import { toast } from '@/utils/toast';
 
 const props = defineProps({
   modelValue: {
@@ -285,7 +286,7 @@ function getActiveCell() {
 function addTableRow() {
   const cell = getActiveCell();
   if (!cell) {
-    alert('Klik di dalam tabel terlebih dahulu untuk menambah baris.');
+    toast.warning('Klik di dalam tabel terlebih dahulu untuk menambah baris.');
     return;
   }
   const row = cell.parentElement;
@@ -305,7 +306,7 @@ function addTableRow() {
 function addTableColumn() {
   const cell = getActiveCell();
   if (!cell) {
-    alert('Klik di dalam tabel terlebih dahulu untuk menambah kolom.');
+    toast.warning('Klik di dalam tabel terlebih dahulu untuk menambah kolom.');
     return;
   }
   const table = cell.closest('table');
@@ -417,7 +418,7 @@ function handleFileInput(e) {
 
 function insertImageFile(file) {
   if (!file.type.startsWith('image/')) {
-    alert('Hanya file gambar (PNG, JPG, WebP, GIF) yang didukung.');
+    toast.error('Hanya file gambar (PNG, JPG, WebP, GIF) yang didukung.');
     return;
   }
   const reader = new FileReader();

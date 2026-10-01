@@ -20,6 +20,7 @@ import {
   UserCheck,
   Sparkles
 } from 'lucide-vue-next';
+import { toast } from '@/utils/toast';
 
 const props = defineProps({
   isOpen: {
@@ -49,12 +50,13 @@ async function handleCreateWorkspace() {
   if (!newWorkspaceName.value.trim()) return;
   try {
     const ws = await authStore.createWorkspace(newWorkspaceName.value.trim());
+    toast.success(`Workspace "${newWorkspaceName.value.trim()}" berhasil dibuat`);
     newWorkspaceName.value = '';
     isCreatingWorkspace.value = false;
     isWorkspaceMenuOpen.value = false;
     await projectStore.fetchProjects(ws.id);
   } catch (e) {
-    alert(e.message || 'Failed to create workspace');
+    toast.error(e.message || 'Gagal membuat workspace');
   }
 }
 
@@ -72,12 +74,13 @@ async function handleCreateProject() {
       key: newProjectKey.value.trim().toUpperCase(),
       project_type: 'KANBAN'
     });
+    toast.success(`Project "${newProjectName.value.trim()}" [${newProjectKey.value.trim().toUpperCase()}] berhasil dibuat`);
     newProjectName.value = '';
     newProjectKey.value = '';
     isCreatingProject.value = false;
     isProjectMenuOpen.value = false;
   } catch (e) {
-    alert(e.message || 'Failed to create project');
+    toast.error(e.message || 'Gagal membuat project');
   }
 }
 

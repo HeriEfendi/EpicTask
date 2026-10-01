@@ -13,6 +13,7 @@ import {
   ToggleRight,
   X
 } from 'lucide-vue-next';
+import { toast } from '@/utils/toast';
 
 const autoStore = useAutomationStore();
 const projectStore = useProjectStore();
@@ -35,19 +36,28 @@ async function handleToggle(rule) {
       rule.id,
       !rule.is_active
     );
+    toast.success(`Aturan "${rule.name}" ${!rule.is_active ? 'diaktifkan' : 'dinonaktifkan'}`);
   } catch (e) {
-    alert(e.message || 'Gagal memperbarui aturan');
+    toast.error(e.message || 'Gagal memperbarui aturan');
   }
 }
 
 async function handleDelete(ruleId) {
   if (confirm('Hapus aturan otomasi ini?')) {
-    await autoStore.deleteRule(projectStore.currentProject.id, ruleId);
+    try {
+      await autoStore.deleteRule(projectStore.currentProject.id, ruleId);
+      toast.info('Aturan otomasi berhasil dihapus');
+    } catch (e) {
+      toast.error(e.message || 'Gagal menghapus aturan');
+    }
   }
 }
 
 async function handleCreateRule() {
-  if (!ruleName.value.trim()) return;
+  if (!ruleName.value.trim()) {
+    toast.warning('Nama aturan wajib diisi');
+    return;
+  }
 
   const triggerConfig = selectedTrigger.value === 'STATUS_CHANGED'
     ? { category: 'DONE' }
@@ -62,10 +72,11 @@ async function handleCreateRule() {
       action_config: {},
       is_active: true,
     });
+    toast.success(`Aturan "${ruleName.value.trim()}" berhasil dibuat`);
     ruleName.value = '';
     isCreating.value = false;
   } catch (e) {
-    alert(e.message || 'Gagal membuat aturan otomasi');
+    toast.error(e.message || 'Gagal membuat aturan otomasi');
   }
 }
 

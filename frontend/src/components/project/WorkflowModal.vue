@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   X
 } from 'lucide-vue-next';
+import { toast } from '@/utils/toast';
 
 const props = defineProps({
   isOpen: Boolean,
@@ -35,32 +36,35 @@ async function handleCreateStatus() {
       newStatusCategory.value,
       newStatusColor.value
     );
+    toast.success(`Status "${newStatusName.value.trim()}" berhasil dibuat`);
     newStatusName.value = '';
   } catch (e) {
-    alert(e.message || 'Gagal membuat status');
+    toast.error(e.message || 'Gagal membuat status');
   }
 }
 
 async function handleCreateTransition() {
   if (!fromStatusId.value || !toStatusId.value) return;
   if (fromStatusId.value === toStatusId.value) {
-    alert('Status asal dan status tujuan tidak boleh sama');
+    toast.warning('Status asal dan status tujuan tidak boleh sama');
     return;
   }
   try {
     await projectStore.createTransition(Number(fromStatusId.value), Number(toStatusId.value));
+    toast.success('Aturan transisi workflow berhasil ditambahkan');
     fromStatusId.value = null;
     toStatusId.value = null;
   } catch (e) {
-    alert(e.message || 'Gagal menyimpan aturan transisi workflow');
+    toast.error(e.message || 'Gagal menyimpan aturan transisi workflow');
   }
 }
 
 async function handleDeleteTransition(tid) {
   try {
     await projectStore.deleteTransition(tid);
+    toast.info('Aturan transisi dihapus');
   } catch (e) {
-    alert(e.message || 'Gagal menghapus aturan transisi');
+    toast.error(e.message || 'Gagal menghapus aturan transisi');
   }
 }
 </script>

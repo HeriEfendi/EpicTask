@@ -260,3 +260,31 @@ table.rich-table tr:hover td {
   color: #334155;
 }
 
+/* Vue-Toastification Modern Overrides */
+.Vue-Toastification__toast {
+  border-radius: 0.75rem !important;
+  font-family: inherit !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.1) !important;
+  padding: 12px 16px !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  min-height: 48px !important;
+}
+
+.Vue-Toastification__toast--success {
+  background-color: #0f766e !important;
+}
+
+.Vue-Toastification__toast--error {
+  background-color: #be123c !important;
+}
+
+.Vue-Toastification__toast--warning {
+  background-color: #b45309 !important;
+}
+
+.Vue-Toastification__toast--info {
+  background-color: #1d4ed8 !important;
+}
+

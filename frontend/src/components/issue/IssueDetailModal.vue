@@ -13,6 +13,7 @@ import {
   Sparkles
 } from 'lucide-vue-next';
 import RichTextEditor from '@/components/common/RichTextEditor.vue';
+import { toast } from '@/utils/toast';
 
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
@@ -42,7 +43,7 @@ async function handleUpdateField(fields) {
   try {
     await projectStore.updateIssue(issue.value.id, fields);
   } catch (e) {
-    alert(e.message || 'Gagal memperbarui tiket');
+    toast.error(e.message || 'Gagal memperbarui tiket');
   }
 }
 
@@ -51,8 +52,9 @@ async function handleStatusChange(e) {
   if (!issue.value || newStatusId === issue.value.status_id) return;
   try {
     await projectStore.moveIssue(issue.value.id, newStatusId);
+    toast.success('Status tiket berhasil diperbarui');
   } catch (e) {
-    alert(e.message || 'Pelanggaran aturan transisi alur kerja');
+    toast.error(e.message || 'Pelanggaran aturan transisi alur kerja');
     e.target.value = issue.value.status_id;
   }
 }
@@ -61,9 +63,10 @@ async function handleAddComment() {
   if (!newCommentText.value.trim() || !issue.value) return;
   try {
     await projectStore.addComment(issue.value.id, newCommentText.value.trim());
+    toast.success('Komentar berhasil ditambahkan');
     newCommentText.value = '';
   } catch (e) {
-    alert(e.message || 'Gagal menambahkan komentar');
+    toast.error(e.message || 'Gagal menambahkan komentar');
   }
 }
 
@@ -78,11 +81,12 @@ async function handleAddSubtask() {
       status_id: issue.value.status_id,
       priority: 'MEDIUM',
     });
+    toast.success('Subtask berhasil ditambahkan');
     newSubtaskSummary.value = '';
     // Refresh detail to get updated subtasks list
     await projectStore.openIssueDetail(issue.value.id);
   } catch (e) {
-    alert(e.message || 'Gagal menambahkan subtask');
+    toast.error(e.message || 'Gagal menambahkan subtask');
   }
 }
 
@@ -95,7 +99,7 @@ async function toggleSubtaskDone(subtask) {
     await projectStore.moveIssue(subtask.id, targetStatus.id);
     await projectStore.openIssueDetail(issue.value.id);
   } catch (e) {
-    alert(e.message || 'Gagal memperbarui status subtask');
+    toast.error(e.message || 'Gagal memperbarui status subtask');
   }
 }
 
@@ -104,18 +108,24 @@ async function handleLogWork() {
   try {
     const seconds = Math.round(logHours.value * 3600);
     await projectStore.logTime(issue.value.id, seconds, logDescription.value.trim());
+    toast.success(`Berhasil mencatat ${logHours.value} jam kerja`);
     isLoggingWork.value = false;
     logHours.value = 1;
     logDescription.value = '';
   } catch (e) {
-    alert(e.message || 'Gagal mencatat waktu pengerjaan');
+    toast.error(e.message || 'Gagal mencatat waktu pengerjaan');
   }
 }
 
 async function handleDelete() {
   if (!issue.value) return;
   if (confirm(`Yakin ingin menghapus tiket ${issue.value.key}?`)) {
-    await projectStore.deleteIssue(issue.value.id);
+    try {
+      await projectStore.deleteIssue(issue.value.id);
+      toast.info(`Tiket ${issue.value.key} berhasil dihapus`);
+    } catch (e) {
+      toast.error(e.message || 'Gagal menghapus tiket');
+    }
   }
 }
 </script>

@@ -10,13 +10,12 @@ import {
   ChevronDown,
   Loader2
 } from 'lucide-vue-next';
+import { toast } from '@/utils/toast';
 
 const PAGE_SIZE = 20;
 
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
-
-
 
 // --- Infinite Scroll State ---
 const visibleCount = ref(PAGE_SIZE);
@@ -70,21 +69,21 @@ onUnmounted(() => {
   }
 });
 
-
-
 async function handleStatusChange(issue, newStatusId) {
   try {
     await projectStore.moveIssue(issue.id, Number(newStatusId));
+    toast.success(`Status ${issue.key} diperbarui`);
   } catch (e) {
-    alert(e.message || 'Transisi status ditolak oleh aturan workflow');
+    toast.error(e.message || 'Transisi status ditolak oleh aturan workflow');
   }
 }
 
 async function handlePriorityChange(issue, newPriority) {
   try {
     await projectStore.updateIssue(issue.id, { priority: newPriority });
+    toast.success(`Prioritas ${issue.key} diubah ke ${newPriority}`);
   } catch (e) {
-    alert(e.message || 'Gagal mengubah prioritas');
+    toast.error(e.message || 'Gagal mengubah prioritas');
   }
 }
 
@@ -93,30 +92,38 @@ async function handleAssigneeChange(issue, newAssigneeId) {
     await projectStore.updateIssue(issue.id, {
       assignee_id: newAssigneeId ? Number(newAssigneeId) : null,
     });
+    toast.success(`Penugasan ${issue.key} diperbarui`);
   } catch (e) {
-    alert(e.message || 'Gagal mengubah penugasan');
+    toast.error(e.message || 'Gagal mengubah penugasan');
   }
 }
 
 async function handleDueDateChange(issue, newDate) {
   try {
     await projectStore.updateIssue(issue.id, { due_date: newDate || null });
+    toast.success(`Tenggat waktu ${issue.key} diperbarui`);
   } catch (e) {
-    alert(e.message || 'Gagal mengubah tenggat waktu');
+    toast.error(e.message || 'Gagal mengubah tenggat waktu');
   }
 }
 
 async function handlePointsChange(issue, newPoints) {
   try {
     await projectStore.updateIssue(issue.id, { story_points: Number(newPoints) || 0 });
+    toast.success(`Story point ${issue.key} diperbarui`);
   } catch (e) {
-    alert(e.message || 'Gagal mengubah story points');
+    toast.error(e.message || 'Gagal mengubah story points');
   }
 }
 
 async function handleDelete(issueId) {
   if (confirm('Yakin ingin menghapus tiket ini?')) {
-    await projectStore.deleteIssue(issueId);
+    try {
+      await projectStore.deleteIssue(issueId);
+      toast.info('Tiket berhasil dihapus');
+    } catch (e) {
+      toast.error(e.message || 'Gagal menghapus tiket');
+    }
   }
 }
 </script>
