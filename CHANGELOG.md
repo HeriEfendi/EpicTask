@@ -1,5 +1,10 @@
 # EpicTask Changelog
 
+## [v0.1.2] - 2026-10-01
+
+### 🐛 Perbaikan Masalah (Bug Fixes)
+- prevent grep pipefail exit on first release with no previous tags (fca2312)
+
 ## [v0.1.1] - 2026-10-01
 
 ### 🚀 Fitur Baru (Features)
