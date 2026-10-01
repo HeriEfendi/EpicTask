@@ -13,7 +13,6 @@ import TimelineView from '@/components/timeline/TimelineView.vue';
 import ListView from '@/components/list/ListView.vue';
 import ReportsView from '@/components/reports/ReportsView.vue';
 import IssueDetailModal from '@/components/issue/IssueDetailModal.vue';
-import CreateIssueModal from '@/components/issue/CreateIssueModal.vue';
 import AutomationModal from '@/components/automation/AutomationModal.vue';
 import WorkflowModal from '@/components/project/WorkflowModal.vue';
 import NotificationPopover from '@/components/notification/NotificationPopover.vue';
@@ -77,7 +76,6 @@ onMounted(async () => {
 
       <!-- Modals & Overlays -->
       <IssueDetailModal />
-      <CreateIssueModal />
       <AutomationModal />
       <WorkflowModal
         :is-open="isWorkflowModalOpen"

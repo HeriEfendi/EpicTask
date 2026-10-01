@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useProjectStore } from '@/stores/project';
 import { useAuthStore } from '@/stores/auth';
 import {
@@ -10,7 +10,15 @@ import {
   Trash2,
   Plus,
   Send,
-  Sparkles
+  Sparkles,
+  Layers,
+  Flag,
+  User,
+  Calendar,
+  Hash,
+  AlertCircle,
+  Loader2,
+  CheckCircle2
 } from 'lucide-vue-next';
 import RichTextEditor from '@/components/common/RichTextEditor.vue';
 import { toast } from '@/utils/toast';
@@ -18,16 +26,57 @@ import { toast } from '@/utils/toast';
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
 
+// Mode detection
+const isCreateMode = computed(() => projectStore.isCreateModalOpen);
+const isDetailMode = computed(() => projectStore.isDetailModalOpen && !!projectStore.activeIssue);
+const isOpen = computed(() => isCreateMode.value || isDetailMode.value);
+
+const issue = computed(() => projectStore.activeIssue);
+
+// --- Create Form State ---
+const createSummary = ref('');
+const createDescription = ref('');
+const createType = ref('TASK');
+const createStatusId = ref(null);
+const createPriority = ref('MEDIUM');
+const createAssigneeId = ref(null);
+const createEpicId = ref(null);
+const createStoryPoints = ref(0);
+const createStartDate = ref('');
+const createDueDate = ref('');
+const createErrorMessage = ref('');
+const isSubmitting = ref(false);
+
+// --- Detail / Activity State ---
 const activeTab = ref('comments'); // 'comments' | 'timelog'
 const newCommentText = ref('');
 const newSubtaskSummary = ref('');
 
-// Log work modal / inputs
+// Log work state
 const isLoggingWork = ref(false);
 const logHours = ref(1);
 const logDescription = ref('');
 
-const issue = computed(() => projectStore.activeIssue);
+// Watch for create modal opening to reset form
+watch(
+  () => projectStore.isCreateModalOpen,
+  (open) => {
+    if (open) {
+      createSummary.value = '';
+      createDescription.value = '';
+      createType.value = 'TASK';
+      createStatusId.value = projectStore.defaultCreateStatusId || (projectStore.statuses[0]?.id || null);
+      createPriority.value = 'MEDIUM';
+      createAssigneeId.value = null;
+      createEpicId.value = null;
+      createStoryPoints.value = 0;
+      createStartDate.value = '';
+      createDueDate.value = '';
+      createErrorMessage.value = '';
+      isSubmitting.value = false;
+    }
+  }
+);
 
 // Subtasks calculation
 const subtaskStats = computed(() => {
@@ -38,6 +87,50 @@ const subtaskStats = computed(() => {
   return { total: list.length, done, percent };
 });
 
+function handleClose() {
+  if (isCreateMode.value) {
+    projectStore.isCreateModalOpen = false;
+  }
+  if (isDetailMode.value || projectStore.isDetailModalOpen) {
+    projectStore.closeDetailModal();
+  }
+}
+
+// --- Create Issue Handler ---
+async function handleCreateIssue() {
+  if (!createSummary.value.trim()) {
+    createErrorMessage.value = 'Judul ringkasan tiket wajib diisi.';
+    toast.warning('Judul ringkasan tiket wajib diisi.');
+    return;
+  }
+
+  isSubmitting.value = true;
+  createErrorMessage.value = '';
+
+  try {
+    const newIssue = await projectStore.createIssue({
+      summary: createSummary.value.trim(),
+      description: createDescription.value.trim() || null,
+      issue_type: createType.value,
+      status_id: createStatusId.value,
+      priority: createPriority.value,
+      assignee_id: createAssigneeId.value ? Number(createAssigneeId.value) : null,
+      epic_id: createEpicId.value ? Number(createEpicId.value) : null,
+      story_points: Number(createStoryPoints.value) || 0,
+      start_date: createStartDate.value || null,
+      due_date: createDueDate.value || null,
+    });
+    toast.success(`Tiket ${newIssue?.key || ''} berhasil dibuat!`);
+    projectStore.isCreateModalOpen = false;
+  } catch (e) {
+    createErrorMessage.value = e.message || 'Gagal membuat tiket baru';
+    toast.error(e.message || 'Gagal membuat tiket baru');
+  } finally {
+    isSubmitting.value = false;
+  }
+}
+
+// --- Update Field in Detail Mode ---
 async function handleUpdateField(fields) {
   if (!issue.value) return;
   try {
@@ -83,7 +176,6 @@ async function handleAddSubtask() {
     });
     toast.success('Subtask berhasil ditambahkan');
     newSubtaskSummary.value = '';
-    // Refresh detail to get updated subtasks list
     await projectStore.openIssueDetail(issue.value.id);
   } catch (e) {
     toast.error(e.message || 'Gagal menambahkan subtask');
@@ -132,39 +224,71 @@ async function handleDelete() {
 
 <template>
   <div
-    v-if="projectStore.isDetailModalOpen && issue"
+    v-if="isOpen"
     class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/50 backdrop-blur-sm"
+    @keydown.esc="handleClose"
   >
-    <div class="glass-modal w-[96vw] max-w-[1440px] rounded-2xl border border-slate-200 bg-white h-[94vh] max-h-[96vh] flex flex-col shadow-2xl animate-slide-up overflow-hidden">
-      <!-- Modal Top Header -->
+    <div
+      class="glass-modal w-[96vw] max-w-[1440px] rounded-2xl border border-slate-200 bg-white h-[94vh] max-h-[96vh] flex flex-col shadow-2xl animate-slide-up overflow-hidden"
+    >
+      <!-- ── MODAL HEADER ── -->
       <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between select-none">
+        
+        <!-- Header Left: Create vs Edit Mode -->
         <div class="flex items-center space-x-3">
-          <!-- Type Badge -->
-          <span
-            class="text-xs font-semibold px-2.5 py-0.5 rounded uppercase tracking-wider"
-            :class="`badge-type-${issue.issue_type}`"
-          >
-            {{ issue.issue_type }}
-          </span>
+          <!-- CREATE MODE Header -->
+          <template v-if="isCreateMode">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
+              <Plus class="w-5 h-5" />
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span>Buat Tiket Baru</span>
+                <span
+                  v-if="projectStore.currentProject"
+                  class="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-mono font-semibold"
+                >
+                  {{ projectStore.currentProject.key }} — {{ projectStore.currentProject.name }}
+                </span>
+              </h2>
+            </div>
+          </template>
 
-          <!-- Key with link -->
-          <span class="font-mono text-base font-bold text-blue-600">
-            {{ issue.key }}
-          </span>
+          <!-- EDIT / DETAIL MODE Header -->
+          <template v-else-if="issue">
+            <!-- Type Badge -->
+            <span
+              class="text-xs font-semibold px-2.5 py-0.5 rounded uppercase tracking-wider"
+              :class="`badge-type-${issue.issue_type}`"
+            >
+              {{ issue.issue_type }}
+            </span>
 
-          <!-- Epic link if present -->
-          <span v-if="issue.epic_summary && issue.issue_type !== 'EPIC'" class="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold">
-            🟣 {{ issue.epic_summary }}
-          </span>
+            <!-- Key with link -->
+            <span class="font-mono text-base font-bold text-blue-600">
+              {{ issue.key }}
+            </span>
 
-          <!-- Parent link if present -->
-          <span v-if="issue.parent_key" class="text-sm text-slate-500">
-            Subtask dari <strong class="text-slate-800">{{ issue.parent_key }}</strong>
-          </span>
+            <!-- Epic link if present -->
+            <span
+              v-if="issue.epic_summary && issue.issue_type !== 'EPIC'"
+              class="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold"
+            >
+              🟣 {{ issue.epic_summary }}
+            </span>
+
+            <!-- Parent link if present -->
+            <span v-if="issue.parent_key" class="text-sm text-slate-500">
+              Subtask dari <strong class="text-slate-800">{{ issue.parent_key }}</strong>
+            </span>
+          </template>
         </div>
 
+        <!-- Header Right: Actions & Close Button -->
         <div class="flex items-center space-x-2">
+          <!-- Delete button (Detail mode only) -->
           <button
+            v-if="isDetailMode && issue"
             @click="handleDelete"
             class="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
             title="Hapus tiket ini"
@@ -172,42 +296,84 @@ async function handleDelete() {
             <Trash2 class="w-4 h-4" />
           </button>
 
+          <!-- Close Modal -->
           <button
-            @click="projectStore.closeDetailModal"
+            @click="handleClose"
             class="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+            title="Tutup (Esc)"
           >
             <X class="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      <!-- Main Content Grid: 2 Columns (Main left 75%, Metadata right 25%) -->
+      <!-- Error Message Banner (Create Mode) -->
+      <div
+        v-if="isCreateMode && createErrorMessage"
+        class="px-6 py-3 bg-red-50 border-b border-red-200 text-sm text-red-700 flex items-center gap-2"
+      >
+        <AlertCircle class="w-4 h-4 text-red-600 flex-shrink-0" />
+        <span>{{ createErrorMessage }}</span>
+      </div>
+
+      <!-- ── MAIN CONTENT GRID: 2 COLUMNS (Left 75%, Right 25%) ── -->
       <div class="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
-        <!-- LEFT COLUMNS: Summary, Description, Subtasks, Activity -->
+        
+        <!-- ════════ LEFT COLUMN (Summary, Rich Description, Subtasks, Activity) ════════ -->
         <div class="lg:col-span-8 xl:col-span-9 p-6 space-y-6 overflow-y-auto h-full">
-          <!-- Summary (Title) Input -->
+          
+          <!-- ① SUMMARY (TITLE) -->
           <div>
-            <input
-              :value="issue.summary"
-              @change="(e) => handleUpdateField({ summary: e.target.value })"
-              class="w-full text-2xl font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-600 focus:bg-slate-50 rounded px-2 py-1.5 transition focus:outline-none"
-              placeholder="Judul tiket..."
-            />
+            <!-- Create Mode Summary -->
+            <template v-if="isCreateMode">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Ringkasan Tiket <span class="text-red-500">*</span>
+              </label>
+              <input
+                v-model="createSummary"
+                class="w-full text-xl font-bold text-slate-900 bg-white border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-3 transition focus:outline-none placeholder-slate-400 shadow-2xs"
+                placeholder="e.g. Implementasikan retry webhook atau fitur export laporan..."
+                autofocus
+                @keyup.enter="handleCreateIssue"
+              />
+            </template>
+
+            <!-- Detail Mode Summary -->
+            <template v-else-if="issue">
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+                Ringkasan Tiket
+              </label>
+              <input
+                :value="issue.summary"
+                @change="(e) => handleUpdateField({ summary: e.target.value })"
+                class="w-full text-2xl font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-600 focus:bg-slate-50 rounded px-2 py-1.5 transition focus:outline-none"
+                placeholder="Judul tiket..."
+              />
+            </template>
           </div>
 
-          <!-- Description Section (Rich Text Editor) -->
+          <!-- ② DESCRIPTION (RICH TEXT WYSIWYG EDITOR) -->
           <div class="space-y-2">
             <div class="flex items-center justify-between">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Deskripsi Tiket
+                Deskripsi Lengkap
               </label>
-              <span class="text-xs text-slate-400 hidden sm:inline">
+              <span class="text-xs text-slate-400 hidden sm:inline flex items-center gap-1">
+                <Sparkles class="w-3.5 h-3.5 text-blue-600" />
                 Mendukung gaya Word, tabel spesifikasi, kode & lampiran gambar (Paste Ctrl+V)
               </span>
             </div>
 
-            <!-- Rich WYSIWYG Editor -->
+            <!-- Create Mode Rich Editor -->
             <RichTextEditor
+              v-if="isCreateMode"
+              v-model="createDescription"
+              placeholder="Jelaskan kebutuhan tiket, kriteria penerimaan (acceptance criteria), tabel spesifikasi teknis, atau lampiran tangkapan layar..."
+            />
+
+            <!-- Detail Mode Rich Editor -->
+            <RichTextEditor
+              v-else-if="issue"
               :key="issue.id"
               :model-value="issue.description || ''"
               @update:model-value="(val) => handleUpdateField({ description: val })"
@@ -215,8 +381,11 @@ async function handleDelete() {
             />
           </div>
 
-          <!-- Subtasks Checklist Section (FR-4.4) -->
-          <div v-if="issue.issue_type !== 'SUBTASK'" class="space-y-3.5 bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <!-- ③ SUBTASKS CHECKLIST (Detail Mode Only) -->
+          <div
+            v-if="isDetailMode && issue && issue.issue_type !== 'SUBTASK'"
+            class="space-y-3.5 bg-slate-50 border border-slate-200 rounded-xl p-4"
+          >
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-2">
                 <CheckSquare class="w-4 h-4 text-emerald-600" />
@@ -286,8 +455,8 @@ async function handleDelete() {
             </div>
           </div>
 
-          <!-- Activity Tabs: Comments & Work Log -->
-          <div class="space-y-4 pt-2">
+          <!-- ④ ACTIVITY TABS: Comments & Work Log (Detail Mode Only) -->
+          <div v-if="isDetailMode && issue" class="space-y-4 pt-2">
             <div class="flex items-center space-x-5 border-b border-slate-200 text-sm font-bold select-none">
               <button
                 @click="activeTab = 'comments'"
@@ -310,7 +479,7 @@ async function handleDelete() {
 
             <!-- Tab 1: Comments -->
             <div v-if="activeTab === 'comments'" class="space-y-3.5">
-              <!-- Add Comment Input Box -->
+              <!-- Add Comment Box -->
               <div class="flex items-start space-x-3">
                 <img
                   :src="authStore.user?.avatar_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=user'"
@@ -375,7 +544,7 @@ async function handleDelete() {
                 </button>
               </div>
 
-              <!-- Log Work Inline Form -->
+              <!-- Log Work Form -->
               <div v-if="isLoggingWork" class="p-3.5 bg-white border border-emerald-400 rounded-xl space-y-3 shadow-xs">
                 <div class="flex items-center space-x-3">
                   <div class="w-36">
@@ -423,34 +592,94 @@ async function handleDelete() {
           </div>
         </div>
 
-        <!-- RIGHT COLUMN: Status, Priority, Assignee, Dates, Points -->
+        <!-- ════════ RIGHT COLUMN (Sidebar Attributes) ════════ -->
         <div class="lg:col-span-4 xl:col-span-3 p-6 space-y-5 bg-slate-50/70 text-sm overflow-y-auto h-full">
-          <!-- Status Dropdown (with Workflow Transition rules) -->
-          <div>
-            <label class="block text-slate-600 font-bold uppercase tracking-wider text-xs mb-1.5">
-              Status Alur Kerja
-            </label>
+          <div class="font-bold text-xs text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-200 flex items-center gap-1.5">
+            <Layers class="w-3.5 h-3.5 text-slate-600" />
+            <span>Atribut Tiket</span>
+          </div>
+
+          <!-- Tipe Tiket -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Tipe Tiket</label>
+            
+            <!-- Create Mode Select -->
             <select
+              v-if="isCreateMode"
+              v-model="createType"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs font-semibold"
+            >
+              <option value="TASK">📋 Task (Pekerjaan Standar)</option>
+              <option value="STORY">📖 Story (Fitur / User Story)</option>
+              <option value="EPIC">🟣 Epic (Milestone Besar)</option>
+              <option value="BUG">🐞 Bug (Kendala / Masalah)</option>
+            </select>
+
+            <!-- Detail Mode Select -->
+            <select
+              v-else-if="issue"
+              :value="issue.issue_type"
+              @change="(e) => handleUpdateField({ issue_type: e.target.value })"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs font-semibold cursor-pointer"
+            >
+              <option value="TASK">📋 Task (Pekerjaan Standar)</option>
+              <option value="STORY">📖 Story (Fitur / User Story)</option>
+              <option value="EPIC">🟣 Epic (Milestone Besar)</option>
+              <option value="BUG">🐞 Bug (Kendala / Masalah)</option>
+              <option v-if="issue.issue_type === 'SUBTASK'" value="SUBTASK">🔹 Subtask</option>
+            </select>
+          </div>
+
+          <!-- Status Alur Kerja -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Status Alur Kerja</label>
+            
+            <!-- Create Mode Status -->
+            <select
+              v-if="isCreateMode"
+              v-model="createStatusId"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs font-medium"
+            >
+              <option v-for="s in projectStore.statuses" :key="s.id" :value="s.id">
+                {{ s.name }} ({{ s.category }})
+              </option>
+            </select>
+
+            <!-- Detail Mode Status -->
+            <select
+              v-else-if="issue"
               :value="issue.status_id"
               @change="handleStatusChange"
               class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer shadow-2xs"
             >
-              <option
-                v-for="s in projectStore.statuses"
-                :key="s.id"
-                :value="s.id"
-              >
+              <option v-for="s in projectStore.statuses" :key="s.id" :value="s.id">
                 {{ s.name }} ({{ s.category }})
               </option>
             </select>
           </div>
 
-          <!-- Priority -->
-          <div>
-            <label class="block text-slate-600 font-bold uppercase tracking-wider text-xs mb-1.5">
-              Prioritas
+          <!-- Prioritas -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+              <Flag class="w-3 h-3 text-slate-500" />
+              <span>Prioritas</span>
             </label>
+
+            <!-- Create Mode Priority -->
             <select
+              v-if="isCreateMode"
+              v-model="createPriority"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-2xs font-semibold"
+            >
+              <option value="HIGHEST">🔴 Tertinggi (Highest)</option>
+              <option value="HIGH">🟠 Tinggi (High)</option>
+              <option value="MEDIUM">🟡 Sedang (Medium)</option>
+              <option value="LOW">🔵 Rendah (Low)</option>
+            </select>
+
+            <!-- Detail Mode Priority -->
+            <select
+              v-else-if="issue"
               :value="issue.priority"
               @change="(e) => handleUpdateField({ priority: e.target.value })"
               class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none cursor-pointer shadow-2xs"
@@ -463,35 +692,90 @@ async function handleDelete() {
             </select>
           </div>
 
-          <!-- Assignee -->
-          <div>
-            <label class="block text-slate-600 font-bold uppercase tracking-wider text-xs mb-1.5">
-              Ditugaskan Kepada
+          <!-- Ditugaskan Kepada (Assignee) -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+              <User class="w-3 h-3 text-slate-500" />
+              <span>Ditugaskan Kepada</span>
             </label>
+
+            <!-- Create Mode Assignee -->
             <select
+              v-if="isCreateMode"
+              v-model="createAssigneeId"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium"
+            >
+              <option :value="null">Belum Ditugaskan</option>
+              <option v-for="u in authStore.allUsers" :key="u.id" :value="u.id">
+                {{ u.full_name }} ({{ u.email }})
+              </option>
+            </select>
+
+            <!-- Detail Mode Assignee -->
+            <select
+              v-else-if="issue"
               :value="issue.assignee_id || ''"
               @change="(e) => handleUpdateField({ assignee_id: e.target.value ? Number(e.target.value) : null })"
               class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none cursor-pointer shadow-2xs font-medium"
             >
               <option value="">Belum Ditugaskan</option>
-              <option
-                v-for="u in authStore.allUsers"
-                :key="u.id"
-                :value="u.id"
-              >
+              <option v-for="u in authStore.allUsers" :key="u.id" :value="u.id">
                 {{ u.full_name }}
               </option>
             </select>
           </div>
 
+          <!-- Parent Epic (if not EPIC) -->
+          <div v-if="(isCreateMode && createType !== 'EPIC') || (isDetailMode && issue && issue.issue_type !== 'EPIC')" class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider">Parent Epic</label>
+
+            <!-- Create Mode Epic -->
+            <select
+              v-if="isCreateMode"
+              v-model="createEpicId"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium"
+            >
+              <option :value="null">Tanpa Epic</option>
+              <option v-for="e in projectStore.epics" :key="e.id" :value="e.id">
+                🟣 {{ e.summary }}
+              </option>
+            </select>
+
+            <!-- Detail Mode Epic -->
+            <select
+              v-else-if="issue"
+              :value="issue.epic_id || ''"
+              @change="(e) => handleUpdateField({ epic_id: e.target.value ? Number(e.target.value) : null })"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium cursor-pointer"
+            >
+              <option value="">Tanpa Epic</option>
+              <option v-for="e in projectStore.epics" :key="e.id" :value="e.id">
+                🟣 {{ e.summary }}
+              </option>
+            </select>
+          </div>
+
           <!-- Story Points (Estimation) -->
-          <div>
-            <label class="block text-slate-600 font-bold uppercase tracking-wider text-xs mb-1.5">
-              Story Points (Estimasi)
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+              <Hash class="w-3 h-3 text-slate-500" />
+              <span>Story Points (Estimasi)</span>
             </label>
-            <div class="flex items-center space-x-1.5">
+
+            <!-- Create Mode Story Points -->
+            <input
+              v-if="isCreateMode"
+              v-model.number="createStoryPoints"
+              type="number"
+              min="0"
+              placeholder="0"
+              class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 shadow-2xs font-semibold"
+            />
+
+            <!-- Detail Mode Story Points Buttons -->
+            <div v-else-if="issue" class="flex items-center space-x-1.5 flex-wrap gap-y-1">
               <button
-                v-for="p in [1, 2, 3, 5, 8, 13]"
+                v-for="p in [0, 1, 2, 3, 5, 8, 13]"
                 :key="p"
                 @click="handleUpdateField({ story_points: p })"
                 class="w-8 h-8 rounded-lg text-sm font-mono font-bold transition flex items-center justify-center border shadow-2xs"
@@ -503,37 +787,119 @@ async function handleDelete() {
           </div>
 
           <!-- Dates: Start Date & Due Date -->
-          <div class="space-y-3 pt-1 border-t border-slate-200">
-            <div>
-              <label class="block text-slate-600 font-bold uppercase tracking-wider text-xs mb-1">
-                Tanggal Mulai
+          <div class="space-y-3 pt-2 border-t border-slate-200">
+            <!-- Start Date -->
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                <Calendar class="w-3 h-3 text-slate-500" />
+                <span>Tanggal Mulai</span>
               </label>
+
               <input
+                v-if="isCreateMode"
+                v-model="createStartDate"
+                type="date"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-blue-600 shadow-2xs font-medium"
+              />
+              <input
+                v-else-if="issue"
                 type="date"
                 :value="issue.start_date || ''"
                 @change="(e) => handleUpdateField({ start_date: e.target.value || null })"
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none shadow-2xs font-medium"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-800 focus:outline-none shadow-2xs font-medium"
               />
             </div>
 
-            <div>
-              <label class="block text-slate-600 font-bold uppercase tracking-wider text-xs mb-1">
-                Tenggat Waktu
+            <!-- Due Date -->
+            <div class="space-y-1">
+              <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                <Calendar class="w-3 h-3 text-slate-500" />
+                <span>Tenggat Waktu</span>
               </label>
+
               <input
+                v-if="isCreateMode"
+                v-model="createDueDate"
+                type="date"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:border-blue-600 shadow-2xs font-medium"
+              />
+              <input
+                v-else-if="issue"
                 type="date"
                 :value="issue.due_date || ''"
                 @change="(e) => handleUpdateField({ due_date: e.target.value || null })"
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none shadow-2xs font-medium"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-800 focus:outline-none shadow-2xs font-medium"
               />
             </div>
           </div>
 
-          <!-- Reporter & Meta -->
-          <div class="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-1">
-            <p>Pembuat: <strong class="text-slate-800">{{ issue.reporter_name || 'System' }}</strong></p>
-            <p>Dibuat: <span class="text-slate-700">{{ new Date(issue.created_at).toLocaleDateString() }}</span></p>
+          <!-- Reporter & Meta (Detail Mode Only) -->
+          <div v-if="isDetailMode && issue" class="pt-3 border-t border-slate-200 text-xs text-slate-500 space-y-2">
+            <div class="flex justify-between">
+              <span>Pelapor:</span>
+              <span class="font-medium text-slate-800">{{ issue.reporter_name || 'System' }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Dibuat:</span>
+              <span>{{ new Date(issue.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Diperbarui:</span>
+              <span>{{ new Date(issue.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) }}</span>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── MODAL FOOTER BAR ── -->
+      <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between select-none">
+        <!-- Footer Left Hint -->
+        <span class="text-xs text-slate-400 hidden sm:inline">
+          <template v-if="isCreateMode">
+            Tekan <kbd class="px-1.5 py-0.5 bg-slate-200 border border-slate-300 rounded text-[10px] font-mono text-slate-700">Enter</kbd> di judul untuk membuat cepat, atau <kbd class="px-1.5 py-0.5 bg-slate-200 border border-slate-300 rounded text-[10px] font-mono text-slate-700">Esc</kbd> untuk membatalkan.
+          </template>
+          <template v-else>
+            <span class="flex items-center gap-1 text-emerald-600 font-medium">
+              <CheckCircle2 class="w-3.5 h-3.5" />
+              Semua perubahan tersimpan secara otomatis
+            </span>
+          </template>
+        </span>
+
+        <!-- Footer Right Actions -->
+        <div class="flex items-center space-x-3 ml-auto">
+          <!-- CREATE MODE BUTTONS -->
+          <template v-if="isCreateMode">
+            <button
+              type="button"
+              @click="handleClose"
+              class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-xl transition"
+              :disabled="isSubmitting"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              @click="handleCreateIssue"
+              class="px-6 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-sm font-bold shadow-sm hover:shadow transition flex items-center gap-2 active:scale-98 disabled:opacity-50 disabled:pointer-events-none"
+              :disabled="isSubmitting"
+            >
+              <Loader2 v-if="isSubmitting" class="w-4 h-4 animate-spin" />
+              <Plus v-else class="w-4 h-4" />
+              <span>{{ isSubmitting ? 'Menyimpan...' : 'Buat Tiket' }}</span>
+            </button>
+          </template>
+
+          <!-- DETAIL MODE BUTTON -->
+          <template v-else>
+            <button
+              type="button"
+              @click="handleClose"
+              class="px-5 py-2 bg-slate-800 hover:bg-slate-900 active:bg-black text-white rounded-xl text-sm font-semibold shadow-xs transition"
+            >
+              Tutup
+            </button>
+          </template>
         </div>
       </div>
     </div>
