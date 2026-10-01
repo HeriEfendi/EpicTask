@@ -9,6 +9,7 @@ import {
   Kanban,
   CalendarRange,
   ListTodo,
+  BarChart3,
   Bot,
   Workflow,
   Building2,
@@ -323,6 +324,16 @@ function toggleMyIssues() {
         >
           <ListTodo class="w-4 h-4 shrink-0" :class="projectStore.activeView === 'list' ? 'text-blue-600' : 'text-slate-500'" />
           <span class="flex-1 text-left truncate">List Spreadsheet</span>
+        </button>
+
+        <button
+          @click="projectStore.activeView = 'reports'"
+          class="w-full flex items-center space-x-3 px-2.5 py-2 rounded-lg text-sm transition"
+          :class="projectStore.activeView === 'reports' ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200/80 shadow-2xs' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium'"
+          title="Laporan & Analitik"
+        >
+          <BarChart3 class="w-4 h-4 shrink-0" :class="projectStore.activeView === 'reports' ? 'text-blue-600' : 'text-slate-500'" />
+          <span class="flex-1 text-left truncate">Laporan & Analitik</span>
         </button>
       </div>
 

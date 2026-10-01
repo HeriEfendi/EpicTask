@@ -11,6 +11,7 @@ import ViewTabs from '@/components/common/ViewTabs.vue';
 import KanbanBoard from '@/components/kanban/KanbanBoard.vue';
 import TimelineView from '@/components/timeline/TimelineView.vue';
 import ListView from '@/components/list/ListView.vue';
+import ReportsView from '@/components/reports/ReportsView.vue';
 import IssueDetailModal from '@/components/issue/IssueDetailModal.vue';
 import CreateIssueModal from '@/components/issue/CreateIssueModal.vue';
 import AutomationModal from '@/components/automation/AutomationModal.vue';
@@ -69,6 +70,7 @@ onMounted(async () => {
             <KanbanBoard v-if="projectStore.activeView === 'kanban'" />
             <TimelineView v-else-if="projectStore.activeView === 'timeline'" />
             <ListView v-else-if="projectStore.activeView === 'list'" />
+            <ReportsView v-else-if="projectStore.activeView === 'reports'" />
           </main>
         </div>
       </div>
