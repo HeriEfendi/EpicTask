@@ -16,10 +16,13 @@ export const useProjectStore = defineStore('project', () => {
 
   // Filters
   const searchQuery = ref('');
-  const filterAssignee = ref(null);
+  const filterAssignees = ref([]); // multi-user array: [userId, ...]
   const filterPriority = ref(null);
   const filterEpic = ref(null);
   const filterType = ref(null);
+
+  // Legacy single-assignee alias (backward compat for old code)
+  const filterAssignee = ref(null);
 
   // Issue Detail Modal State
   const activeIssue = ref(null);
@@ -44,7 +47,11 @@ export const useProjectStore = defineStore('project', () => {
         const matchesKey = issue.key.toLowerCase().includes(q);
         if (!matchesSummary && !matchesKey) return false;
       }
-      if (filterAssignee.value && issue.assignee_id !== filterAssignee.value) {
+      // Multi-assignee filter (new)
+      if (filterAssignees.value.length > 0) {
+        if (!filterAssignees.value.includes(issue.assignee_id)) return false;
+      } else if (filterAssignee.value && issue.assignee_id !== filterAssignee.value) {
+        // Legacy single-assignee fallback
         return false;
       }
       if (filterPriority.value && issue.priority !== filterPriority.value) {
@@ -350,6 +357,7 @@ export const useProjectStore = defineStore('project', () => {
     error,
     searchQuery,
     filterAssignee,
+    filterAssignees,
     filterPriority,
     filterEpic,
     filterType,
