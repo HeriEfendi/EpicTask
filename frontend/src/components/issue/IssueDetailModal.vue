@@ -354,13 +354,13 @@ async function handleDelete() {
 
           <!-- ② DESCRIPTION (RICH TEXT WYSIWYG EDITOR) -->
           <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <div class="flex items-center justify-between gap-3 select-none">
+              <label class="text-xs font-bold text-slate-700 uppercase tracking-wider shrink-0">
                 Deskripsi Lengkap
               </label>
-              <span class="text-xs text-slate-400 hidden sm:inline flex items-center gap-1">
-                <Sparkles class="w-3.5 h-3.5 text-blue-600" />
-                Mendukung gaya Word, tabel spesifikasi, kode & lampiran gambar (Paste Ctrl+V)
+              <span class="text-xs text-slate-500 hidden sm:inline-flex items-center gap-1.5 shrink-0">
+                <Sparkles class="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Mendukung gaya Word, tabel spesifikasi, kode & lampiran gambar (Paste Ctrl+V)</span>
               </span>
             </div>
 
