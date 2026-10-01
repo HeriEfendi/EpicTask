@@ -1,6 +1,6 @@
 # PRODUCT REQUIREMENT DOCUMENT (PRD)
 
-## Project Name: EpicTask (Jira Clone Alternative)
+## Project Name: EpicTask (Agile Project & Task Management Platform)
 
 **Target Output:** Web Application & Cross-Platform Desktop App (Windows, macOS, Linux) via Tauri
 **Tech Stack:** Vue 3 (Frontend), Rust / Axum / Diesel or SQLx (Backend), Tauri (Desktop Wrapper), mariadb (Database)
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary & Project Goal
 
-EpicTask adalah platform manajemen proyek dan pelacakan tugas (task tracking) modern yang mengadopsi nilai inti dari Jira Core/Software. Fokus utama aplikasi ini adalah menyediakan fungsionalitas esensial Jira (Hierarki Tugas, Custom Workflows, Multi-View Board, dan No-Code Automation) dengan performa tinggi, UI/UX yang lebih intuitif, dan fleksibilitas deployment ganda (Web App dan Desktop App Native via Tauri).
+EpicTask adalah platform manajemen proyek dan pelacakan tugas (task tracking) modern yang mengadopsi standar industri terbaik. Fokus utama aplikasi ini adalah menyediakan fungsionalitas esensial manajemen alur kerja (Hierarki Tugas, Custom Workflows, Multi-View Board, dan No-Code Automation) dengan performa tinggi, UI/UX yang lebih intuitif, dan fleksibilitas deployment ganda (Web App dan Desktop App Native via Tauri).
 
 ---
 

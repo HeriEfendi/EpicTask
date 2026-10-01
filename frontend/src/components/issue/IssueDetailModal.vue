@@ -9,8 +9,10 @@ import {
   MessageSquare,
   Trash2,
   Plus,
-  Send
+  Send,
+  Sparkles
 } from 'lucide-vue-next';
+import RichTextEditor from '@/components/common/RichTextEditor.vue';
 
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
@@ -121,9 +123,9 @@ async function handleDelete() {
 <template>
   <div
     v-if="projectStore.isDetailModalOpen && issue"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/50 backdrop-blur-sm"
   >
-    <div class="glass-modal w-full max-w-4xl rounded-2xl border border-slate-200 bg-white max-h-[92vh] flex flex-col shadow-2xl animate-slide-up overflow-hidden">
+    <div class="glass-modal w-[96vw] max-w-[1440px] rounded-2xl border border-slate-200 bg-white h-[94vh] max-h-[96vh] flex flex-col shadow-2xl animate-slide-up overflow-hidden">
       <!-- Modal Top Header -->
       <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between select-none">
         <div class="flex items-center space-x-3">
@@ -169,30 +171,38 @@ async function handleDelete() {
         </div>
       </div>
 
-      <!-- Main Content Grid: 2 Columns (Main left, Metadata right) -->
-      <div class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-        <!-- LEFT 2 COLUMNS: Summary, Description, Subtasks, Activity -->
-        <div class="md:col-span-2 p-6 space-y-6">
+      <!-- Main Content Grid: 2 Columns (Main left 75%, Metadata right 25%) -->
+      <div class="flex-1 overflow-hidden grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+        <!-- LEFT COLUMNS: Summary, Description, Subtasks, Activity -->
+        <div class="lg:col-span-8 xl:col-span-9 p-6 space-y-6 overflow-y-auto h-full">
           <!-- Summary (Title) Input -->
           <div>
             <input
               :value="issue.summary"
               @change="(e) => handleUpdateField({ summary: e.target.value })"
-              class="w-full text-xl font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-600 focus:bg-slate-50 rounded px-1.5 py-1 transition focus:outline-none"
+              class="w-full text-2xl font-bold text-slate-900 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-600 focus:bg-slate-50 rounded px-2 py-1.5 transition focus:outline-none"
               placeholder="Judul tiket..."
             />
           </div>
 
-          <!-- Description Section -->
-          <div>
-            <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Deskripsi Tiket</label>
-            <textarea
-              :value="issue.description || ''"
-              @change="(e) => handleUpdateField({ description: e.target.value })"
-              rows="4"
-              placeholder="Tambahkan deskripsi rinci, kriteria penerimaan, catatan pengerjaan..."
-              class="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-xl p-3.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition leading-relaxed shadow-2xs"
-            ></textarea>
+          <!-- Description Section (Rich Text Editor) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Deskripsi Tiket
+              </label>
+              <span class="text-xs text-slate-400 hidden sm:inline">
+                Mendukung gaya Word, tabel spesifikasi, kode & lampiran gambar (Paste Ctrl+V)
+              </span>
+            </div>
+
+            <!-- Rich WYSIWYG Editor -->
+            <RichTextEditor
+              :key="issue.id"
+              :model-value="issue.description || ''"
+              @update:model-value="(val) => handleUpdateField({ description: val })"
+              @save="(val) => handleUpdateField({ description: val })"
+            />
           </div>
 
           <!-- Subtasks Checklist Section (FR-4.4) -->
@@ -403,8 +413,8 @@ async function handleDelete() {
           </div>
         </div>
 
-        <!-- RIGHT 1 COLUMN: Status, Priority, Assignee, Dates, Points -->
-        <div class="p-6 space-y-5 bg-slate-50/70 text-sm">
+        <!-- RIGHT COLUMN: Status, Priority, Assignee, Dates, Points -->
+        <div class="lg:col-span-4 xl:col-span-3 p-6 space-y-5 bg-slate-50/70 text-sm overflow-y-auto h-full">
           <!-- Status Dropdown (with Workflow Transition rules) -->
           <div>
             <label class="block text-slate-600 font-bold uppercase tracking-wider text-xs mb-1.5">
