@@ -6,8 +6,8 @@ use tower_http::cors::{Any, CorsLayer};
 
 use crate::{
     handlers::{
-        activities, auth, automation, comments, issues, notifications, projects, seed, time_logs,
-        workspaces,
+        activities, auth, automation, comments, issues, notifications, projects, reports, seed,
+        time_logs, workspaces,
     },
     ws::ws_handler,
     AppState,
@@ -56,6 +56,12 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/notifications/read-all", post(notifications::mark_all_as_read))
         // Activity Log routes
         .route("/api/projects/:pid/activities", get(activities::list_activities))
+        // Reports & Analytics routes
+        .route("/api/projects/:pid/reports/overview", get(reports::get_overview))
+        .route("/api/projects/:pid/reports/velocity", get(reports::get_velocity))
+        .route("/api/projects/:pid/reports/cumulative-flow", get(reports::get_cumulative_flow))
+        .route("/api/projects/:pid/reports/timesheet", get(reports::get_timesheet))
+        .route("/api/projects/:pid/reports/epic-progress", get(reports::get_epic_progress))
         // Seed database
         .route("/api/seed", post(seed::seed_database))
         .layer(cors)

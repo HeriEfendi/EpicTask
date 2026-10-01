@@ -5,6 +5,7 @@ pub mod comments;
 pub mod issues;
 pub mod notifications;
 pub mod projects;
+pub mod reports;
 pub mod seed;
 pub mod time_logs;
 pub mod workspaces;
