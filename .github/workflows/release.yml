@@ -107,7 +107,7 @@ jobs:
         shell: bash
         run: |
           CURRENT_TAG="${GITHUB_REF_NAME}"
-          PREVIOUS_TAG=$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1)
+          PREVIOUS_TAG=$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1 || true)
 
           echo "Current tag: $CURRENT_TAG"
           echo "Previous tag: $PREVIOUS_TAG"
