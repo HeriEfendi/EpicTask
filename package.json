@@ -8,6 +8,7 @@
     "build:frontend": "npm --prefix frontend run build",
     "build:backend": "cd backend && cargo build --release",
     "tauri:dev": "npm --prefix frontend run tauri dev",
-    "tauri:build": "npm --prefix frontend run tauri build"
+    "tauri:build": "npm --prefix frontend run tauri build",
+    "release": "node scripts/release.mjs"
   }
 }

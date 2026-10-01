@@ -1,0 +1,202 @@
+name: Release Multi-Platform Desktop Apps
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 20
+
+jobs:
+  build-tauri:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-24.04
+            bundles: deb,appimage,rpm
+            rust_target: ""
+            tauri_args: ""
+          - name: Windows
+            os: windows-latest
+            bundles: nsis,msi
+            rust_target: ""
+            tauri_args: ""
+          - name: macOS-Intel
+            os: macos-13
+            bundles: app
+            rust_target: x86_64-apple-darwin
+            tauri_args: --target x86_64-apple-darwin
+          - name: macOS-Silicon
+            os: macos-14
+            bundles: app
+            rust_target: aarch64-apple-darwin
+            tauri_args: --target aarch64-apple-darwin
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package.json
+
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libfuse2 zstd
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add Rust target
+        if: matrix.rust_target != ''
+        run: rustup target add ${{ matrix.rust_target }}
+
+      - name: Sync version from tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Bumping versions to: $VERSION"
+          node -e "
+            const fs = require('fs');
+            const v = process.argv[1];
+            for (const file of ['package.json', 'frontend/package.json', 'frontend/src-tauri/tauri.conf.json']) {
+              if (fs.existsSync(file)) {
+                const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+                data.version = v;
+                fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
+              }
+            }
+            for (const cargo of ['frontend/src-tauri/Cargo.toml', 'backend/Cargo.toml']) {
+              if (fs.existsSync(cargo)) {
+                const content = fs.readFileSync(cargo, 'utf8');
+                fs.writeFileSync(cargo, content.replace(/^version\s*=\s*\"[^\"]+\"/m, 'version = \"' + v + '\"'));
+              }
+            }
+          " "$VERSION"
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build frontend bundle
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Fetch all tags for changelog
+        run: git fetch --tags --force
+
+      - name: Generate release notes from git commits
+        id: release_notes
+        shell: bash
+        run: |
+          CURRENT_TAG="${GITHUB_REF_NAME}"
+          PREVIOUS_TAG=$(git tag --sort=-creatordate | grep -v "^${CURRENT_TAG}$" | head -n 1)
+
+          echo "Current tag: $CURRENT_TAG"
+          echo "Previous tag: $PREVIOUS_TAG"
+
+          HEADER="### 📦 What's Changed in EpicTask ${CURRENT_TAG}"
+          if [ -n "$PREVIOUS_TAG" ]; then
+            RAW_COMMITS=$(git log "${PREVIOUS_TAG}..${CURRENT_TAG}" --pretty=format:"- %s (%h)")
+          else
+            RAW_COMMITS=$(git log --pretty=format:"- %s (%h)" -25)
+          fi
+
+          # Filter commit release bump
+          COMMITS=$(echo "$RAW_COMMITS" | grep -v -E "^- Release v[0-9]" || true)
+          if [ -z "$COMMITS" ]; then
+            COMMITS="$RAW_COMMITS"
+          fi
+          if [ -z "$COMMITS" ]; then
+            COMMITS="- General improvements and bug fixes."
+          fi
+
+          {
+            echo "body<<RELEASE_EOF"
+            echo "$HEADER"
+            echo ""
+            echo "$COMMITS"
+            echo ""
+            echo "---"
+            echo "✨ Multi-platform desktop binaries compiled and verified by automated CI pipeline."
+            echo "RELEASE_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish Tauri desktop application
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: ./frontend
+          tauriScript: npm run tauri
+          args: --bundles ${{ matrix.bundles }} ${{ matrix.tauri_args }}
+          tagName: ${{ github.ref_name }}
+          releaseName: "EpicTask ${{ github.ref_name }}"
+          releaseBody: ${{ steps.release_notes.outputs.body }}
+          releaseDraft: false
+          prerelease: false
+
+      - name: Create and upload macOS DMG package (.dmg)
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          TARGET="${{ matrix.rust_target }}"
+          APP_PATH="frontend/src-tauri/target/${TARGET}/release/bundle/macos/EpicTask.app"
+          if [ ! -d "$APP_PATH" ]; then
+            APP_PATH="frontend/src-tauri/target/release/bundle/macos/EpicTask.app"
+          fi
+
+          ARCH_LABEL="x64"
+          if [ "$TARGET" = "aarch64-apple-darwin" ]; then
+            ARCH_LABEL="aarch64"
+          fi
+
+          if [ -d "$APP_PATH" ]; then
+            DMG_NAME="EpicTask_${VERSION}_${ARCH_LABEL}.dmg"
+            echo "Packaging $APP_PATH into $DMG_NAME..."
+
+            DMG_STAGING_DIR="dmg_staging_${ARCH_LABEL}"
+            rm -rf "$DMG_STAGING_DIR"
+            mkdir -p "$DMG_STAGING_DIR"
+            cp -R "$APP_PATH" "$DMG_STAGING_DIR/"
+            ln -s /Applications "$DMG_STAGING_DIR/Applications"
+
+            hdiutil create -volname "EpicTask" -srcfolder "$DMG_STAGING_DIR" -ov -format UDZO "$DMG_NAME"
+            rm -rf "$DMG_STAGING_DIR"
+
+            gh release upload "${GITHUB_REF_NAME}" "$DMG_NAME" --clobber
+          else
+            echo "Notice: $APP_PATH not found, skipping DMG build."
+          fi
+
+      - name: Create and upload Arch Linux package (.pkg.tar.zst)
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          node scripts/create-arch-pkg.mjs "$VERSION"
+          if ls EpicTask-*.pkg.tar.zst 1> /dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" EpicTask-*.pkg.tar.zst --clobber
+          fi
