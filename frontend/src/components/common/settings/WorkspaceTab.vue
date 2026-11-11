@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { api } from '@/services/api';
+import { toast } from '@/utils/toast';
 import { ShieldCheck, Users, Plus } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -43,10 +44,12 @@ async function handleAddMember() {
       role: selectedRole.value,
     });
     memberActionMsg.value = 'Anggota berhasil ditambahkan!';
+    toast.success('Anggota berhasil ditambahkan ke workspace');
     selectedUserId.value = '';
     emit('refresh-members');
   } catch (e) {
     memberActionMsg.value = 'Gagal menambahkan: ' + (e.message || 'Error');
+    toast.error('Gagal menambahkan anggota: ' + (e.message || 'Error'));
   } finally {
     isAddingMember.value = false;
   }

@@ -171,18 +171,27 @@ pub async fn add_member(
         _ => return Err((StatusCode::FORBIDDEN, Json(json!({ "error": "Only owners or admins can invite members" })))),
     }
 
-    // Find user by email
-    let target_user: Result<(i64,), _> = sqlx::query_as("SELECT id FROM users WHERE email = ?")
-        .bind(&payload.email)
-        .fetch_one(&state.db)
-        .await;
+    // Find user by user_id or email
+    let target_id = if let Some(uid) = payload.user_id {
+        uid
+    } else if let Some(ref email) = payload.email {
+        let target_user: Result<(i64,), _> = sqlx::query_as("SELECT id FROM users WHERE email = ?")
+            .bind(email)
+            .fetch_one(&state.db)
+            .await;
 
-    let target_id = target_user.map_err(|_| {
-        (
-            StatusCode::NOT_FOUND,
-            Json(json!({ "error": "No user found with this email" })),
-        )
-    })?.0;
+        target_user.map_err(|_| {
+            (
+                StatusCode::NOT_FOUND,
+                Json(json!({ "error": "No user found with this email" })),
+            )
+        })?.0
+    } else {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "Either user_id or email is required" })),
+        ));
+    };
 
     let role = payload.role.unwrap_or_else(|| "MEMBER".to_string());
 

@@ -27,7 +27,8 @@ pub struct CreateWorkspacePayload {
 
 #[derive(Debug, Deserialize)]
 pub struct AddMemberPayload {
-    pub email: String,
+    pub email: Option<String>,
+    pub user_id: Option<i64>,
     pub role: Option<String>,
 }
 
