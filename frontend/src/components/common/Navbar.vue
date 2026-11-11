@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useProjectStore } from '@/stores/project';
 import { useNotificationStore } from '@/stores/notification';
@@ -28,6 +28,27 @@ const projectStore = useProjectStore();
 const notifStore = useNotificationStore();
 
 const isUserMenuOpen = ref(false);
+const searchInputRef = ref(null);
+
+function handleGlobalKeydown(e) {
+  if (
+    e.key === '/' &&
+    document.activeElement?.tagName !== 'INPUT' &&
+    document.activeElement?.tagName !== 'TEXTAREA' &&
+    !document.activeElement?.isContentEditable
+  ) {
+    e.preventDefault();
+    searchInputRef.value?.focus();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown);
+});
 </script>
 
 <template>
@@ -65,6 +86,7 @@ const isUserMenuOpen = ref(false);
       <div class="relative">
         <Search class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
+          ref="searchInputRef"
           v-model="projectStore.searchQuery"
           type="text"
           placeholder="Cari tiket, ringkasan, atau ID (misal: EPIC-1)..."

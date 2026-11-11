@@ -8,7 +8,8 @@ import {
   Trash2,
   ExternalLink,
   ChevronDown,
-  Loader2
+  Loader2,
+  Download
 } from 'lucide-vue-next';
 import { toast } from '@/utils/toast';
 
@@ -16,6 +17,61 @@ const PAGE_SIZE = 20;
 
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
+
+// --- Quick Add State ---
+const newIssueSummary = ref('');
+const isQuickAdding = ref(false);
+
+async function handleQuickAddIssue() {
+  const summary = newIssueSummary.value.trim();
+  if (!summary) return;
+  isQuickAdding.value = true;
+  try {
+    const firstStatusId = projectStore.statuses[0]?.id || null;
+    const newIssue = await projectStore.createIssue({
+      summary,
+      issue_type: 'TASK',
+      status_id: firstStatusId,
+      priority: 'MEDIUM',
+    });
+    toast.success(`Tiket ${newIssue?.key || ''} berhasil dibuat`);
+    newIssueSummary.value = '';
+  } catch (e) {
+    toast.error(e.message || 'Gagal membuat tiket');
+  } finally {
+    isQuickAdding.value = false;
+  }
+}
+
+// --- Export CSV ---
+function exportIssuesCsv() {
+  const list = projectStore.filteredIssues;
+  if (!list.length) {
+    toast.warning('Tidak ada tiket untuk diekspor');
+    return;
+  }
+  const headers = ['Key', 'Tipe', 'Ringkasan', 'Status', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
+  const rows = list.map((i) => [
+    `"${i.key}"`,
+    `"${i.issue_type}"`,
+    `"${(i.summary || '').replace(/"/g, '""')}"`,
+    `"${i.status_name || ''}"`,
+    `"${i.priority}"`,
+    `"${(i.assignee_name || 'Unassigned').replace(/"/g, '""')}"`,
+    i.story_points || 0,
+    i.due_date || '',
+  ]);
+
+  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `epictask_issues_${projectStore.currentProject?.key || 'EXPORT'}_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  toast.success(`Berhasil mengekspor ${list.length} tiket ke CSV`);
+}
 
 // --- Infinite Scroll State ---
 const visibleCount = ref(PAGE_SIZE);
@@ -135,9 +191,19 @@ async function handleDelete(issueId) {
         <ListTodo class="w-5 h-5 text-blue-600" />
         <span>Spreadsheet List View (Edit Langsung di Baris)</span>
       </h2>
-      <span class="text-sm text-slate-600 font-medium">
-        {{ totalCount }} item tiket
-      </span>
+      <div class="flex items-center space-x-3">
+        <button
+          @click="exportIssuesCsv"
+          class="px-3 py-1.5 rounded-lg border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center space-x-1.5 transition shadow-2xs"
+          title="Ekspor daftar tiket ini ke CSV"
+        >
+          <Download class="w-3.5 h-3.5 text-slate-600" />
+          <span>Ekspor CSV</span>
+        </button>
+        <span class="text-sm text-slate-600 font-medium">
+          {{ totalCount }} item tiket
+        </span>
+      </div>
     </div>
 
     <!-- Table Container with scroll listener -->
@@ -162,7 +228,37 @@ async function handleDelete(issueId) {
         </thead>
 
         <tbody class="divide-y divide-slate-100 text-slate-800">
-
+          <!-- Inline Quick Add Row -->
+          <tr class="bg-blue-50/50 hover:bg-blue-50/80 border-b border-blue-200 transition">
+            <td class="py-2.5 px-3.5 text-xs font-mono font-bold text-blue-600">
+              <Plus class="w-3.5 h-3.5 inline mr-1" /> BARU
+            </td>
+            <td class="py-2.5 px-3.5">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded uppercase bg-blue-100 text-blue-800">
+                TASK
+              </span>
+            </td>
+            <td class="py-2.5 px-3.5" colspan="6">
+              <input
+                v-model="newIssueSummary"
+                placeholder="+ Tambah tiket baru cepat... (Ketik judul lalu tekan Enter)"
+                @keyup.enter="handleQuickAddIssue"
+                :disabled="isQuickAdding"
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-blue-600 shadow-2xs font-medium"
+              />
+            </td>
+            <td class="py-2.5 px-3.5 text-center">
+              <button
+                @click="handleQuickAddIssue"
+                :disabled="!newIssueSummary.trim() || isQuickAdding"
+                class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-lg text-xs font-semibold shadow-2xs transition flex items-center justify-center gap-1 mx-auto"
+              >
+                <Loader2 v-if="isQuickAdding" class="w-3.5 h-3.5 animate-spin" />
+                <Plus v-else class="w-3.5 h-3.5" />
+                <span>Simpan</span>
+              </button>
+            </td>
+          </tr>
 
           <!-- Issues Rows (sliced to visibleIssues) -->
           <tr

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useProjectStore } from '@/stores/project';
 import { useAutomationStore } from '@/stores/automation';
@@ -89,11 +89,20 @@ function handleSelectProject(p) {
   isProjectMenuOpen.value = false;
 }
 
+const isMyIssuesActive = computed(() => {
+  return authStore.user?.id ? projectStore.filterAssignees.includes(authStore.user.id) : false;
+});
+
 function toggleMyIssues() {
-  if (projectStore.filterAssignee === authStore.user?.id) {
+  const uid = authStore.user?.id;
+  if (!uid) return;
+  const idx = projectStore.filterAssignees.indexOf(uid);
+  if (idx !== -1) {
+    projectStore.filterAssignees.splice(idx, 1);
     projectStore.filterAssignee = null;
   } else {
-    projectStore.filterAssignee = authStore.user?.id;
+    projectStore.filterAssignees.push(uid);
+    projectStore.filterAssignee = uid;
   }
 }
 </script>
@@ -373,10 +382,10 @@ function toggleMyIssues() {
       <button
         @click="toggleMyIssues"
         class="w-full flex items-center space-x-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition shadow-2xs"
-        :class="projectStore.filterAssignee === authStore.user?.id ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'"
+        :class="isMyIssuesActive ? 'bg-blue-50 border-blue-400 text-blue-700' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'"
         title="Filter issue saya"
       >
-        <UserCheck class="w-4 h-4 shrink-0" :class="projectStore.filterAssignee === authStore.user?.id ? 'text-blue-600' : 'text-slate-500'" />
+        <UserCheck class="w-4 h-4 shrink-0" :class="isMyIssuesActive ? 'text-blue-600' : 'text-slate-500'" />
         <span class="truncate">Filter Tiket Saya</span>
       </button>
     </div>
