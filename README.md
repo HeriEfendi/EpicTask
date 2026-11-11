@@ -62,42 +62,48 @@ graph TD
 ## 🚀 Fitur Unggulan (Core Features)
 
 ### 1. User, Workspace & Role Management
-* **JWT Authentication:** Registrasi, Login, dan Logout menggunakan JWT bearer tokens serta hashing password aman dengan `bcrypt`.
-* **Multi-Workspace Support:** Satu akun dapat memiliki dan mengelola beberapa ruang kerja mandiri.
-* **Role-Based Access Control (RBAC):** Peran terstruktur tingkat Workspace: `OWNER`, `ADMIN`, `MEMBER`, dan `VIEWER`.
+
+- **JWT Authentication:** Registrasi, Login, dan Logout menggunakan JWT bearer tokens serta hashing password aman dengan `bcrypt`.
+- **Multi-Workspace Support:** Satu akun dapat memiliki dan mengelola beberapa ruang kerja mandiri.
+- **Role-Based Access Control (RBAC):** Peran terstruktur tingkat Workspace: `OWNER`, `ADMIN`, `MEMBER`, dan `VIEWER`.
 
 ### 2. Multi-View Project Workspace
-* **Kanban View:** Kolom status dinamis dengan Drag-and-Drop beranimasi halus, indikator WIP (Work-in-Progress), dan drop guides.
-* **Timeline / Gantt View:** Diagram batang horizontal interaktif yang memvisualisasikan rentang tanggal mulai (*Start Date*) dan tenggat (*Due Date*), navigasi waktu, dan status milestone.
-* **Spreadsheet List View:** Tampilan tabular dengan kemampuan inline-editing instan untuk Status, Priority, Assignee, Points, dan Due Date tanpa perlu membuka modal.
-* **Laporan & Analytics Suite:** Dasbor pelaporan lengkap mencakup Executive Summary, Sprint Velocity Chart & Burndown, Cumulative Flow Diagram (CFD), dan Timesheet Log kerja teragregasi.
-* **Custom Workflows & Transition Guards:**
-  * Penambahan status/kolom dinamis (kategori `TODO`, `IN_PROGRESS`, `DONE` dengan custom color picker).
-  * **Workflow Transition Rules:** Admin dapat mengunci alur perpindahan status (misal: tiket di *Backlog* dilarang langsung digeser ke *Done* sebelum melewati *To Do* & *In Progress*). Sistem otomatis menolak perpindahan ilegal dengan pesan guard yang jelas.
+
+- **Kanban View:** Kolom status dinamis dengan Drag-and-Drop beranimasi halus, indikator WIP (Work-in-Progress), dan drop guides.
+- **Timeline / Gantt View:** Diagram batang horizontal interaktif yang memvisualisasikan rentang tanggal mulai (_Start Date_) dan tenggat (_Due Date_), navigasi waktu, dan status milestone.
+- **Spreadsheet List View:** Tampilan tabular dengan kemampuan inline-editing instan untuk Status, Priority, Assignee, Points, dan Due Date tanpa perlu membuka modal.
+- **Laporan & Analytics Suite:** Dasbor pelaporan lengkap mencakup Executive Summary, Sprint Velocity Chart & Burndown, Cumulative Flow Diagram (CFD), dan Timesheet Log kerja teragregasi.
+- **Custom Workflows & Transition Guards:**
+  - Penambahan status/kolom dinamis (kategori `TODO`, `IN_PROGRESS`, `DONE` dengan custom color picker).
+  - **Workflow Transition Rules:** Admin dapat mengunci alur perpindahan status (misal: tiket di _Backlog_ dilarang langsung digeser ke _Done_ sebelum melewati _To Do_ & _In Progress_). Sistem otomatis menolak perpindahan ilegal dengan pesan guard yang jelas.
 
 ### 3. Issue Lifecycle & Rich Word-Like Editor
-* **Issue Hierarchy:** Dukungan hierarki lengkap: **Epic** (inisiatif besar), **Story / Task** (pekerjaan standar), dan **Subtask** (sub-pekerjaan).
-* **Atomic Issue Key Generation:** Penomoran tiket (`PROJECT-1`, `PROJECT-2`, dst.) bebas race-condition dengan transaksi terisolasi `SELECT ... FOR UPDATE` pada MariaDB.
-* **Jira/Word-Grade Rich Text Editor:**
-  * Formatting teks lengkap (Bold, Italic, Underline, Heading 1-3, Quote, Code blocks, Text Color, Highlight).
-  * **Tabel Spesifikasi Dinamis:** Pembuatan dan manipulasi tabel langsung (+ Baris, + Kolom, Hapus Baris, Hapus Tabel) dengan floating bar kontekstual yang otomatis muncul hanya saat kursor aktif di dalam sel tabel.
-  * **Lampiran Gambar Instan:** Dukungan paste gambar langsung dari clipboard (`Ctrl+V`) serta file upload picker.
-  * Penyimpanan berkapasitas besar menggunakan tipe kolom `LONGTEXT`.
-* **Unified Modal (Single Source of Truth):** Modal terpadu lebar 1440px responsif ([IssueDetailModal.vue](file:///home/lenovo/www/EpicTask/frontend/src/components/issue/IssueDetailModal.vue)) yang melayani proses pembuatan tiket baru maupun pengeditan detail secara seamless.
+
+- **Issue Hierarchy:** Dukungan hierarki lengkap: **Epic** (inisiatif besar), **Story / Task** (pekerjaan standar), dan **Subtask** (sub-pekerjaan).
+- **Atomic Issue Key Generation:** Penomoran tiket (`PROJECT-1`, `PROJECT-2`, dst.) bebas race-condition dengan transaksi terisolasi `SELECT ... FOR UPDATE` pada MariaDB.
+- **Word-Grade Rich Text Editor:**
+  - Formatting teks lengkap (Bold, Italic, Underline, Heading 1-3, Quote, Code blocks, Text Color, Highlight).
+  - **Tabel Spesifikasi Dinamis:** Pembuatan dan manipulasi tabel langsung (+ Baris, + Kolom, Hapus Baris, Hapus Tabel) dengan floating bar kontekstual yang otomatis muncul hanya saat kursor aktif di dalam sel tabel.
+  - **Lampiran Gambar Instan:** Dukungan paste gambar langsung dari clipboard (`Ctrl+V`) serta file upload picker.
+  - Penyimpanan berkapasitas besar menggunakan tipe kolom `LONGTEXT`.
+- **Unified Modal (Single Source of Truth):** Modal terpadu lebar 1440px responsif ([IssueDetailModal.vue](file:///home/lenovo/www/EpicTask/frontend/src/components/issue/IssueDetailModal.vue)) yang melayani proses pembuatan tiket baru maupun pengeditan detail secara seamless.
 
 ### 4. Tracking, Collaboration & Notifications
-* **Time Tracking (Work Log):** Pencatatan jam kerja nyata per user dan per tiket dengan riwayat catatan pekerjaan.
-* **Interactive Comments & @Mentions:** Kolom komentar interaktif dengan deteksi otomatis `@username` yang langsung mengirim notifikasi instan.
-* **Subtask Checklist:** Progress bar interaktif yang otomatis menghitung persentase subtask selesai, dilengkapi toggle centang satu-klik.
-* **Vue-Toastification:** Seluruh feedback aksi, peringatan alur kerja, dan error ditangani oleh notifikasi toast modern menggantikan dialog alert browser bawaan.
+
+- **Time Tracking (Work Log):** Pencatatan jam kerja nyata per user dan per tiket dengan riwayat catatan pekerjaan.
+- **Interactive Comments & @Mentions:** Kolom komentar interaktif dengan deteksi otomatis `@username` yang langsung mengirim notifikasi instan.
+- **Subtask Checklist:** Progress bar interaktif yang otomatis menghitung persentase subtask selesai, dilengkapi toggle centang satu-klik.
+- **Vue-Toastification:** Seluruh feedback aksi, peringatan alur kerja, dan error ditangani oleh notifikasi toast modern menggantikan dialog alert browser bawaan.
 
 ### 5. No-Code Automation Engine
-* **Visual Rule Builder (IF-THEN):** Antarmuka intuitif untuk menyusun otomasi tanpa kode.
-* **Triggers:** Status Changed (misal: saat tiket berubah menjadi `DONE`), Due Date Alert (< 24 jam).
-* **Actions:** Cascade Subtasks (otomatis menyelesaikan semua subtask), Reassign to Reporter, Notify Assignee.
+
+- **Visual Rule Builder (IF-THEN):** Antarmuka intuitif untuk menyusun otomasi tanpa kode.
+- **Triggers:** Status Changed (misal: saat tiket berubah menjadi `DONE`), Due Date Alert (< 24 jam).
+- **Actions:** Cascade Subtasks (otomatis menyelesaikan semua subtask), Reassign to Reporter, Notify Assignee.
 
 ### 6. Real-time Live Synchronization
-* **WebSocket Multi-Peer Broadcasting:** Setiap perubahan (geser kartu, edit, hapus, komentar, time log) disiarkan instan ke seluruh pengguna yang terhubung tanpa perlu refresh halaman.
+
+- **WebSocket Multi-Peer Broadcasting:** Setiap perubahan (geser kartu, edit, hapus, komentar, time log) disiarkan instan ke seluruh pengguna yang terhubung tanpa perlu refresh halaman.
 
 ---
 
@@ -107,40 +113,46 @@ Database MariaDB telah dilengkapi generator data uji otomatis mencakup 1 tahun r
 
 Anda dapat langsung login menggunakan tombol **1-Click Quick Login** di antarmuka atau menggunakan kredensial:
 
-| Akun | Email | Password | Role |
-|---|---|---|---|
-| **Sarah Jenkins** (Tech Lead) | `sarah@epictask.dev` | `password123` | **OWNER** |
-| **Alex Morgan** (Senior Fullstack) | `alex@epictask.dev` | `password123` | **MEMBER** |
-| **Elena Rostova** (QA Specialist) | `elena@epictask.dev` | `password123` | **MEMBER** |
-| **David Chen** (Product Owner) | `david@epictask.dev` | `password123` | **ADMIN** |
+| Akun                               | Email                | Password      | Role       |
+| ---------------------------------- | -------------------- | ------------- | ---------- |
+| **Sarah Jenkins** (Tech Lead)      | `sarah@epictask.dev` | `password123` | **OWNER**  |
+| **Alex Morgan** (Senior Fullstack) | `alex@epictask.dev`  | `password123` | **MEMBER** |
+| **Elena Rostova** (QA Specialist)  | `elena@epictask.dev` | `password123` | **MEMBER** |
+| **David Chen** (Product Owner)     | `david@epictask.dev` | `password123` | **ADMIN**  |
 
 ---
 
 ## 🛠️ Panduan Menjalankan & Rilis Otomatis
 
 ### 1. Menjalankan Backend (Rust Axum)
+
 ```bash
 cd backend
 cargo run
 ```
-* REST API: `http://127.0.0.1:8088`
-* WebSocket: `ws://127.0.0.1:8088/ws`
+
+- REST API: `http://127.0.0.1:8088`
+- WebSocket: `ws://127.0.0.1:8088/ws`
 
 ### 2. Menjalankan Frontend (Vue 3 + Vite)
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-* Akses aplikasi web di: `http://localhost:1420`
+
+- Akses aplikasi web di: `http://localhost:1420`
 
 ### 3. Menjalankan Aplikasi Desktop (Tauri v2)
+
 ```bash
 cd frontend
 npm run tauri dev
 ```
 
 ### 4. 🚀 Satu Perintah Rilis Otomatis Multi-Platform (`npm run release`)
+
 Proyek ini dilengkapi script otomatisasi rilis terpadu (`scripts/release.mjs`) dan CI/CD GitHub Actions:
 
 ```bash
@@ -149,14 +161,15 @@ npm run release 0.17.1
 ```
 
 **Proses yang dijalankan secara otomatis:**
+
 1. Sinkronisasi branch Git dan update histori commit.
 2. Generate changelog rilis otomatis ke `CHANGELOG.md`.
 3. Sinkronisasi nomor versi di `package.json`, `frontend/package.json`, `tauri.conf.json`, dan `Cargo.toml`.
 4. Pembuatan Git Commit & Git Tag `v0.17.1`.
 5. Otomatis `git push` ke GitHub dan memicu GitHub Actions Matrix Workflow untuk kompilasi multi-platform:
-   * 🐧 **Linux:** `.deb`, `.rpm`, `.AppImage`, `.pkg.tar.zst` (Arch Linux package)
-   * 🪟 **Windows:** `.exe` (NSIS Installer), `.msi`
-   * 🍏 **macOS:** `.dmg` (Universal / Apple Silicon & Intel)
+   - 🐧 **Linux:** `.deb`, `.rpm`, `.AppImage`, `.pkg.tar.zst` (Arch Linux package)
+   - 🪟 **Windows:** `.exe` (NSIS Installer), `.msi`
+   - 🍏 **macOS:** `.dmg` (Universal / Apple Silicon & Intel)
 
 ---
 
@@ -267,6 +280,7 @@ EpicTask/
 ## 🧪 Pengujian API Backend (CLI Curl Reference)
 
 ### 1. Login & Ambil Token
+
 ```bash
 TOKEN=$(curl -s -X POST http://127.0.0.1:8088/api/auth/login \
   -H "Content-Type: application/json" \
@@ -274,6 +288,7 @@ TOKEN=$(curl -s -X POST http://127.0.0.1:8088/api/auth/login \
 ```
 
 ### 2. Uji Workflow Transition Guard
+
 ```bash
 # Perpindahan ilegal: Backlog (Status 1) -> Done (Status 5) -> DITOLAK (HTTP 400)
 curl -s -X POST http://127.0.0.1:8088/api/issues/8/move \
@@ -285,6 +300,7 @@ curl -s -X POST http://127.0.0.1:8088/api/issues/8/move \
 ```
 
 ### 3. Uji Endpoint Analytics & Laporan
+
 ```bash
 # Ambil ringkasan metrik proyek
 curl -s http://127.0.0.1:8088/api/projects/1/reports/overview \
@@ -307,4 +323,4 @@ curl -s http://127.0.0.1:8088/api/projects/1/reports/cfd \
 
 ---
 
-*Selamat berkarya bersama EpicTask! Buka http://localhost:1420 di browser atau jalankan `npm run tauri dev` untuk desktop app.*
+_Selamat berkarya bersama EpicTask! Buka http://localhost:1420 di browser atau jalankan `npm run tauri dev` untuk desktop app._
