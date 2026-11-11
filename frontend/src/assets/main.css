@@ -288,3 +288,12 @@ table.rich-table tr:hover td {
   background-color: #1d4ed8 !important;
 }
 
+/* Placeholder styling for ContentEditable */
+[contenteditable="true"]:empty:before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  pointer-events: none;
+  display: block;
+}
+
+

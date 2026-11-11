@@ -1128,12 +1128,4 @@ function handleOutsideClick(e) {
   </div>
 </template>
 
-<style scoped>
-/* Placeholder styling for ContentEditable */
-[contenteditable="true"]:empty:before {
-  content: attr(data-placeholder);
-  color: #94a3b8;
-  pointer-events: none;
-  display: block;
-}
-</style>
+
