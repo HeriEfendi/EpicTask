@@ -20,6 +20,8 @@ pub struct Issue {
     pub start_date: Option<NaiveDate>,
     pub due_date: Option<NaiveDate>,
     pub position: Option<i32>,
+    pub sprint_id: Option<i64>,
+    pub component_id: Option<i64>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
 
@@ -33,6 +35,8 @@ pub struct Issue {
     pub epic_summary: Option<String>,
     pub parent_key: Option<String>,
     pub parent_summary: Option<String>,
+    pub sprint_name: Option<String>,
+    pub component_name: Option<String>,
     pub subtask_count: Option<i64>,
     pub subtask_done_count: Option<i64>,
 }
@@ -47,6 +51,8 @@ pub struct CreateIssuePayload {
     pub assignee_id: Option<i64>,
     pub parent_id: Option<i64>,
     pub epic_id: Option<i64>,
+    pub sprint_id: Option<i64>,
+    pub component_id: Option<i64>,
     pub story_points: Option<i32>,
     pub start_date: Option<NaiveDate>,
     pub due_date: Option<NaiveDate>,
@@ -59,12 +65,21 @@ pub struct UpdateIssuePayload {
     pub issue_type: Option<String>,
     pub status_id: Option<i64>,
     pub priority: Option<String>,
-    pub assignee_id: Option<i64>,
-    pub parent_id: Option<i64>,
-    pub epic_id: Option<i64>,
+    #[serde(default)]
+    pub assignee_id: Option<Option<i64>>,
+    #[serde(default)]
+    pub parent_id: Option<Option<i64>>,
+    #[serde(default)]
+    pub epic_id: Option<Option<i64>>,
+    #[serde(default)]
+    pub sprint_id: Option<Option<i64>>,
+    #[serde(default)]
+    pub component_id: Option<Option<i64>>,
     pub story_points: Option<i32>,
-    pub start_date: Option<NaiveDate>,
-    pub due_date: Option<NaiveDate>,
+    #[serde(default)]
+    pub start_date: Option<Option<NaiveDate>>,
+    #[serde(default)]
+    pub due_date: Option<Option<NaiveDate>>,
     pub position: Option<i32>,
 }
 

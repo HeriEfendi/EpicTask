@@ -48,16 +48,39 @@ pub async fn update_issue(
     let issue_type = payload.issue_type.unwrap_or(current_issue.issue_type);
     let status_id = payload.status_id.unwrap_or(current_issue.status_id);
     let priority = payload.priority.or(current_issue.priority);
-    let assignee_id = payload.assignee_id.or(current_issue.assignee_id);
-    let parent_id = payload.parent_id.or(current_issue.parent_id);
-    let epic_id = payload.epic_id.or(current_issue.epic_id);
+    let assignee_id = match payload.assignee_id {
+        Some(val) => val,
+        None => current_issue.assignee_id,
+    };
+    let parent_id = match payload.parent_id {
+        Some(val) => val,
+        None => current_issue.parent_id,
+    };
+    let epic_id = match payload.epic_id {
+        Some(val) => val,
+        None => current_issue.epic_id,
+    };
+    let sprint_id = match payload.sprint_id {
+        Some(val) => val,
+        None => current_issue.sprint_id,
+    };
+    let component_id = match payload.component_id {
+        Some(val) => val,
+        None => current_issue.component_id,
+    };
     let story_points = payload.story_points.or(current_issue.story_points);
-    let start_date = payload.start_date.or(current_issue.start_date);
-    let due_date = payload.due_date.or(current_issue.due_date);
+    let start_date = match payload.start_date {
+        Some(val) => val,
+        None => current_issue.start_date,
+    };
+    let due_date = match payload.due_date {
+        Some(val) => val,
+        None => current_issue.due_date,
+    };
     let position = payload.position.or(current_issue.position);
 
     sqlx::query(
-        "UPDATE issues SET summary = ?, description = ?, issue_type = ?, status_id = ?, priority = ?, assignee_id = ?, parent_id = ?, epic_id = ?, story_points = ?, start_date = ?, due_date = ?, position = ? \
+        "UPDATE issues SET summary = ?, description = ?, issue_type = ?, status_id = ?, priority = ?, assignee_id = ?, parent_id = ?, epic_id = ?, story_points = ?, start_date = ?, due_date = ?, position = ?, sprint_id = ?, component_id = ? \
          WHERE id = ?"
     )
     .bind(&summary)
@@ -72,6 +95,8 @@ pub async fn update_issue(
     .bind(start_date)
     .bind(due_date)
     .bind(position)
+    .bind(sprint_id)
+    .bind(component_id)
     .bind(issue_id)
     .execute(&state.db)
     .await

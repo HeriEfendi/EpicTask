@@ -103,8 +103,8 @@ pub async fn create_issue(
     let position = max_pos.0.unwrap_or(0) + 1;
 
     let res = sqlx::query(
-        "INSERT INTO issues (project_id, parent_id, epic_id, `key`, summary, description, issue_type, status_id, priority, assignee_id, reporter_id, story_points, start_date, due_date, position) \
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO issues (project_id, parent_id, epic_id, `key`, summary, description, issue_type, status_id, priority, assignee_id, reporter_id, story_points, start_date, due_date, position, sprint_id, component_id) \
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )
     .bind(project_id)
     .bind(payload.parent_id)
@@ -121,6 +121,8 @@ pub async fn create_issue(
     .bind(payload.start_date)
     .bind(payload.due_date)
     .bind(position)
+    .bind(payload.sprint_id)
+    .bind(payload.component_id)
     .execute(&mut *tx)
     .await
     .map_err(|e| {

@@ -6,8 +6,8 @@ use tower_http::cors::{Any, CorsLayer};
 
 use crate::{
     handlers::{
-        activities, auth, automation, comments, issues, notifications, projects, reports, seed,
-        time_logs, workspaces,
+        activities, auth, automation, comments, components, issues, notifications, projects,
+        reports, seed, sprints, time_logs, workspaces,
     },
     ws::ws_handler,
     AppState,
@@ -43,6 +43,15 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/issues/:id", get(issues::get_issue).put(issues::update_issue).delete(issues::delete_issue))
         .route("/api/issues/:id/move", post(issues::move_issue))
         .route("/api/issues/:id/links", post(issues::create_issue_link))
+        // Sprint routes (Scrum Framework)
+        .route("/api/projects/:pid/sprints", get(sprints::list_project_sprints).post(sprints::create_sprint))
+        .route("/api/projects/:pid/sprints/move-issues", post(sprints::move_issues_to_sprint))
+        .route("/api/sprints/:id", put(sprints::update_sprint).delete(sprints::delete_sprint))
+        .route("/api/sprints/:id/start", post(sprints::start_sprint))
+        .route("/api/sprints/:id/complete", post(sprints::complete_sprint))
+        // Component routes (Project Subsystems)
+        .route("/api/projects/:pid/components", get(components::list_project_components).post(components::create_component))
+        .route("/api/components/:id", put(components::update_component).delete(components::delete_component))
         // Time Log routes
         .route("/api/issues/:id/timelogs", get(time_logs::list_time_logs).post(time_logs::create_time_log))
         // Comment routes

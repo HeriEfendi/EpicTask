@@ -263,6 +263,36 @@ pub async fn run_seed(pool: &sqlx::MySqlPool) -> Result<(), Box<dyn std::error::
     )
     .bind(proj_id).bind(parent_task_id).bind(alex_id).execute(pool).await?;
 
+    // 12. Jira Standardization: Components & Sprints
+    let _ = sqlx::query(
+        "INSERT INTO components (project_id, name, description, lead_user_id) VALUES \
+         (?, 'Backend & API Engine', 'Axum Rust HTTP services and database layer', ?), \
+         (?, 'Frontend UI & UX', 'Vue 3, Pinia state stores, and Tailwind CSS components', ?), \
+         (?, 'QA & Automation', 'Test suites, end-to-end testing, and transition rules', ?), \
+         (?, 'Core Platform & Infra', 'MariaDB, Tauri desktop wrapper, and build pipelines', ?)"
+    )
+    .bind(proj_id).bind(sarah_id)
+    .bind(proj_id).bind(alex_id)
+    .bind(proj_id).bind(elena_id)
+    .bind(proj_id).bind(david_id)
+    .execute(pool).await;
+
+    let sprint_res = sqlx::query(
+        "INSERT INTO sprints (project_id, name, goal, status, start_date, end_date) VALUES \
+         (?, 'EPIC Sprint 1', 'Membangun arsitektur fondasi, kanban drag-and-drop, dan broadcast WebSocket', 'ACTIVE', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 DAY)), \
+         (?, 'EPIC Sprint 2', 'Pengembangan otomasi no-code dan dashboard analitik velocity & CFD', 'PLANNED', DATE_ADD(CURDATE(), INTERVAL 15 DAY), DATE_ADD(CURDATE(), INTERVAL 29 DAY))"
+    )
+    .bind(proj_id).bind(proj_id)
+    .execute(pool).await;
+
+    if let Ok(s_r) = sprint_res {
+        let s1_id = s_r.last_insert_id() as i64;
+        let _ = sqlx::query("UPDATE issues SET sprint_id = ?, component_id = 2 WHERE project_id = ? AND id IN (2, 3, 5, 8)")
+            .bind(s1_id).bind(proj_id).execute(pool).await;
+        let _ = sqlx::query("UPDATE issues SET sprint_id = ?, component_id = 1 WHERE project_id = ? AND id IN (4, 6)")
+            .bind(s1_id).bind(proj_id).execute(pool).await;
+    }
+
     println!("Demo seed data inserted successfully!");
     Ok(())
 }
