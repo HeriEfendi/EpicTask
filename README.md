@@ -22,8 +22,8 @@ graph TD
     end
 
     subgraph FrontendApp ["Vue 3 SPA (Composition API)"]
-        Pinia["Pinia Stores<br/>(Auth, Project, Report, Automation, Notification)"]
-        Views["Multi-View Workspace<br/>Kanban | Timeline Gantt | List Spreadsheet | Laporan & Analytics"]
+        Pinia["Pinia Stores<br/>(Auth, Project, Sprint, Component, Report, Automation, Notification)"]
+        Views["Multi-View Workspace<br/>Kanban | Backlog & Sprint | Timeline Gantt | List Spreadsheet | Laporan & Analytics"]
         RichEditor["RichTextEditor (Word-like WYSIWYG)<br/>Tables, Image Paste, Code Blocks"]
         ToastLayer["Vue-Toastification Layer<br/>Sleek Floating Notifications"]
         WSClient["WebSocket Client<br/>(Auto Reconnect & Live Sync)"]
@@ -32,6 +32,7 @@ graph TD
     subgraph Backend ["Rust High-Performance Service (Axum)"]
         Router["Axum HTTP Router & Middleware<br/>Port 8088"]
         AuthLayer["JWT Auth & Bcrypt Security"]
+        SprintEngine["Sprint & Component Engine<br/>(Lifecycle, Points Rollup, Subsystems)"]
         AnalyticsEngine["Analytics & Report Handlers<br/>(Velocity, CFD, Timesheets)"]
         WSHub["tokio::sync::broadcast<br/>Real-Time Multi-Peer Broadcast"]
         AutoEngine["No-Code Automation Engine<br/>Status Triggers & Cascades"]
@@ -49,9 +50,11 @@ graph TD
     Pinia --> Router
     WSClient <--> WSHub
     Router --> AuthLayer
+    Router --> SprintEngine
     Router --> AnalyticsEngine
     Router --> AutoEngine
     AuthLayer --> DB
+    SprintEngine --> DB
     AnalyticsEngine --> DB
     AutoEngine --> DB
     Router --> DB
@@ -69,6 +72,19 @@ graph TD
 
 ### 2. Multi-View Project Workspace
 
+- **Agile Backlog & Sprint Planning (Scrum Framework):**
+  - **Pemisahan Backlog & Active Sprint:** Antarmuka khusus perencanaan iterasi kerja tangkas ala Jira Software.
+  - **Siklus Hidup Sprint Lengkap:** Status `PLANNED` (Direncanakan) $\to$ `ACTIVE` (Sedang Berjalan) $\to$ `COMPLETED` (Selesai & Diarsipkan).
+  - **Agregasi Estimasi 3-Pill Jira:** Indikator visual akumulasi Story Points real-time (Abu: *To Do*, Biru: *In Progress*, Hijau: *Done*).
+  - **Mulai & Selesaikan Sprint Interaktif:**
+    - Modal *Mulai Sprint* dengan preset durasi 1, 2, 3, 4 minggu atau kustom, tanggal mulai/selesai, serta target sasaran (*Sprint Goal*).
+    - Modal *Selesaikan Sprint* yang menampilkan ringkasan performa penyelesaian dan opsi otomatis memindahkan isu yang belum selesai ke *Product Backlog* atau ke Sprint berikutnya.
+  - **Drag-and-Drop Terintegrasi:** Memindahkan isu antar-sprint atau dari Product Backlog dengan animasi mulus dan pembaruan instan via WebSocket.
+- **Project Components (Sub-Sistem / Modul):**
+  - Pengelompokan isu berdasarkan domain teknis (contoh: *Backend & API*, *Frontend UI*, *QA & Automation*, *Core Infra*).
+  - Penunjukan *Component Lead* untuk penanggung jawab teknis tiap subsistem.
+  - Filter satu-klik per komponen di Backlog dan kartu Kanban.
+  - Badge visual komponen (`🧩 Nama Komponen`) pada setiap kartu board dan detail tiket.
 - **Kanban View:** Kolom status dinamis dengan Drag-and-Drop beranimasi halus, indikator WIP (Work-in-Progress), dan drop guides.
 - **Timeline / Gantt View:** Diagram batang horizontal interaktif yang memvisualisasikan rentang tanggal mulai (_Start Date_) dan tenggat (_Due Date_), navigasi waktu, dan status milestone.
 - **Spreadsheet List View:** Tampilan tabular dengan kemampuan inline-editing instan untuk Status, Priority, Assignee, Points, dan Due Date tanpa perlu membuka modal.
@@ -104,6 +120,23 @@ graph TD
 ### 6. Real-time Live Synchronization
 
 - **WebSocket Multi-Peer Broadcasting:** Setiap perubahan (geser kartu, edit, hapus, komentar, time log) disiarkan instan ke seluruh pengguna yang terhubung tanpa perlu refresh halaman.
+
+---
+
+## 🎯 Standarisasi Jira (Jira Enterprise Standards & Master Roadmap)
+
+EpicTask terus mengadopsi standar industri terbaik dari **Atlassian Jira Software** untuk menghadirkan alur kerja rekayasa perangkat lunak enterprise yang matang dan terstruktur. Seluruh kemajuan standarisasi dicatat secara transparan pada berkas [JIRA_STANDARDIZATION_ROADMAP.md](file:///home/lenovo/www/EpicTask/JIRA_STANDARDIZATION_ROADMAP.md).
+
+| No | Fitur Standar Jira | Prioritas | Status | Modul & Komponen Terkait | Keterangan Fungsional |
+|:---:|:---|:---:|:---:|:---|:---|
+| **1** | **Scrum Backlog & Sprint Management** | P0 (Kritis) | 🟢 **Selesai** | `handlers/sprints.rs`<br>`components/backlog/*`<br>`stores/sprint.js` | Siklus sprint (PLANNED $\to$ ACTIVE $\to$ COMPLETED), Backlog View terdedikasi, Start/Complete Sprint modal, Story Points 3-Pill rollup, dan drag-and-drop antar sprint/backlog. |
+| **2** | **Components (Sub-Sistem / Modul)** | P0 (Kritis) | 🟢 **Selesai** | `handlers/components.rs`<br>`ComponentManagerModal.vue`<br>`stores/component.js` | Pemecahan modul teknis proyek, penunjukan *Component Lead*, penugasan komponen pada tiket, filter cepat, dan visual badge `🧩`. |
+| **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | ⚪ *Planned* | `models/version.rs`<br>`handlers/versions.rs` | Pelacakan versi rilis software (`v1.0.0`, `v1.1.0`), target tanggal rilis, status released/unreleased, dan ringkasan progres tiket. |
+| **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | ⚪ *Planned* | `components/kanban/` | Pembagian horizontal Kanban: *Group by Assignee*, *Group by Epic*, atau *Group by Priority (Expedite)*. |
+| **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Planned* | `models/label.rs`<br>`handlers/labels.rs` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter terintegrasi. |
+| **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Planned* | Field `resolution` pada issues | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`) untuk audit QA. |
+| **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Planned* | `components/common/` | Filter 1-klik di toolbar atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan". |
+| **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Planned* | `models/watcher.rs`<br>`handlers/watchers.rs` | Fitur pengamat (*watcher*) tiket untuk menerima notifikasi otomatis pembaruan tanpa harus menjadi Assignee/Reporter. |
 
 ---
 
@@ -187,6 +220,7 @@ EpicTask/
 ├── Cargo.toml                       # Root Cargo workspace (backend + frontend/src-tauri)
 ├── package.json                     # Monorepo scripts
 ├── EpicTask_PRD.md                  # PRD Spesifikasi Produk
+├── JIRA_STANDARDIZATION_ROADMAP.md  # Master roadmap & gap analysis standar Jira
 ├── README.md                        # Dokumentasi Lengkap Sistem
 ├── backend/                         # Rust Axum Backend
 │   ├── Cargo.toml
@@ -194,24 +228,29 @@ EpicTask/
 │   └── src/
 │       ├── main.rs                  # Entrypoint, DB pool, Background workers, Router
 │       ├── config.rs                # Environment loader
-│       ├── db.rs                    # Skema otomatis MariaDB (InnoDB, LONGTEXT specs)
+│       ├── db.rs                    # Skema otomatis MariaDB (InnoDB, sprints, components, LONGTEXT)
 │       ├── routes.rs                # Definisi route REST & WebSocket
 │       ├── auth/
 │       │   ├── jwt.rs               # Pembuatan & validasi JWT token
 │       │   └── middleware.rs        # Axum extractor untuk AuthUser
-│       ├── models/                  # Struct model data (Issue, Status, User, Workflows, Reports)
+│       ├── models/                  # Struct model data (Issue, Sprint, Component, User, Reports)
+│       │   ├── sprint.rs            # Struct model & payload siklus Sprint (Scrum)
+│       │   ├── component.rs         # Struct model subsistem & modul proyek
+│       │   └── issue.rs             # Model tiket dengan sprint_id & component_id
 │       ├── handlers/                # HTTP Controller handlers
+│       │   ├── sprints.rs           # Siklus sprint, start/complete, 3-pill story point rollup
+│       │   ├── components.rs        # CRUD komponen & kepemilikan Component Lead
 │       │   ├── auth.rs              # Login, Register, Me
 │       │   ├── workspaces.rs        # Workspace & Member management
 │       │   ├── projects.rs          # Project, Statuses, Workflow transitions
-│       │   ├── issues.rs            # Atomic key generator, Move guard, Detail
+│       │   ├── issues/              # Atomic key generator, Move guard, Detail
 │       │   ├── reports.rs           # Executive metrics, Velocity, CFD, Timesheets
 │       │   ├── comments.rs          # Komentar dengan @mention parser
 │       │   ├── time_logs.rs         # Log work time tracking
 │       │   ├── automation.rs        # No-code rule configurations
 │       │   ├── notifications.rs     # Pusat notifikasi
 │       │   ├── activities.rs        # Activity log audit stream
-│       │   └── seed.rs              # Generator data demo 1 tahun historis
+│       │   └── seed.rs              # Generator data demo (users, sprints, components, issues)
 │       ├── ws/
 │       │   └── mod.rs               # WebSocket broadcast hub
 │       └── automation/
@@ -235,6 +274,8 @@ EpicTask/
     │   │   └── tauri.js             # Bridge integrasi desktop Tauri
     │   ├── stores/
     │   │   ├── auth.js              # State autentikasi & workspace aktif
+    │   │   ├── sprint.js            # State sprint aktif, terencana, selesai & live WS
+    │   │   ├── component.js         # State subsistem proyek & lead
     │   │   ├── project.js           # State papan, multi-assignee filter, DnD, & isu aktif
     │   │   ├── report.js            # State analytics, velocity, CFD, & timesheet
     │   │   ├── automation.js        # State rule otomasi
@@ -246,9 +287,19 @@ EpicTask/
     │       │   ├── RichTextEditor.vue # Editor Word-like WYSIWYG, tabel pintar, image paste
     │       │   ├── Sidebar.vue      # Sidebar navigasi proyek & workspace
     │       │   └── SettingsModal.vue # Pengaturan workspace, profil, reset seed data
+    │       ├── backlog/
+    │       │   ├── BacklogView.vue  # Tampilan orkestrator Backlog & Sprint Jira
+    │       │   ├── SprintContainer.vue # Kontainer kartu sprint dengan drag-drop
+    │       │   ├── SprintHeader.vue # Header sprint, 3-pill story points, kontrol aksi
+    │       │   ├── BacklogContainer.vue # Penampung Product Backlog
+    │       │   ├── BacklogIssueItem.vue # Baris tiket terstruktur dengan tags & points
+    │       │   ├── CreateSprintModal.vue # Modal buat sprint terencana
+    │       │   ├── StartSprintModal.vue # Modal mulai sprint aktif
+    │       │   ├── CompleteSprintModal.vue # Modal penyelesaian sprint & rollover isu
+    │       │   └── ComponentManagerModal.vue # Modal CRUD komponen & lead
     │       ├── kanban/
     │       │   ├── KanbanBoard.vue  # Board kolom DnD & transition violation alert
-    │       │   └── KanbanCard.vue   # Kartu isu, subtask checklist bar, badges
+    │       │   └── KanbanCard.vue   # Kartu isu, subtask checklist bar, component & epic badges
     │       ├── timeline/
     │       │   └── TimelineView.vue # Horizontal Gantt chart interaktif
     │       ├── list/
@@ -261,7 +312,7 @@ EpicTask/
     │       │   └── WorkflowModal.vue   # Manajemen kolom & transition guards
     │       ├── issue/
     │       │   ├── IssueDetailModal.vue # Modal terpadu (Create + Edit), subtask, komentar, time log
-    │       │   └── CreateIssueModal.vue # Proxy ke IssueDetailModal
+    │       │   └── IssueMetaSidebar.vue # Atribut tiket: tipe, status, priority, sprint, component
     │       ├── notification/
     │       │   └── NotificationPopover.vue # Popover notifikasi interaktif
     │       └── auth/
@@ -299,7 +350,25 @@ curl -s -X POST http://127.0.0.1:8088/api/issues/8/move \
 # Output: {"error":"Workflow rule violation: Transition directly from 'Backlog' to 'Done' is not allowed."}
 ```
 
-### 3. Uji Endpoint Analytics & Laporan
+### 3. Uji Endpoint Sprints & Components (Standar Jira)
+
+```bash
+# Ambil daftar Sprint dengan agregasi 3-Pill Story Points
+curl -s http://127.0.0.1:8088/api/projects/1/sprints \
+  -H "Authorization: Bearer $TOKEN"
+
+# Mulai Sprint aktif (durasi 14 hari)
+curl -s -X POST http://127.0.0.1:8088/api/sprints/2/start \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"EPIC Sprint 2","goal":"Fokus pada modul analitik dan rilis versi"}'
+
+# Ambil daftar subsistem & komponen proyek beserta lead
+curl -s http://127.0.0.1:8088/api/projects/1/components \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### 4. Uji Endpoint Analytics & Laporan
 
 ```bash
 # Ambil ringkasan metrik proyek
@@ -307,7 +376,7 @@ curl -s http://127.0.0.1:8088/api/projects/1/reports/overview \
   -H "Authorization: Bearer $TOKEN"
 
 # Ambil data Cumulative Flow Diagram (CFD)
-curl -s http://127.0.0.1:8088/api/projects/1/reports/cfd \
+curl -s http://127.0.0.1:8088/api/projects/1/reports/cumulative-flow \
   -H "Authorization: Bearer $TOKEN"
 ```
 
