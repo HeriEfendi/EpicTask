@@ -3,6 +3,8 @@ import { ref, computed } from 'vue';
 import { api } from '@/services/api';
 import { wsClient } from '@/services/websocket';
 import { sendDesktopNotification } from '@/services/tauri';
+import { useSprintStore } from '@/stores/sprint';
+import { useComponentStore } from '@/stores/component';
 
 export const useProjectStore = defineStore('project', () => {
   const projects = ref([]);
@@ -10,7 +12,7 @@ export const useProjectStore = defineStore('project', () => {
   const statuses = ref([]);
   const transitions = ref([]);
   const issues = ref([]);
-  const activeView = ref('kanban'); // 'kanban' | 'timeline' | 'list'
+  const activeView = ref('kanban'); // 'kanban' | 'timeline' | 'list' | 'reports' | 'backlog'
   const loading = ref(false);
   const error = ref(null);
 
@@ -20,6 +22,8 @@ export const useProjectStore = defineStore('project', () => {
   const filterPriority = ref(null);
   const filterEpic = ref(null);
   const filterType = ref(null);
+  const filterSprint = ref(null); // null = all, number = specific sprint
+  const filterComponent = ref(null); // null = all, number = specific component
 
   // Legacy single-assignee alias (backward compat for old code)
   const filterAssignee = ref(null);
@@ -61,6 +65,12 @@ export const useProjectStore = defineStore('project', () => {
         return false;
       }
       if (filterEpic.value && issue.epic_id !== filterEpic.value) {
+        return false;
+      }
+      if (filterSprint.value !== null && filterSprint.value !== undefined) {
+        if (issue.sprint_id !== filterSprint.value) return false;
+      }
+      if (filterComponent.value && issue.component_id !== filterComponent.value) {
         return false;
       }
       return true;
@@ -120,9 +130,13 @@ export const useProjectStore = defineStore('project', () => {
   async function selectProject(proj) {
     currentProject.value = proj;
     localStorage.setItem('epictask_current_project', proj.id);
+    const sprintStore = useSprintStore();
+    const compStore = useComponentStore();
     await Promise.all([
       fetchProjectStatuses(proj.id),
       fetchIssues(proj.id),
+      sprintStore.fetchSprints(proj.id),
+      compStore.fetchComponents(proj.id),
     ]);
   }
 
@@ -361,6 +375,8 @@ export const useProjectStore = defineStore('project', () => {
     filterPriority,
     filterEpic,
     filterType,
+    filterSprint,
+    filterComponent,
     activeIssue,
     activeIssueSubtasks,
     activeIssueLinks,

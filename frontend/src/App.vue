@@ -9,6 +9,7 @@ import Sidebar from '@/components/common/Sidebar.vue';
 import Navbar from '@/components/common/Navbar.vue';
 import ViewTabs from '@/components/common/ViewTabs.vue';
 import KanbanBoard from '@/components/kanban/KanbanBoard.vue';
+import BacklogView from '@/components/backlog/BacklogView.vue';
 import TimelineView from '@/components/timeline/TimelineView.vue';
 import ListView from '@/components/list/ListView.vue';
 import ReportsView from '@/components/reports/ReportsView.vue';
@@ -67,6 +68,7 @@ onMounted(async () => {
 
           <main class="flex-1 flex flex-col overflow-hidden relative">
             <KanbanBoard v-if="projectStore.activeView === 'kanban'" />
+            <BacklogView v-else-if="projectStore.activeView === 'backlog'" />
             <TimelineView v-else-if="projectStore.activeView === 'timeline'" />
             <ListView v-else-if="projectStore.activeView === 'list'" />
             <ReportsView v-else-if="projectStore.activeView === 'reports'" />

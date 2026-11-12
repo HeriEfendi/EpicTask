@@ -1,5 +1,10 @@
 <script setup>
-import { Layers, Flag, User, Hash, Calendar } from 'lucide-vue-next';
+import { Layers, Flag, User, Hash, Calendar, Milestone, Boxes } from 'lucide-vue-next';
+import { useSprintStore } from '@/stores/sprint';
+import { useComponentStore } from '@/stores/component';
+
+const sprintStore = useSprintStore();
+const compStore = useComponentStore();
 
 const props = defineProps({
   isCreateMode: {
@@ -202,6 +207,72 @@ function handleStatusSelect(e) {
         <option value="">Tanpa Epic</option>
         <option v-for="e in epics" :key="e.id" :value="e.id">
           🟣 {{ e.summary }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Sprint (Scrum Framework) -->
+    <div class="space-y-1.5">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+        <Milestone class="w-3 h-3 text-slate-500" />
+        <span>Sprint</span>
+      </label>
+
+      <!-- Create Mode Sprint -->
+      <select
+        v-if="isCreateMode"
+        v-model="createForm.sprintId"
+        class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium"
+      >
+        <option :value="null">📦 Product Backlog</option>
+        <option v-for="s in sprintStore.sprints" :key="s.id" :value="s.id">
+          {{ s.status === 'ACTIVE' ? '🟢' : '⚪' }} {{ s.name }} ({{ s.status }})
+        </option>
+      </select>
+
+      <!-- Detail Mode Sprint -->
+      <select
+        v-else-if="issue"
+        :value="issue.sprint_id || ''"
+        @change="(e) => handleFieldUpdate({ sprint_id: e.target.value ? Number(e.target.value) : null })"
+        class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium cursor-pointer"
+      >
+        <option value="">📦 Product Backlog</option>
+        <option v-for="s in sprintStore.sprints" :key="s.id" :value="s.id">
+          {{ s.status === 'ACTIVE' ? '🟢' : '⚪' }} {{ s.name }} ({{ s.status }})
+        </option>
+      </select>
+    </div>
+
+    <!-- Komponen (Sub-Sistem Proyek) -->
+    <div class="space-y-1.5">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+        <Boxes class="w-3 h-3 text-slate-500" />
+        <span>Komponen</span>
+      </label>
+
+      <!-- Create Mode Component -->
+      <select
+        v-if="isCreateMode"
+        v-model="createForm.componentId"
+        class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium"
+      >
+        <option :value="null">Tanpa Komponen</option>
+        <option v-for="c in compStore.components" :key="c.id" :value="c.id">
+          🧩 {{ c.name }}
+        </option>
+      </select>
+
+      <!-- Detail Mode Component -->
+      <select
+        v-else-if="issue"
+        :value="issue.component_id || ''"
+        @change="(e) => handleFieldUpdate({ component_id: e.target.value ? Number(e.target.value) : null })"
+        class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium cursor-pointer"
+      >
+        <option value="">Tanpa Komponen</option>
+        <option v-for="c in compStore.components" :key="c.id" :value="c.id">
+          🧩 {{ c.name }}
         </option>
       </select>
     </div>

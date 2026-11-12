@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useAutomationStore } from '@/stores/automation';
 import {
   Kanban,
+  Layers,
   CalendarRange,
   ListTodo,
   BarChart3,
@@ -91,6 +92,7 @@ function clearFilters() {
 // View tabs definition
 const views = [
   { id: 'kanban',   label: 'Kanban',   icon: Kanban },
+  { id: 'backlog',  label: 'Backlog',  icon: Layers },
   { id: 'timeline', label: 'Timeline', icon: CalendarRange },
   { id: 'list',     label: 'List',     icon: ListTodo },
   { id: 'reports',  label: 'Laporan',  icon: BarChart3 },
