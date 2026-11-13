@@ -2,6 +2,7 @@
 name = "epictask-backend"
 version = "0.1.3"
 edition = "2021"
+default-run = "epictask-backend"
 
 [lib]
 name = "epictask_backend"
