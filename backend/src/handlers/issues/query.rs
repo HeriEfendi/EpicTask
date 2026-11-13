@@ -26,6 +26,7 @@ pub struct IssueFilterParams {
     pub is_backlog: Option<bool>,
     pub component_id: Option<i64>,
     pub fix_version_id: Option<i64>,
+    pub label: Option<String>,
 }
 
 pub async fn list_project_issues(
@@ -46,6 +47,7 @@ pub async fn list_project_issues(
                 sp.name AS sprint_name, \
                 comp.name AS component_name, \
                 ver.name AS fix_version_name, \
+                (SELECT GROUP_CONCAT(lbl.name SEPARATOR ',') FROM issue_labels il JOIN labels lbl ON il.label_id = lbl.id WHERE il.issue_id = i.id) AS labels, \
                 (SELECT COUNT(*) FROM issues sub WHERE sub.parent_id = i.id) AS subtask_count, \
                 (SELECT COUNT(*) FROM issues sub JOIN statuses subs ON sub.status_id = subs.id WHERE sub.parent_id = i.id AND subs.category = 'DONE') AS subtask_done_count \
          FROM issues i \
@@ -99,6 +101,14 @@ pub async fn list_project_issues(
     if let Some(fix_version_id) = params.fix_version_id {
         sql.push_str(&format!(" AND i.fix_version_id = {}", fix_version_id));
     }
+    if let Some(ref lbl) = params.label {
+        if !lbl.trim().is_empty() {
+            sql.push_str(&format!(
+                " AND EXISTS (SELECT 1 FROM issue_labels il JOIN labels lbl ON il.label_id = lbl.id WHERE il.issue_id = i.id AND lbl.name = '{}')",
+                lbl.trim().replace('\'', "''")
+            ));
+        }
+    }
 
     sql.push_str(" ORDER BY s.position ASC, i.position ASC, i.id DESC");
 
@@ -138,6 +148,7 @@ pub async fn get_issue(
                 ur.full_name AS reporter_name, \
                 NULL AS epic_summary, NULL AS parent_key, NULL AS parent_summary, \
                 NULL AS sprint_name, NULL AS component_name, NULL AS fix_version_name, \
+                NULL AS labels, \
                 0 AS subtask_count, 0 AS subtask_done_count \
          FROM issues i \
          JOIN statuses s ON i.status_id = s.id \

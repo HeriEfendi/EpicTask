@@ -135,6 +135,44 @@ pub async fn create_issue(
 
     let issue_id = res.last_insert_id() as i64;
 
+    // Attach initial labels if provided
+    if let Some(ref labels) = payload.labels {
+        let default_colors = [
+            "#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ec4899",
+            "#8b5cf6", "#3b82f6", "#14b8a6", "#f97316", "#84cc16",
+        ];
+        for (idx, name_raw) in labels.iter().enumerate() {
+            let clean = name_raw.trim().to_lowercase();
+            if clean.is_empty() {
+                continue;
+            }
+            let color = default_colors[idx % default_colors.len()];
+            let _ = sqlx::query(
+                "INSERT INTO labels (project_id, name, color) VALUES (?, ?, ?) \
+                 ON DUPLICATE KEY UPDATE name=name"
+            )
+            .bind(project_id)
+            .bind(&clean)
+            .bind(color)
+            .execute(&mut *tx)
+            .await;
+
+            let lbl_row: Result<(i64,), _> = sqlx::query_as("SELECT id FROM labels WHERE project_id = ? AND name = ?")
+                .bind(project_id)
+                .bind(&clean)
+                .fetch_one(&mut *tx)
+                .await;
+
+            if let Ok(lbl) = lbl_row {
+                let _ = sqlx::query("INSERT IGNORE INTO issue_labels (issue_id, label_id) VALUES (?, ?)")
+                    .bind(issue_id)
+                    .bind(lbl.0)
+                    .execute(&mut *tx)
+                    .await;
+            }
+        }
+    }
+
     // Log activity
     let _ = sqlx::query(
         "INSERT INTO activity_logs (project_id, issue_id, user_id, action, details) \

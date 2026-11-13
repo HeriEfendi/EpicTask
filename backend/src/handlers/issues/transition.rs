@@ -112,6 +112,49 @@ pub async fn update_issue(
         )
     })?;
 
+    // Update labels if provided
+    if let Some(ref labels) = payload.labels {
+        let _ = sqlx::query("DELETE FROM issue_labels WHERE issue_id = ?")
+            .bind(issue_id)
+            .execute(&state.db)
+            .await;
+
+        let default_colors = [
+            "#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ec4899",
+            "#8b5cf6", "#3b82f6", "#14b8a6", "#f97316", "#84cc16",
+        ];
+        for (idx, name_raw) in labels.iter().enumerate() {
+            let clean = name_raw.trim().to_lowercase();
+            if clean.is_empty() {
+                continue;
+            }
+            let color = default_colors[idx % default_colors.len()];
+            let _ = sqlx::query(
+                "INSERT INTO labels (project_id, name, color) VALUES (?, ?, ?) \
+                 ON DUPLICATE KEY UPDATE name=name"
+            )
+            .bind(current_issue.project_id)
+            .bind(&clean)
+            .bind(color)
+            .execute(&state.db)
+            .await;
+
+            let lbl_row: Result<(i64,), _> = sqlx::query_as("SELECT id FROM labels WHERE project_id = ? AND name = ?")
+                .bind(current_issue.project_id)
+                .bind(&clean)
+                .fetch_one(&state.db)
+                .await;
+
+            if let Ok(lbl) = lbl_row {
+                let _ = sqlx::query("INSERT IGNORE INTO issue_labels (issue_id, label_id) VALUES (?, ?)")
+                    .bind(issue_id)
+                    .bind(lbl.0)
+                    .execute(&state.db)
+                    .await;
+            }
+        }
+    }
+
     // Check if status changed -> trigger automation
     if let Some(cat) = new_status_category {
         if status_id != current_issue.status_id {

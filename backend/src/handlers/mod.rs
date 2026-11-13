@@ -4,6 +4,7 @@ pub mod automation;
 pub mod comments;
 pub mod components;
 pub mod issues;
+pub mod labels;
 pub mod notifications;
 pub mod projects;
 pub mod reports;
