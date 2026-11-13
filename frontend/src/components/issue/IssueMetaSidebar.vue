@@ -5,6 +5,7 @@ import { useSprintStore } from '@/stores/sprint';
 import { useComponentStore } from '@/stores/component';
 import { useVersionStore } from '@/stores/version';
 import IssueLabelsEditor from './IssueLabelsEditor.vue';
+import IssueWatchers from './IssueWatchers.vue';
 
 const sprintStore = useSprintStore();
 const compStore = useComponentStore();
@@ -493,6 +494,11 @@ const currentIssueLabels = computed(() => {
           class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-800 focus:outline-none shadow-2xs font-medium"
         />
       </div>
+    </div>
+
+    <!-- Pengamat Tiket (Watchers - Jira Standard) -->
+    <div v-if="isDetailMode && issue" class="pt-3 border-t border-slate-200">
+      <IssueWatchers :issue="issue" />
     </div>
 
     <!-- Reporter & Meta (Detail Mode Only) -->

@@ -174,6 +174,15 @@ const labelList = computed(() => {
         -
       </span>
 
+      <!-- Watchers Indicator (Jira standard) -->
+      <span
+        v-if="issue.watcher_count && issue.watcher_count > 0"
+        class="hidden sm:inline-flex text-xs text-slate-400 font-medium items-center gap-0.5 shrink-0"
+        :title="`${issue.watcher_count} pengamat tiket`"
+      >
+        👁️ {{ issue.watcher_count }}
+      </span>
+
       <!-- Assignee Avatar -->
       <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 border border-white shadow-2xs shrink-0" :title="issue.assignee_name || 'Belum Ditugaskan'">
         <img

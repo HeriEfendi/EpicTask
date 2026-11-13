@@ -180,6 +180,15 @@ function handleDragEnd(e) {
           {{ issue.story_points }}
         </span>
 
+        <!-- Watchers Indicator (Jira standard) -->
+        <span
+          v-if="issue.watcher_count && issue.watcher_count > 0"
+          class="text-xs text-slate-400 font-medium flex items-center gap-0.5"
+          :title="`${issue.watcher_count} pengamat tiket`"
+        >
+          👁️ {{ issue.watcher_count }}
+        </span>
+
         <!-- Assignee Avatar -->
         <img
           v-if="issue.assignee_avatar"

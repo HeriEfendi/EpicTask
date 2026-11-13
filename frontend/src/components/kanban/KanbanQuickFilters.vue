@@ -105,3 +105,4 @@ const hasActiveQuickFilters = computed(() => projectStore.quickFilters.length > 
     </button>
   </div>
 </template>
+

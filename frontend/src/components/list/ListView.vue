@@ -55,7 +55,7 @@ function exportIssuesCsv() {
     toast.warning('Tidak ada tiket untuk diekspor');
     return;
   }
-  const headers = ['Key', 'Tipe', 'Ringkasan', 'Komponen', 'Fix Version', 'Label', 'Status', 'Resolusi', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
+  const headers = ['Key', 'Tipe', 'Ringkasan', 'Komponen', 'Fix Version', 'Label', 'Status', 'Resolusi', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu', 'Pengamat'];
   const rows = list.map((i) => [
     `"${i.key}"`,
     `"${i.issue_type}"`,
@@ -69,6 +69,7 @@ function exportIssuesCsv() {
     `"${(i.assignee_name || 'Unassigned').replace(/"/g, '""')}"`,
     i.story_points || 0,
     i.due_date || '',
+    i.watcher_count || 0,
   ]);
 
   const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
