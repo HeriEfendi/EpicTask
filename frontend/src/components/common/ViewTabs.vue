@@ -89,7 +89,8 @@ const hasActiveFilters = computed(() => {
     !!projectStore.filterComponent ||
     !!projectStore.filterVersion ||
     !!projectStore.filterLabel ||
-    !!projectStore.filterSprint
+    !!projectStore.filterSprint ||
+    (projectStore.quickFilters && projectStore.quickFilters.length > 0)
   );
 });
 
@@ -104,6 +105,7 @@ function clearFilters() {
   projectStore.filterVersion = null;
   projectStore.filterLabel = null;
   projectStore.filterSprint = null;
+  projectStore.clearQuickFilters();
 }
 
 // View tabs definition

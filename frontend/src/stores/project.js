@@ -3,12 +3,14 @@ import { ref, computed } from 'vue';
 import { api } from '@/services/api';
 import { wsClient } from '@/services/websocket';
 import { sendDesktopNotification } from '@/services/tauri';
+import { useAuthStore } from '@/stores/auth';
 import { useSprintStore } from '@/stores/sprint';
 import { useComponentStore } from '@/stores/component';
 import { useVersionStore } from '@/stores/version';
 import { useLabelStore } from '@/stores/label';
 
 export const useProjectStore = defineStore('project', () => {
+  const authStore = useAuthStore();
   const projects = ref([]);
   const currentProject = ref(null);
   const statuses = ref([]);
@@ -29,6 +31,7 @@ export const useProjectStore = defineStore('project', () => {
   const filterComponent = ref(null); // null = all, number = specific component
   const filterVersion = ref(null); // null = all, number = specific fix_version_id
   const filterLabel = ref(null); // null = all, string = specific label name
+  const quickFilters = ref([]); // array of active keys: ['my_issues', 'only_bugs', 'highest_priority', 'unassigned', 'due_this_week', 'unresolved']
 
   // Legacy single-assignee alias (backward compat for old code)
   const filterAssignee = ref(null);
@@ -89,9 +92,58 @@ export const useProjectStore = defineStore('project', () => {
           return false;
         }
       }
+
+      // Quick Filters (Jira Standard)
+      if (quickFilters.value.length > 0) {
+        for (const qf of quickFilters.value) {
+          if (qf === 'my_issues') {
+            const myId = authStore?.user?.id;
+            if (!myId || issue.assignee_id !== myId) return false;
+          } else if (qf === 'only_bugs') {
+            if (issue.issue_type !== 'BUG') return false;
+          } else if (qf === 'highest_priority') {
+            if (issue.priority !== 'HIGHEST' && issue.priority !== 'HIGH') return false;
+          } else if (qf === 'unassigned') {
+            if (issue.assignee_id !== null && issue.assignee_id !== undefined) return false;
+          } else if (qf === 'due_this_week') {
+            if (!issue.due_date) return false;
+            const due = new Date(issue.due_date);
+            const now = new Date();
+            const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - dayOfWeek + 1);
+            startOfWeek.setHours(0, 0, 0, 0);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            if (due < startOfWeek || due > endOfWeek) return false;
+          } else if (qf === 'unresolved') {
+            if (issue.resolution !== null && issue.resolution !== undefined) return false;
+            if (issue.status_category === 'DONE') return false;
+          }
+        }
+      }
+
       return true;
     });
   });
+
+  function toggleQuickFilter(key) {
+    const idx = quickFilters.value.indexOf(key);
+    if (idx === -1) {
+      quickFilters.value.push(key);
+    } else {
+      quickFilters.value.splice(idx, 1);
+    }
+  }
+
+  function isQuickFilterActive(key) {
+    return quickFilters.value.includes(key);
+  }
+
+  function clearQuickFilters() {
+    quickFilters.value = [];
+  }
 
   // Issues grouped by status column for Kanban
   const issuesByStatus = computed(() => {
@@ -407,6 +459,10 @@ export const useProjectStore = defineStore('project', () => {
     filterComponent,
     filterVersion,
     filterLabel,
+    quickFilters,
+    toggleQuickFilter,
+    isQuickFilterActive,
+    clearQuickFilters,
     activeIssue,
     activeIssueSubtasks,
     activeIssueLinks,

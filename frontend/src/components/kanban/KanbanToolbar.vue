@@ -1,5 +1,6 @@
 <script setup>
 import { useProjectStore } from '@/stores/project';
+import KanbanQuickFilters from './KanbanQuickFilters.vue';
 import {
   Kanban,
   Rows3,
@@ -21,10 +22,10 @@ const swimlaneOptions = [
 </script>
 
 <template>
-  <div class="px-6 py-2.5 bg-white border-b border-slate-200/80 flex items-center justify-between gap-4 select-none">
-    <!-- Left: Title & Board Statuses Summary -->
-    <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2">
+  <div class="px-6 py-2.5 bg-white border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-4 select-none">
+    <!-- Left: Title, Counter & Quick Filter Bar (Jira Standard) -->
+    <div class="flex items-center gap-3.5 flex-wrap">
+      <div class="flex items-center gap-2 shrink-0">
         <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
           Kanban Board
         </span>
@@ -32,10 +33,15 @@ const swimlaneOptions = [
           {{ projectStore.filteredIssues.length }} tiket
         </span>
       </div>
+
+      <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
+
+      <!-- Quick Filters (1-Click Jira Standard) -->
+      <KanbanQuickFilters />
     </div>
 
     <!-- Right: Swimlane Switcher Dropdown (Jira Standard) -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 shrink-0 ml-auto">
       <div class="flex items-center gap-2">
         <span class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
           <Rows3 class="w-3.5 h-3.5 text-slate-400" />
