@@ -10,6 +10,7 @@ pub mod sprint;
 pub mod time_log;
 pub mod user;
 pub mod version;
+pub mod watcher;
 pub mod workspace;
 
 pub use activity::*;
@@ -24,4 +25,5 @@ pub use sprint::*;
 pub use time_log::*;
 pub use user::*;
 pub use version::*;
+pub use watcher::*;
 pub use workspace::*;

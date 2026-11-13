@@ -44,6 +44,7 @@ pub struct Issue {
     pub labels: Option<String>,
     pub subtask_count: Option<i64>,
     pub subtask_done_count: Option<i64>,
+    pub watcher_count: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]

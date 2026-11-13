@@ -22,7 +22,8 @@ pub async fn fetch_single_issue(
                 ver.name AS fix_version_name, \
                 (SELECT GROUP_CONCAT(lbl.name SEPARATOR ',') FROM issue_labels il JOIN labels lbl ON il.label_id = lbl.id WHERE il.issue_id = i.id) AS labels, \
                 (SELECT COUNT(*) FROM issues sub WHERE sub.parent_id = i.id) AS subtask_count, \
-                (SELECT COUNT(*) FROM issues sub JOIN statuses subs ON sub.status_id = subs.id WHERE sub.parent_id = i.id AND subs.category = 'DONE') AS subtask_done_count \
+                (SELECT COUNT(*) FROM issues sub JOIN statuses subs ON sub.status_id = subs.id WHERE sub.parent_id = i.id AND subs.category = 'DONE') AS subtask_done_count, \
+                (SELECT COUNT(*) FROM issue_watchers iw WHERE iw.issue_id = i.id) AS watcher_count \
          FROM issues i \
          JOIN statuses s ON i.status_id = s.id \
          LEFT JOIN users ua ON i.assignee_id = ua.id \

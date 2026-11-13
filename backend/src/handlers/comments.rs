@@ -138,6 +138,29 @@ pub async fn create_comment(
             }
         }
 
+        // Notify watchers of new comment (Jira standard)
+        let watchers: Vec<(i64,)> = sqlx::query_as("SELECT user_id FROM issue_watchers WHERE issue_id = ? AND user_id != ?")
+            .bind(issue_id)
+            .bind(auth.user_id)
+            .fetch_all(&state.db)
+            .await
+            .unwrap_or_default();
+
+        for w in watchers {
+            if Some(w.0) != assignee_id {
+                let _ = sqlx::query(
+                    "INSERT INTO notifications (recipient_id, sender_id, issue_id, title, message, action_type) \
+                     VALUES (?, ?, ?, 'Komentar baru pada tiket yang Anda amati', ?, 'COMMENT')"
+                )
+                .bind(w.0)
+                .bind(auth.user_id)
+                .bind(issue_id)
+                .bind(format!("Komentar baru pada {}: \"{}\"", key, body.chars().take(80).collect::<String>()))
+                .execute(&state.db)
+                .await;
+            }
+        }
+
         // Activity log
         let _ = sqlx::query(
             "INSERT INTO activity_logs (project_id, issue_id, user_id, action, details) \

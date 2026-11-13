@@ -283,6 +283,19 @@ pub async fn init_db(pool: &MySqlPool) -> Result<(), Box<dyn std::error::Error>>
     )
     .execute(pool).await?;
 
+    // Jira Standardization: Issue Watchers (Collaborator Observers)
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS issue_watchers (
+            issue_id BIGINT NOT NULL,
+            user_id BIGINT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (issue_id, user_id),
+            FOREIGN KEY (issue_id) REFERENCES issues(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
+    )
+    .execute(pool).await?;
+
     // Jira Standardization: Add sprint_id, component_id, fix_version_id, resolution, and resolved_at to issues if not present
     let _ = sqlx::query("ALTER TABLE issues ADD COLUMN IF NOT EXISTS sprint_id BIGINT DEFAULT NULL;").execute(pool).await;
     let _ = sqlx::query("ALTER TABLE issues ADD COLUMN IF NOT EXISTS component_id BIGINT DEFAULT NULL;").execute(pool).await;

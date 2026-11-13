@@ -7,7 +7,7 @@ use tower_http::cors::{Any, CorsLayer};
 use crate::{
     handlers::{
         activities, auth, automation, comments, components, issues, labels, notifications,
-        projects, reports, seed, sprints, time_logs, versions, workspaces,
+        projects, reports, seed, sprints, time_logs, versions, watchers, workspaces,
     },
     ws::ws_handler,
     AppState,
@@ -61,6 +61,9 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/projects/:pid/labels", get(labels::list_project_labels).post(labels::create_label))
         .route("/api/labels/:id", delete(labels::delete_label))
         .route("/api/issues/:id/labels", get(labels::get_issue_labels).post(labels::set_issue_labels))
+        // Watcher routes (Jira Issue Watchers)
+        .route("/api/issues/:id/watchers", get(watchers::list_issue_watchers).post(watchers::add_issue_watcher))
+        .route("/api/issues/:id/watchers/:uid", delete(watchers::remove_issue_watcher))
         // Time Log routes
         .route("/api/issues/:id/timelogs", get(time_logs::list_time_logs).post(time_logs::create_time_log))
         // Comment routes

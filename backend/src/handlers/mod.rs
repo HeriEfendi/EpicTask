@@ -12,4 +12,5 @@ pub mod seed;
 pub mod sprints;
 pub mod time_logs;
 pub mod versions;
+pub mod watchers;
 pub mod workspaces;

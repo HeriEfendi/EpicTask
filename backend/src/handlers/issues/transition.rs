@@ -333,6 +333,27 @@ pub async fn move_issue(
         Some(auth.user_id),
     ).await;
 
+    // Notify watchers of status move (Jira standard)
+    let watchers: Vec<(i64,)> = sqlx::query_as("SELECT user_id FROM issue_watchers WHERE issue_id = ? AND user_id != ?")
+        .bind(issue_id)
+        .bind(auth.user_id)
+        .fetch_all(&state.db)
+        .await
+        .unwrap_or_default();
+
+    for w in watchers {
+        let _ = sqlx::query(
+            "INSERT INTO notifications (recipient_id, sender_id, issue_id, title, message, action_type) \
+             VALUES (?, ?, ?, 'Pembaruan tiket yang Anda amati', ?, 'STATUS_CHANGE')"
+        )
+        .bind(w.0)
+        .bind(auth.user_id)
+        .bind(issue_id)
+        .bind(format!("Tiket {} dipindahkan ke {}", current_issue.key, status_name))
+        .execute(&state.db)
+        .await;
+    }
+
     let updated = fetch_single_issue(&state.db, issue_id).await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
