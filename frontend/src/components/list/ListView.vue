@@ -55,13 +55,14 @@ function exportIssuesCsv() {
     toast.warning('Tidak ada tiket untuk diekspor');
     return;
   }
-  const headers = ['Key', 'Tipe', 'Ringkasan', 'Komponen', 'Fix Version', 'Status', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
+  const headers = ['Key', 'Tipe', 'Ringkasan', 'Komponen', 'Fix Version', 'Label', 'Status', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
   const rows = list.map((i) => [
     `"${i.key}"`,
     `"${i.issue_type}"`,
     `"${(i.summary || '').replace(/"/g, '""')}"`,
     `"${(i.component_name || '').replace(/"/g, '""')}"`,
     `"${(i.fix_version_name || '').replace(/"/g, '""')}"`,
+    `"${(i.labels || '').replace(/"/g, '""')}"`,
     `"${i.status_name || ''}"`,
     `"${i.priority}"`,
     `"${(i.assignee_name || 'Unassigned').replace(/"/g, '""')}"`,
@@ -249,6 +250,7 @@ async function handleDelete(issueId) {
             <th class="py-3 px-3.5 min-w-[300px]">Ringkasan Tiket</th>
             <th class="py-3 px-3.5 w-36">Komponen</th>
             <th class="py-3 px-3.5 w-36">Rilis</th>
+            <th class="py-3 px-3.5 w-36">Label</th>
             <th class="py-3 px-3.5 w-40">Status</th>
             <th class="py-3 px-3.5 w-36">Prioritas</th>
             <th class="py-3 px-3.5 w-44">Ditugaskan Ke</th>
@@ -269,7 +271,7 @@ async function handleDelete(issueId) {
                 TASK
               </span>
             </td>
-            <td class="py-2.5 px-3.5" colspan="8">
+            <td class="py-2.5 px-3.5" colspan="9">
               <input
                 v-model="newIssueSummary"
                 placeholder="+ Tambah tiket baru cepat... (Ketik judul lalu tekan Enter)"
@@ -367,6 +369,20 @@ async function handleDelete(issueId) {
                   🚀 {{ v.name }}
                 </option>
               </select>
+            </td>
+
+            <!-- Labels Cell -->
+            <td class="py-3 px-3.5">
+              <div v-if="issue.labels" class="flex flex-wrap gap-1 max-w-[140px]">
+                <span
+                  v-for="lbl in issue.labels.split(',').filter(Boolean)"
+                  :key="lbl"
+                  class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"
+                >
+                  🏷️ {{ lbl.trim() }}
+                </span>
+              </div>
+              <span v-else class="text-xs text-slate-400">-</span>
             </td>
 
             <!-- Status Dropdown -->

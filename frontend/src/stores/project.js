@@ -6,6 +6,7 @@ import { sendDesktopNotification } from '@/services/tauri';
 import { useSprintStore } from '@/stores/sprint';
 import { useComponentStore } from '@/stores/component';
 import { useVersionStore } from '@/stores/version';
+import { useLabelStore } from '@/stores/label';
 
 export const useProjectStore = defineStore('project', () => {
   const projects = ref([]);
@@ -27,6 +28,7 @@ export const useProjectStore = defineStore('project', () => {
   const filterSprint = ref(null); // null = all, number = specific sprint
   const filterComponent = ref(null); // null = all, number = specific component
   const filterVersion = ref(null); // null = all, number = specific fix_version_id
+  const filterLabel = ref(null); // null = all, string = specific label name
 
   // Legacy single-assignee alias (backward compat for old code)
   const filterAssignee = ref(null);
@@ -78,6 +80,14 @@ export const useProjectStore = defineStore('project', () => {
       }
       if (filterVersion.value && issue.fix_version_id !== filterVersion.value) {
         return false;
+      }
+      if (filterLabel.value) {
+        const issueLabels = issue.labels
+          ? issue.labels.split(',').map((l) => l.trim().toLowerCase())
+          : [];
+        if (!issueLabels.includes(filterLabel.value.toLowerCase())) {
+          return false;
+        }
       }
       return true;
     });
@@ -139,12 +149,14 @@ export const useProjectStore = defineStore('project', () => {
     const sprintStore = useSprintStore();
     const compStore = useComponentStore();
     const versionStore = useVersionStore();
+    const labelStore = useLabelStore();
     await Promise.all([
       fetchProjectStatuses(proj.id),
       fetchIssues(proj.id),
       sprintStore.fetchSprints(proj.id),
       compStore.fetchComponents(proj.id),
       versionStore.fetchVersions(proj.id),
+      labelStore.fetchLabels(proj.id),
     ]);
   }
 
@@ -387,6 +399,7 @@ export const useProjectStore = defineStore('project', () => {
     filterSprint,
     filterComponent,
     filterVersion,
+    filterLabel,
     activeIssue,
     activeIssueSubtasks,
     activeIssueLinks,

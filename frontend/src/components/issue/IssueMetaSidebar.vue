@@ -1,8 +1,10 @@
 <script setup>
-import { Layers, Flag, User, Hash, Calendar, Milestone, Boxes, Rocket } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { Layers, Flag, User, Hash, Calendar, Milestone, Boxes, Rocket, Tag } from 'lucide-vue-next';
 import { useSprintStore } from '@/stores/sprint';
 import { useComponentStore } from '@/stores/component';
 import { useVersionStore } from '@/stores/version';
+import IssueLabelsEditor from './IssueLabelsEditor.vue';
 
 const sprintStore = useSprintStore();
 const compStore = useComponentStore();
@@ -48,6 +50,14 @@ function handleFieldUpdate(fields) {
 function handleStatusSelect(e) {
   emit('status-change', e);
 }
+
+const currentIssueLabels = computed(() => {
+  if (!props.issue?.labels) return [];
+  return props.issue.labels
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean);
+});
 </script>
 
 <template>
@@ -310,6 +320,27 @@ function handleStatusSelect(e) {
           🚀 {{ v.name }} ({{ v.status }})
         </option>
       </select>
+    </div>
+
+    <!-- Labels (Tagging Fleksibel) -->
+    <div class="space-y-1.5">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+        <Tag class="w-3 h-3 text-slate-500" />
+        <span>Label / Tags</span>
+      </label>
+
+      <!-- Create Mode Labels -->
+      <IssueLabelsEditor
+        v-if="isCreateMode"
+        v-model="createForm.labels"
+      />
+
+      <!-- Detail Mode Labels -->
+      <IssueLabelsEditor
+        v-else-if="issue"
+        :model-value="currentIssueLabels"
+        @change="(newLabels) => handleFieldUpdate({ labels: newLabels })"
+      />
     </div>
 
     <!-- Story Points (Estimation) -->

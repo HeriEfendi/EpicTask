@@ -44,6 +44,14 @@ const subtaskProgress = computed(() => {
   return { total, done, percent };
 });
 
+const labelList = computed(() => {
+  if (!props.issue.labels) return [];
+  return props.issue.labels
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean);
+});
+
 function handleDragStart(e) {
   e.dataTransfer.setData('text/plain', String(props.issue.id));
   e.dataTransfer.effectAllowed = 'move';
@@ -77,9 +85,20 @@ function handleDragEnd(e) {
     </div>
 
     <!-- Title / Summary (Larger font: text-sm font-semibold) -->
-    <h4 class="text-sm font-semibold text-slate-800 group-hover:text-blue-600 line-clamp-2 leading-relaxed mb-3 transition-colors">
+    <h4 class="text-sm font-semibold text-slate-800 group-hover:text-blue-600 line-clamp-2 leading-relaxed mb-2 transition-colors">
       {{ issue.summary }}
     </h4>
+
+    <!-- Labels Chips -->
+    <div v-if="labelList.length > 0" class="mb-2.5 flex flex-wrap gap-1 items-center">
+      <span
+        v-for="lbl in labelList"
+        :key="lbl"
+        class="inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100/90 text-slate-700 border border-slate-200"
+      >
+        🏷️ {{ lbl }}
+      </span>
+    </div>
 
     <!-- Subtasks Progress Bar (FR-4.4) -->
     <div v-if="subtaskProgress" class="mb-3 bg-slate-50 rounded-lg p-2 border border-slate-200">

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useAutomationStore } from '@/stores/automation';
 import { useComponentStore } from '@/stores/component';
 import { useVersionStore } from '@/stores/version';
+import { useLabelStore } from '@/stores/label';
 import {
   Kanban,
   Layers,
@@ -18,7 +19,8 @@ import {
   ChevronDown,
   Check,
   Boxes,
-  Rocket
+  Rocket,
+  Tag
 } from 'lucide-vue-next';
 
 const emit = defineEmits(['open-workflow-modal']);
@@ -28,6 +30,7 @@ const authStore = useAuthStore();
 const autoStore = useAutomationStore();
 const compStore = useComponentStore();
 const versionStore = useVersionStore();
+const labelStore = useLabelStore();
 
 // Assignee dropdown state
 const isAssigneeDropdownOpen = ref(false);
@@ -85,6 +88,7 @@ const hasActiveFilters = computed(() => {
     !!projectStore.filterType ||
     !!projectStore.filterComponent ||
     !!projectStore.filterVersion ||
+    !!projectStore.filterLabel ||
     !!projectStore.filterSprint
   );
 });
@@ -98,6 +102,7 @@ function clearFilters() {
   projectStore.filterType = null;
   projectStore.filterComponent = null;
   projectStore.filterVersion = null;
+  projectStore.filterLabel = null;
   projectStore.filterSprint = null;
 }
 
@@ -323,6 +328,22 @@ const views = [
           <option :value="null">Semua Versi Rilis</option>
           <option v-for="v in versionStore.versions" :key="v.id" :value="v.id">
             🚀 {{ v.name }}
+          </option>
+        </select>
+        <ChevronDown class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+      </div>
+
+      <!-- ⑥ Label / Tag Filter -->
+      <div class="relative" v-if="labelStore.labels.length > 0">
+        <select
+          v-model="projectStore.filterLabel"
+          class="bg-white border border-slate-300 hover:border-slate-400 rounded-lg pl-3 pr-7 py-1.5 text-xs text-slate-700
+                 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer shadow-2xs transition font-medium max-w-[160px]"
+          :class="projectStore.filterLabel ? 'border-indigo-400 bg-indigo-50 text-indigo-800 font-bold' : ''"
+        >
+          <option :value="null">Semua Label</option>
+          <option v-for="lbl in labelStore.labels" :key="lbl.id" :value="lbl.name">
+            🏷️ {{ lbl.name }}
           </option>
         </select>
         <ChevronDown class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />

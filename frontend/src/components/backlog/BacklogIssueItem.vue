@@ -51,6 +51,14 @@ const typeColorClass = computed(() => {
       return 'text-blue-700 bg-blue-50 border-blue-200';
   }
 });
+
+const labelList = computed(() => {
+  if (!props.issue.labels) return [];
+  return props.issue.labels
+    .split(',')
+    .map((l) => l.trim())
+    .filter(Boolean);
+});
 </script>
 
 <template>
@@ -100,6 +108,15 @@ const typeColorClass = computed(() => {
         class="hidden md:inline-flex items-center text-2xs font-semibold px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200 max-w-[120px] truncate shrink-0"
       >
         🧩 {{ issue.component_name }}
+      </span>
+
+      <!-- Labels Tag -->
+      <span
+        v-for="lbl in labelList"
+        :key="lbl"
+        class="hidden lg:inline-flex items-center text-2xs font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 shrink-0"
+      >
+        🏷️ {{ lbl }}
       </span>
     </div>
 
