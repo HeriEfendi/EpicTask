@@ -129,9 +129,21 @@ function handleDragEnd(e) {
           {{ issue.issue_type }}
         </span>
 
-        <!-- Issue Key -->
-        <span class="text-xs font-mono font-semibold text-slate-600 group-hover:text-blue-600 transition">
+        <!-- Issue Key (Strikethrough if resolved - Jira standard) -->
+        <span
+          class="text-xs font-mono font-semibold transition"
+          :class="issue.resolution ? 'line-through text-slate-400 group-hover:text-slate-500' : 'text-slate-600 group-hover:text-blue-600'"
+        >
           {{ issue.key }}
+        </span>
+
+        <!-- Resolution Badge -->
+        <span
+          v-if="issue.resolution"
+          class="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200"
+          :title="`Resolusi: ${issue.resolution}`"
+        >
+          ✓ {{ issue.resolution }}
         </span>
 
         <!-- Priority Indicator -->

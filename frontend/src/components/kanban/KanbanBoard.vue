@@ -5,6 +5,7 @@ import KanbanCard from './KanbanCard.vue';
 import KanbanColumn from './KanbanColumn.vue';
 import KanbanToolbar from './KanbanToolbar.vue';
 import KanbanSwimlaneView from './KanbanSwimlaneView.vue';
+import ResolutionModal from '@/components/issue/ResolutionModal.vue';
 import { AlertCircle, ShieldAlert } from 'lucide-vue-next';
 
 const projectStore = useProjectStore();
@@ -12,6 +13,7 @@ const projectStore = useProjectStore();
 const dragOverColumnId = ref(null);
 const dragOverCellKey = ref(null);
 const errorMessage = ref(null);
+const pendingResolution = ref(null);
 let errorTimeout = null;
 
 function showToast(msg) {
@@ -43,11 +45,35 @@ async function handleDrop(e, statusId) {
   if (!issueIdStr) return;
 
   const issueId = Number(issueIdStr);
+  const issue = projectStore.issues.find((i) => i.id === issueId);
+  const targetStatus = projectStore.statuses.find((s) => s.id === statusId);
+
+  // If moving into DONE status from a non-DONE status, prompt for resolution (Jira standard)
+  if (targetStatus && targetStatus.category === 'DONE' && issue && issue.status_category !== 'DONE') {
+    pendingResolution.value = { issue, statusId, targetStatus };
+    return;
+  }
+
   try {
     await projectStore.moveIssue(issueId, statusId);
   } catch (err) {
     showToast(err.message || 'Tidak dapat memindahkan tiket ke status ini');
   }
+}
+
+async function handleConfirmResolution(resolution) {
+  if (!pendingResolution.value) return;
+  const { issue, statusId } = pendingResolution.value;
+  pendingResolution.value = null;
+  try {
+    await projectStore.moveIssue(issue.id, statusId, 0, resolution);
+  } catch (err) {
+    showToast(err.message || 'Tidak dapat memindahkan tiket ke status ini');
+  }
+}
+
+function handleCloseResolutionModal() {
+  pendingResolution.value = null;
 }
 
 // Drag & Drop handlers for Swimlane View
@@ -149,5 +175,14 @@ function openCreateForStatus(statusId) {
         @create-issue="openCreateForStatus"
       />
     </div>
+
+    <!-- Jira Resolution Transition Modal -->
+    <ResolutionModal
+      :is-open="!!pendingResolution"
+      :issue="pendingResolution?.issue"
+      :target-status-name="pendingResolution?.targetStatus?.name || 'Done'"
+      @close="handleCloseResolutionModal"
+      @confirm="handleConfirmResolution"
+    />
   </div>
 </template>

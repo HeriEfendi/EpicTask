@@ -55,7 +55,7 @@ function exportIssuesCsv() {
     toast.warning('Tidak ada tiket untuk diekspor');
     return;
   }
-  const headers = ['Key', 'Tipe', 'Ringkasan', 'Komponen', 'Fix Version', 'Label', 'Status', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
+  const headers = ['Key', 'Tipe', 'Ringkasan', 'Komponen', 'Fix Version', 'Label', 'Status', 'Resolusi', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
   const rows = list.map((i) => [
     `"${i.key}"`,
     `"${i.issue_type}"`,
@@ -64,6 +64,7 @@ function exportIssuesCsv() {
     `"${(i.fix_version_name || '').replace(/"/g, '""')}"`,
     `"${(i.labels || '').replace(/"/g, '""')}"`,
     `"${i.status_name || ''}"`,
+    `"${i.resolution || ''}"`,
     `"${i.priority}"`,
     `"${(i.assignee_name || 'Unassigned').replace(/"/g, '""')}"`,
     i.story_points || 0,
@@ -156,11 +157,24 @@ async function handleVersionChange(issue, newVersionId) {
 }
 
 async function handleStatusChange(issue, newStatusId) {
+  const targetStatus = projectStore.statuses.find((s) => s.id === Number(newStatusId));
+  const resolution = targetStatus?.category === 'DONE' ? (issue.resolution || (issue.issue_type === 'BUG' ? 'Fixed' : 'Done')) : null;
   try {
-    await projectStore.moveIssue(issue.id, Number(newStatusId));
+    await projectStore.moveIssue(issue.id, Number(newStatusId), 0, resolution);
     toast.success(`Status ${issue.key} diperbarui`);
   } catch (e) {
     toast.error(e.message || 'Transisi status ditolak oleh aturan workflow');
+  }
+}
+
+async function handleResolutionChange(issue, newResolution) {
+  try {
+    await projectStore.updateIssue(issue.id, {
+      resolution: newResolution ? newResolution : null,
+    });
+    toast.success(`Resolusi ${issue.key} diubah ke ${newResolution || 'Unresolved'}`);
+  } catch (e) {
+    toast.error(e.message || 'Gagal mengubah resolusi');
   }
 }
 
@@ -252,6 +266,7 @@ async function handleDelete(issueId) {
             <th class="py-3 px-3.5 w-36">Rilis</th>
             <th class="py-3 px-3.5 w-36">Label</th>
             <th class="py-3 px-3.5 w-40">Status</th>
+            <th class="py-3 px-3.5 w-36">Resolusi</th>
             <th class="py-3 px-3.5 w-36">Prioritas</th>
             <th class="py-3 px-3.5 w-44">Ditugaskan Ke</th>
             <th class="py-3 px-3.5 w-24 text-center">Poin</th>
@@ -271,7 +286,7 @@ async function handleDelete(issueId) {
                 TASK
               </span>
             </td>
-            <td class="py-2.5 px-3.5" colspan="9">
+            <td class="py-2.5 px-3.5" colspan="10">
               <input
                 v-model="newIssueSummary"
                 placeholder="+ Tambah tiket baru cepat... (Ketik judul lalu tekan Enter)"
@@ -299,10 +314,11 @@ async function handleDelete(issueId) {
             :key="issue.id"
             class="hover:bg-slate-50 transition group text-sm"
           >
-            <!-- Key -->
+            <!-- Key (Strikethrough if resolved - Jira standard) -->
             <td
               @click="projectStore.openIssueDetail(issue.id)"
-              class="py-3 px-3.5 font-mono font-semibold text-blue-600 cursor-pointer hover:underline text-xs"
+              class="py-3 px-3.5 font-mono font-semibold cursor-pointer hover:underline text-xs"
+              :class="issue.resolution ? 'line-through text-slate-400 hover:text-slate-500' : 'text-blue-600 hover:text-blue-700'"
             >
               {{ issue.key }}
             </td>
@@ -400,6 +416,24 @@ async function handleDelete(issueId) {
                   {{ status.name }}
                 </option>
               </select>
+            </td>
+
+            <!-- Resolution Dropdown (Jira standard) -->
+            <td class="py-3 px-3.5">
+              <select
+                v-if="issue.status_category === 'DONE' || issue.resolution"
+                :value="issue.resolution || 'Fixed'"
+                @change="(e) => handleResolutionChange(issue, e.target.value)"
+                class="bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg px-2 py-1 text-xs font-semibold focus:outline-none focus:border-emerald-600 cursor-pointer shadow-2xs max-w-[130px] truncate"
+              >
+                <option value="Fixed">✓ Fixed</option>
+                <option value="Done">✓ Done</option>
+                <option value="Won't Fix">✕ Won't Fix</option>
+                <option value="Duplicate">⧉ Duplicate</option>
+                <option value="Cannot Reproduce">? Cannot Reproduce</option>
+                <option value="Incomplete">⚠ Incomplete</option>
+              </select>
+              <span v-else class="text-xs text-slate-400 italic px-2">Unresolved</span>
             </td>
 
             <!-- Priority Dropdown -->

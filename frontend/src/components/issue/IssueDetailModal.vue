@@ -45,6 +45,7 @@ const createForm = reactive({
   sprintId: null,
   componentId: null,
   fixVersionId: null,
+  resolution: 'Done',
   labels: [],
   storyPoints: 0,
   startDate: '',
@@ -120,6 +121,7 @@ async function handleCreateIssue() {
       sprint_id: createForm.sprintId ? Number(createForm.sprintId) : null,
       component_id: createForm.componentId ? Number(createForm.componentId) : null,
       fix_version_id: createForm.fixVersionId ? Number(createForm.fixVersionId) : null,
+      resolution: createForm.resolution || null,
       labels: createForm.labels && createForm.labels.length > 0 ? createForm.labels : null,
       story_points: Number(createForm.storyPoints) || 0,
       start_date: createForm.startDate || null,
@@ -148,8 +150,10 @@ async function handleUpdateField(fields) {
 async function handleStatusChange(e) {
   const newStatusId = Number(e.target.value);
   if (!issue.value || newStatusId === issue.value.status_id) return;
+  const targetStatus = projectStore.statuses.find((s) => s.id === newStatusId);
+  const resolution = targetStatus?.category === 'DONE' ? (issue.value.resolution || (issue.value.issue_type === 'BUG' ? 'Fixed' : 'Done')) : null;
   try {
-    await projectStore.moveIssue(issue.value.id, newStatusId);
+    await projectStore.moveIssue(issue.value.id, newStatusId, 0, resolution);
     toast.success('Status tiket berhasil diperbarui');
   } catch (e) {
     toast.error(e.message || 'Pelanggaran aturan transisi alur kerja');

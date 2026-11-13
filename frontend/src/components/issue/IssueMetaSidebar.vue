@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { Layers, Flag, User, Hash, Calendar, Milestone, Boxes, Rocket, Tag } from 'lucide-vue-next';
+import { Layers, Flag, User, Hash, Calendar, Milestone, Boxes, Rocket, Tag, CheckCircle2 } from 'lucide-vue-next';
 import { useSprintStore } from '@/stores/sprint';
 import { useComponentStore } from '@/stores/component';
 import { useVersionStore } from '@/stores/version';
@@ -49,6 +49,31 @@ function handleFieldUpdate(fields) {
 
 function handleStatusSelect(e) {
   emit('status-change', e);
+}
+
+const isCreateStatusDone = computed(() => {
+  if (!props.isCreateMode || !props.createForm.statusId) return false;
+  const s = props.statuses.find((st) => st.id === props.createForm.statusId);
+  return s?.category === 'DONE';
+});
+
+const isIssueDone = computed(() => {
+  if (props.isCreateMode || !props.issue) return false;
+  if (props.issue.status_category === 'DONE') return true;
+  const s = props.statuses.find((st) => st.id === props.issue.status_id);
+  return s?.category === 'DONE';
+});
+
+function formatDateTime(dtStr) {
+  if (!dtStr) return '';
+  const d = new Date(dtStr);
+  return d.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 const currentIssueLabels = computed(() => {
@@ -123,6 +148,55 @@ const currentIssueLabels = computed(() => {
         <option v-for="s in statuses" :key="s.id" :value="s.id">
           {{ s.name }} ({{ s.category }})
         </option>
+      </select>
+    </div>
+
+    <!-- Resolusi (Resolution - Jira Standard) -->
+    <div
+      v-if="(isCreateMode && isCreateStatusDone) || (!isCreateMode && issue && isIssueDone)"
+      class="space-y-1.5 p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl"
+    >
+      <div class="flex items-center justify-between">
+        <label class="block text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1.5">
+          <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
+          <span>Resolusi</span>
+        </label>
+        <span
+          v-if="!isCreateMode && issue?.resolved_at"
+          class="text-[10px] text-emerald-700 font-semibold"
+          :title="`Diselesaikan pada: ${issue.resolved_at}`"
+        >
+          ✓ {{ formatDateTime(issue.resolved_at) }}
+        </span>
+      </div>
+
+      <!-- Create Mode Resolution -->
+      <select
+        v-if="isCreateMode"
+        v-model="createForm.resolution"
+        class="w-full bg-white border border-emerald-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-2xs"
+      >
+        <option value="Fixed">Fixed (Terselesaikan / Bug Diperbaiki)</option>
+        <option value="Done">Done (Selesai Dikerjakan)</option>
+        <option value="Won't Fix">Won't Fix (Tidak Akan Dikerjakan)</option>
+        <option value="Duplicate">Duplicate (Duplikat)</option>
+        <option value="Cannot Reproduce">Cannot Reproduce (Tidak Replikasi)</option>
+        <option value="Incomplete">Incomplete (Tidak Lengkap)</option>
+      </select>
+
+      <!-- Detail Mode Resolution -->
+      <select
+        v-else-if="issue"
+        :value="issue.resolution || (issue.issue_type === 'BUG' ? 'Fixed' : 'Done')"
+        @change="(e) => handleFieldUpdate({ resolution: e.target.value })"
+        class="w-full bg-white border border-emerald-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 shadow-2xs cursor-pointer"
+      >
+        <option value="Fixed">Fixed (Terselesaikan / Bug Diperbaiki)</option>
+        <option value="Done">Done (Selesai Dikerjakan)</option>
+        <option value="Won't Fix">Won't Fix (Tidak Akan Dikerjakan)</option>
+        <option value="Duplicate">Duplicate (Duplikat)</option>
+        <option value="Cannot Reproduce">Cannot Reproduce (Tidak Replikasi)</option>
+        <option value="Incomplete">Incomplete (Tidak Lengkap)</option>
       </select>
     </div>
 

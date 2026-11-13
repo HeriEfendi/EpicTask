@@ -239,22 +239,28 @@ export const useProjectStore = defineStore('project', () => {
     return updated;
   }
 
-  async function moveIssue(issueId, targetStatusId, targetPosition = 0) {
+  async function moveIssue(issueId, targetStatusId, targetPosition = 0, resolution = null) {
     const issue = issues.value.find((i) => i.id === issueId);
     if (!issue) return;
 
     const oldStatusId = issue.status_id;
     const oldPosition = issue.position;
+    const oldResolution = issue.resolution;
 
     // Optimistic local update
     issue.status_id = targetStatusId;
     issue.position = targetPosition;
+    if (resolution) issue.resolution = resolution;
 
     try {
-      const updated = await api.post(`/issues/${issueId}/move`, {
+      const payload = {
         target_status_id: targetStatusId,
         target_position: targetPosition,
-      });
+      };
+      if (resolution) {
+        payload.resolution = resolution;
+      }
+      const updated = await api.post(`/issues/${issueId}/move`, payload);
       const idx = issues.value.findIndex((i) => i.id === issueId);
       if (idx !== -1) {
         issues.value[idx] = updated;
@@ -264,6 +270,7 @@ export const useProjectStore = defineStore('project', () => {
       // Rollback on rejection (e.g. workflow transition rule violation)
       issue.status_id = oldStatusId;
       issue.position = oldPosition;
+      issue.resolution = oldResolution;
       throw err;
     }
   }

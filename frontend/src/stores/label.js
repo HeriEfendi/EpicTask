@@ -93,3 +93,4 @@ export const useLabelStore = defineStore('label', () => {
     setIssueLabels,
   };
 });
+
