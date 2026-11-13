@@ -283,10 +283,12 @@ pub async fn init_db(pool: &MySqlPool) -> Result<(), Box<dyn std::error::Error>>
     )
     .execute(pool).await?;
 
-    // Jira Standardization: Add sprint_id, component_id, and fix_version_id to issues if not present
+    // Jira Standardization: Add sprint_id, component_id, fix_version_id, resolution, and resolved_at to issues if not present
     let _ = sqlx::query("ALTER TABLE issues ADD COLUMN IF NOT EXISTS sprint_id BIGINT DEFAULT NULL;").execute(pool).await;
     let _ = sqlx::query("ALTER TABLE issues ADD COLUMN IF NOT EXISTS component_id BIGINT DEFAULT NULL;").execute(pool).await;
     let _ = sqlx::query("ALTER TABLE issues ADD COLUMN IF NOT EXISTS fix_version_id BIGINT DEFAULT NULL;").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE issues ADD COLUMN IF NOT EXISTS resolution VARCHAR(50) DEFAULT NULL;").execute(pool).await;
+    let _ = sqlx::query("ALTER TABLE issues ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP DEFAULT NULL;").execute(pool).await;
 
     info!("Database schema verified successfully.");
     Ok(())

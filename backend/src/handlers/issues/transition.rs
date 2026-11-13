@@ -83,8 +83,44 @@ pub async fn update_issue(
     };
     let position = payload.position.or(current_issue.position);
 
+    // Resolution & resolved_at handling
+    let (resolution, resolved_at) = match new_status_category.as_deref() {
+        Some("DONE") => {
+            if let Some(opt_res) = &payload.resolution {
+                match opt_res {
+                    Some(res) if !res.trim().is_empty() => {
+                        (Some(res.trim().to_string()), current_issue.resolved_at.or_else(|| Some(chrono::Utc::now())))
+                    }
+                    _ => (None, None),
+                }
+            } else if current_issue.resolution.is_some() {
+                (current_issue.resolution.clone(), current_issue.resolved_at.or_else(|| Some(chrono::Utc::now())))
+            } else {
+                let default_res = if issue_type == "BUG" { "Fixed".to_string() } else { "Done".to_string() };
+                (Some(default_res), Some(chrono::Utc::now()))
+            }
+        }
+        Some(_) => {
+            // Moved to a non-DONE category -> clear resolution
+            (None, None)
+        }
+        None => {
+            // Category unknown or status unchanged
+            if let Some(opt_res) = &payload.resolution {
+                match opt_res {
+                    Some(res) if !res.trim().is_empty() => {
+                        (Some(res.trim().to_string()), current_issue.resolved_at.or_else(|| Some(chrono::Utc::now())))
+                    }
+                    _ => (None, None),
+                }
+            } else {
+                (current_issue.resolution.clone(), current_issue.resolved_at)
+            }
+        }
+    };
+
     sqlx::query(
-        "UPDATE issues SET summary = ?, description = ?, issue_type = ?, status_id = ?, priority = ?, assignee_id = ?, parent_id = ?, epic_id = ?, story_points = ?, start_date = ?, due_date = ?, position = ?, sprint_id = ?, component_id = ?, fix_version_id = ? \
+        "UPDATE issues SET summary = ?, description = ?, issue_type = ?, status_id = ?, priority = ?, assignee_id = ?, parent_id = ?, epic_id = ?, story_points = ?, start_date = ?, due_date = ?, position = ?, sprint_id = ?, component_id = ?, fix_version_id = ?, resolution = ?, resolved_at = ? \
          WHERE id = ?"
     )
     .bind(&summary)
@@ -102,6 +138,8 @@ pub async fn update_issue(
     .bind(sprint_id)
     .bind(component_id)
     .bind(fix_version_id)
+    .bind(&resolution)
+    .bind(resolved_at)
     .bind(issue_id)
     .execute(&state.db)
     .await
@@ -223,9 +261,40 @@ pub async fn move_issue(
 
     let target_pos = payload.target_position.unwrap_or(0);
 
-    sqlx::query("UPDATE issues SET status_id = ?, position = ? WHERE id = ?")
+    // Get target category
+    let target_cat: Result<(String, String), _> = sqlx::query_as(
+        "SELECT name, category FROM statuses WHERE id = ?"
+    )
+    .bind(payload.target_status_id)
+    .fetch_one(&state.db)
+    .await;
+
+    let (status_name, category) = target_cat.map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "Target status not found" })),
+        )
+    })?;
+
+    // Determine resolution & resolved_at based on category
+    let (resolution, resolved_at) = if category == "DONE" {
+        let res = payload.resolution.or_else(|| current_issue.resolution.clone()).unwrap_or_else(|| {
+            if current_issue.issue_type == "BUG" {
+                "Fixed".to_string()
+            } else {
+                "Done".to_string()
+            }
+        });
+        (Some(res), current_issue.resolved_at.or_else(|| Some(chrono::Utc::now())))
+    } else {
+        (None, None)
+    };
+
+    sqlx::query("UPDATE issues SET status_id = ?, position = ?, resolution = ?, resolved_at = ? WHERE id = ?")
         .bind(payload.target_status_id)
         .bind(target_pos)
+        .bind(&resolution)
+        .bind(resolved_at)
         .bind(issue_id)
         .execute(&state.db)
         .await
@@ -236,37 +305,33 @@ pub async fn move_issue(
             )
         })?;
 
-    // Get target category
-    let target_cat: Result<(String, String), _> = sqlx::query_as(
-        "SELECT name, category FROM statuses WHERE id = ?"
+    let log_detail = if let Some(ref r) = resolution {
+        format!("Moved {} to {} (Resolution: {})", current_issue.key, status_name, r)
+    } else {
+        format!("Moved {} to {}", current_issue.key, status_name)
+    };
+
+    // Log movement in activity stream
+    let _ = sqlx::query(
+        "INSERT INTO activity_logs (project_id, issue_id, user_id, action, details) \
+         VALUES (?, ?, ?, 'MOVE_ISSUE', ?)"
     )
-    .bind(payload.target_status_id)
-    .fetch_one(&state.db)
+    .bind(current_issue.project_id)
+    .bind(issue_id)
+    .bind(auth.user_id)
+    .bind(log_detail)
+    .execute(&state.db)
     .await;
 
-    if let Ok((status_name, category)) = target_cat {
-        // Log movement in activity stream
-        let _ = sqlx::query(
-            "INSERT INTO activity_logs (project_id, issue_id, user_id, action, details) \
-             VALUES (?, ?, ?, 'MOVE_ISSUE', ?)"
-        )
-        .bind(current_issue.project_id)
-        .bind(issue_id)
-        .bind(auth.user_id)
-        .bind(format!("Moved {} to {}", current_issue.key, status_name))
-        .execute(&state.db)
-        .await;
-
-        // Run automation engine
-        AutomationEngine::on_status_changed(
-            &state.db,
-            &state.ws_hub,
-            current_issue.project_id,
-            issue_id,
-            &category,
-            Some(auth.user_id),
-        ).await;
-    }
+    // Run automation engine
+    AutomationEngine::on_status_changed(
+        &state.db,
+        &state.ws_hub,
+        current_issue.project_id,
+        issue_id,
+        &category,
+        Some(auth.user_id),
+    ).await;
 
     let updated = fetch_single_issue(&state.db, issue_id).await.map_err(|e| {
         (

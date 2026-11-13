@@ -27,6 +27,7 @@ pub struct IssueFilterParams {
     pub component_id: Option<i64>,
     pub fix_version_id: Option<i64>,
     pub label: Option<String>,
+    pub resolution: Option<String>,
 }
 
 pub async fn list_project_issues(
@@ -38,7 +39,8 @@ pub async fn list_project_issues(
     let mut sql = String::from(
         "SELECT i.id, i.project_id, i.parent_id, i.epic_id, i.`key`, i.summary, i.description, \
                 i.issue_type, i.status_id, i.priority, i.assignee_id, i.reporter_id, i.story_points, \
-                i.start_date, i.due_date, i.position, i.sprint_id, i.component_id, i.fix_version_id, i.created_at, i.updated_at, \
+                i.start_date, i.due_date, i.position, i.sprint_id, i.component_id, i.fix_version_id, \
+                i.resolution, i.resolved_at, i.created_at, i.updated_at, \
                 s.name AS status_name, s.category AS status_category, s.color AS status_color, \
                 ua.full_name AS assignee_name, ua.avatar_url AS assignee_avatar, \
                 ur.full_name AS reporter_name, \
@@ -109,6 +111,13 @@ pub async fn list_project_issues(
             ));
         }
     }
+    if let Some(ref res) = params.resolution {
+        if res.eq_ignore_ascii_case("unresolved") {
+            sql.push_str(" AND i.resolution IS NULL");
+        } else if !res.trim().is_empty() {
+            sql.push_str(&format!(" AND i.resolution = '{}'", res.trim().replace('\'', "''")));
+        }
+    }
 
     sql.push_str(" ORDER BY s.position ASC, i.position ASC, i.id DESC");
 
@@ -142,7 +151,8 @@ pub async fn get_issue(
     let subtasks = sqlx::query_as::<_, Issue>(
         "SELECT i.id, i.project_id, i.parent_id, i.epic_id, i.`key`, i.summary, i.description, \
                 i.issue_type, i.status_id, i.priority, i.assignee_id, i.reporter_id, i.story_points, \
-                i.start_date, i.due_date, i.position, i.sprint_id, i.component_id, i.fix_version_id, i.created_at, i.updated_at, \
+                i.start_date, i.due_date, i.position, i.sprint_id, i.component_id, i.fix_version_id, \
+                i.resolution, i.resolved_at, i.created_at, i.updated_at, \
                 s.name AS status_name, s.category AS status_category, s.color AS status_color, \
                 ua.full_name AS assignee_name, ua.avatar_url AS assignee_avatar, \
                 ur.full_name AS reporter_name, \

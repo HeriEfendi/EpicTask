@@ -102,9 +102,29 @@ pub async fn create_issue(
 
     let position = max_pos.0.unwrap_or(0) + 1;
 
+    let status_info: Result<(String, String), _> = sqlx::query_as(
+        "SELECT name, category FROM statuses WHERE id = ?"
+    )
+    .bind(status_id)
+    .fetch_one(&mut *tx)
+    .await;
+
+    let (resolution, resolved_at) = if let Ok((_, cat)) = status_info {
+        if cat == "DONE" {
+            let res = payload.resolution.unwrap_or_else(|| {
+                if issue_type == "BUG" { "Fixed".to_string() } else { "Done".to_string() }
+            });
+            (Some(res), Some(chrono::Utc::now()))
+        } else {
+            (None, None)
+        }
+    } else {
+        (None, None)
+    };
+
     let res = sqlx::query(
-        "INSERT INTO issues (project_id, parent_id, epic_id, `key`, summary, description, issue_type, status_id, priority, assignee_id, reporter_id, story_points, start_date, due_date, position, sprint_id, component_id, fix_version_id) \
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO issues (project_id, parent_id, epic_id, `key`, summary, description, issue_type, status_id, priority, assignee_id, reporter_id, story_points, start_date, due_date, position, sprint_id, component_id, fix_version_id, resolution, resolved_at) \
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )
     .bind(project_id)
     .bind(payload.parent_id)
@@ -124,6 +144,8 @@ pub async fn create_issue(
     .bind(payload.sprint_id)
     .bind(payload.component_id)
     .bind(payload.fix_version_id)
+    .bind(resolution)
+    .bind(resolved_at)
     .execute(&mut *tx)
     .await
     .map_err(|e| {

@@ -23,6 +23,8 @@ pub struct Issue {
     pub sprint_id: Option<i64>,
     pub component_id: Option<i64>,
     pub fix_version_id: Option<i64>,
+    pub resolution: Option<String>,
+    pub resolved_at: Option<DateTime<Utc>>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
 
@@ -57,6 +59,7 @@ pub struct CreateIssuePayload {
     pub sprint_id: Option<i64>,
     pub component_id: Option<i64>,
     pub fix_version_id: Option<i64>,
+    pub resolution: Option<String>,
     pub labels: Option<Vec<String>>,
     pub story_points: Option<i32>,
     pub start_date: Option<NaiveDate>,
@@ -82,6 +85,8 @@ pub struct UpdateIssuePayload {
     pub component_id: Option<Option<i64>>,
     #[serde(default)]
     pub fix_version_id: Option<Option<i64>>,
+    #[serde(default)]
+    pub resolution: Option<Option<String>>,
     pub labels: Option<Vec<String>>,
     pub story_points: Option<i32>,
     #[serde(default)]
@@ -95,6 +100,7 @@ pub struct UpdateIssuePayload {
 pub struct MoveIssuePayload {
     pub target_status_id: i64,
     pub target_position: Option<i32>,
+    pub resolution: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
