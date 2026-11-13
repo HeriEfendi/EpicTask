@@ -121,6 +121,13 @@ graph TD
 
 - **WebSocket Multi-Peer Broadcasting:** Setiap perubahan (geser kartu, edit, hapus, komentar, time log) disiarkan instan ke seluruh pengguna yang terhubung tanpa perlu refresh halaman.
 
+### 7. Release Hub & Version Management (Jira Standard)
+
+- **Siklus Hidup Rilis:** Pengelolaan versi software (`UNRELEASED`, `RELEASED`, `ARCHIVED`) dengan target peluncuran terstruktur.
+- **Progress Bar 3-Segmen Realtime:** Visualisasi rasio penyelesaian tiket (Hijau: Selesai, Biru: Sedang Dikerjakan, Abu-abu: To Do) disertai persentase.
+- **Jira-Style Release Confirmation Modal:** Menghitung otomatis tiket yang belum selesai saat rilis dan menyediakan opsi migrasi tiket ke versi terencana berikutnya atau melepasnya dari versi.
+- **Atribut & Filter Fix Version:** Dropdown Fix Version pada modal pembuatan/detail tiket, kolom inline pada spreadsheet ListView, badge visual `🚀` pada kartu Kanban, dan filter 1-klik di header board.
+
 ---
 
 ## 🎯 Standarisasi Jira (Jira Enterprise Standards & Master Roadmap)
@@ -131,7 +138,7 @@ EpicTask terus mengadopsi standar industri terbaik dari **Atlassian Jira Softwar
 |:---:|:---|:---:|:---:|:---|:---|
 | **1** | **Scrum Backlog & Sprint Management** | P0 (Kritis) | 🟢 **Selesai** | `handlers/sprints.rs`<br>`components/backlog/*`<br>`stores/sprint.js` | Siklus sprint (PLANNED $\to$ ACTIVE $\to$ COMPLETED), Backlog View terdedikasi, Start/Complete Sprint modal, Story Points 3-Pill rollup, dan drag-and-drop antar sprint/backlog. |
 | **2** | **Components (Sub-Sistem / Modul)** | P0 (Kritis) | 🟢 **Selesai** | `handlers/components.rs`<br>`ComponentManagerModal.vue`<br>`stores/component.js` | Pemecahan modul teknis proyek, penunjukan *Component Lead*, penugasan komponen pada tiket, filter cepat, dan visual badge `🧩`. |
-| **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | ⚪ *Planned* | `models/version.rs`<br>`handlers/versions.rs` | Pelacakan versi rilis software (`v1.0.0`, `v1.1.0`), target tanggal rilis, status released/unreleased, dan ringkasan progres tiket. |
+| **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | 🟢 **Selesai** | `handlers/versions.rs`<br>`components/releases/*`<br>`stores/version.js` | Pelacakan versi rilis software (`UNRELEASED`, `RELEASED`, `ARCHIVED`), target tanggal rilis, progress bar 3-fase, modal rilis dengan migrasi isu belum selesai, dan filter Fix Version di board & list. |
 | **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | ⚪ *Planned* | `components/kanban/` | Pembagian horizontal Kanban: *Group by Assignee*, *Group by Epic*, atau *Group by Priority (Expedite)*. |
 | **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Planned* | `models/label.rs`<br>`handlers/labels.rs` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter terintegrasi. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Planned* | Field `resolution` pada issues | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`) untuk audit QA. |
@@ -233,13 +240,15 @@ EpicTask/
 │       ├── auth/
 │       │   ├── jwt.rs               # Pembuatan & validasi JWT token
 │       │   └── middleware.rs        # Axum extractor untuk AuthUser
-│       ├── models/                  # Struct model data (Issue, Sprint, Component, User, Reports)
+│       ├── models/                  # Struct model data (Issue, Sprint, Component, Version, User, Reports)
 │       │   ├── sprint.rs            # Struct model & payload siklus Sprint (Scrum)
 │       │   ├── component.rs         # Struct model subsistem & modul proyek
-│       │   └── issue.rs             # Model tiket dengan sprint_id & component_id
+│       │   ├── version.rs           # Struct model versi software & rilis
+│       │   └── issue.rs             # Model tiket dengan sprint_id, component_id & fix_version_id
 │       ├── handlers/                # HTTP Controller handlers
 │       │   ├── sprints.rs           # Siklus sprint, start/complete, 3-pill story point rollup
 │       │   ├── components.rs        # CRUD komponen & kepemilikan Component Lead
+│       │   ├── versions.rs          # Release Hub, lifecycle versi & issue migration
 │       │   ├── auth.rs              # Login, Register, Me
 │       │   ├── workspaces.rs        # Workspace & Member management
 │       │   ├── projects.rs          # Project, Statuses, Workflow transitions
@@ -276,6 +285,7 @@ EpicTask/
     │   │   ├── auth.js              # State autentikasi & workspace aktif
     │   │   ├── sprint.js            # State sprint aktif, terencana, selesai & live WS
     │   │   ├── component.js         # State subsistem proyek & lead
+    │   │   ├── version.js           # State versi rilis software & Release Hub
     │   │   ├── project.js           # State papan, multi-assignee filter, DnD, & isu aktif
     │   │   ├── report.js            # State analytics, velocity, CFD, & timesheet
     │   │   ├── automation.js        # State rule otomasi
@@ -297,6 +307,12 @@ EpicTask/
     │       │   ├── StartSprintModal.vue # Modal mulai sprint aktif
     │       │   ├── CompleteSprintModal.vue # Modal penyelesaian sprint & rollover isu
     │       │   └── ComponentManagerModal.vue # Modal CRUD komponen & lead
+    │       ├── releases/
+    │       │   ├── ReleasesView.vue # Tampilan induk Release Hub Jira
+    │       │   ├── ReleaseCard.vue  # Kartu versi, status badge, overdue & actions
+    │       │   ├── ReleaseProgressBar.vue # Bar progres 3-fase (Done, In Progress, To Do)
+    │       │   ├── CreateVersionModal.vue # Modal pembuatan & edit versi rilis
+    │       │   └── ReleaseVersionModal.vue # Modal konfirmasi rilis & rollover tiket
     │       ├── kanban/
     │       │   ├── KanbanBoard.vue  # Board kolom DnD & transition violation alert
     │       │   └── KanbanCard.vue   # Kartu isu, subtask checklist bar, component & epic badges

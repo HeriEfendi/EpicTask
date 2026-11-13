@@ -15,8 +15,8 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 |:---|:---|:---:|:---:|:---|:---|:---|
 | **1** | **Scrum Backlog & Sprint Management** | P0 (Kritis) | 🟢 **Done** | `models/sprint.rs`<br>`handlers/sprints.rs` | `components/backlog/*`<br>`stores/sprint.js` | Siklus sprint (PLANNED, ACTIVE, COMPLETED), Backlog View, Start/Complete/Create Sprint modal, roll-up Story Points 3-pill (To Do, In Progress, Done), drag-and-drop tiket antar sprint/backlog. |
 | **2** | **Components (Sub-Sistem / Modul)** | P0 (Kritis) | 🟢 **Done** | `models/component.rs`<br>`handlers/components.rs` | `components/backlog/ComponentManagerModal.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`stores/component.js` | Modul fungsional proyek, Component Lead, filter komponen di Backlog, penugasan komponen pada tiket & badge visual pada kartu Kanban. |
-| **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | ⚪ *Next (Planned)* | `models/version.rs`<br>`handlers/versions.rs` | `components/releases/` | Pelacakan rilis software, tanggal rilis, status released/unreleased, ringkasan progres tiket. |
-| **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | ⚪ *Planned* | N/A (Frontend Agregasi) | `components/kanban/` | Pembagian horizontal Kanban: Group by Assignee, Epic, atau Priority (Expedite). |
+| **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | 🟢 **Done** | `models/version.rs`<br>`handlers/versions.rs` | `components/releases/*`<br>`stores/version.js` | Pelacakan rilis software (UNRELEASED, RELEASED, ARCHIVED), target tanggal rilis, progress bar 3-fase (Done, In Progress, To Do), modal rilis dengan migrasi isu belum selesai, filter rilis di ViewTabs & ListView, badge rilis pada kartu Kanban. |
+| **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | ⚪ *Next (Planned)* | N/A (Frontend Agregasi) | `components/kanban/` | Pembagian horizontal Kanban: Group by Assignee, Epic, atau Priority (Expedite). |
 | **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Planned* | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Planned* | Kolom `resolution` pada issues | `components/issue/` | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`). |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Planned* | N/A (Frontend Client) | `components/common/` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan". |
@@ -87,15 +87,54 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 
 ---
 
-### 3. Versions / Releases (Release Hub) (⚪ NEXT UP)
-* **Tujuan:** Pelacakan versi rilis software (misal `v1.0.0`, `v1.1.0`), target tanggal rilis, dan kemajuan penyelesaian tiket dalam rilis.
+### 3. Versions / Releases (Release Hub) (🟢 SELESAI)
+* **Tujuan:** Pelacakan versi rilis software (misal `v1.0.0`, `v1.1.0`), target tanggal peluncuran, pengelompokan pekerjaan berdasarkan target deployment (*Fix Version*), dan pemantauan rasio penyelesaian tiket (Done / In Progress / To Do).
 * **Database Schema (MariaDB):**
-  - Tabel `versions`: `id`, `project_id`, `name`, `description`, `release_date`, `is_released`, `is_archived`, `created_at`.
-  - Kolom `fix_version_id` pada `issues`.
-* **Rencana Implementasi:**
-  - `models/version.rs` dan `handlers/versions.rs`
-  - `stores/version.js` dan tab / modal rilis pada antarmuka.
+  - Tabel `versions`:
+    - `id BIGINT AUTO_INCREMENT PRIMARY KEY`
+    - `project_id BIGINT NOT NULL (FK projects.id)`
+    - `name VARCHAR(100) NOT NULL`
+    - `description TEXT`
+    - `start_date DATE DEFAULT NULL`
+    - `release_date DATE DEFAULT NULL`
+    - `status VARCHAR(20) NOT NULL DEFAULT 'UNRELEASED'` (`UNRELEASED`, `RELEASED`, `ARCHIVED`)
+    - `created_at TIMESTAMP`, `updated_at TIMESTAMP`
+  - Relasi `issues`:
+    - Kolom `fix_version_id BIGINT DEFAULT NULL` (foreign key referensi `versions.id`)
+* **Backend Endpoints:**
+  - `GET /api/projects/:pid/versions` : Daftar versi rilis proyek dengan agregasi total tiket, todo, in progress, dan done
+  - `POST /api/projects/:pid/versions` : Membuat versi baru
+  - `PUT /api/versions/:id` : Memperbarui nama, deskripsi, tanggal mulai, dan target rilis
+  - `POST /api/versions/:id/release` : Merilis versi (`RELEASED`), menetapkan tanggal rilis aktual, dan menyediakan opsi memindahkan tiket yang belum selesai ke versi berikutnya atau melepasnya dari versi
+  - `POST /api/versions/:id/archive` : Toggle arsip versi (`ARCHIVED` / `UNRELEASED`)
+  - `DELETE /api/versions/:id` : Menghapus versi (otomatis mengosongkan referensi `fix_version_id` pada tiket terkait)
+* **Frontend Modules & Components:**
+  - `stores/version.js` : Pinia store reaktif untuk versi rilis dengan live WebSocket sync
+  - `components/releases/ReleasesView.vue` : Tampilan induk Release Hub dengan 4 kartu metrik (Total, Belum Dirilis, Dirilis, Diarsipkan), filter tab, dan pencarian cepat
+  - `components/releases/ReleaseCard.vue` : Kartu versi komprehensif menampilkan status badge, indikator keterlambatan (overdue), tanggal, deskripsi, dan tombol aksi
+  - `components/releases/ReleaseProgressBar.vue` : Bar progres 3 segmen warna (Hijau: Done, Biru: In Progress, Abu-abu: To Do) disertai persentase dan legenda
+  - `components/releases/CreateVersionModal.vue` : Modal formulir pembuatan & pengeditan versi rilis
+  - `components/releases/ReleaseVersionModal.vue` : Modal konfirmasi rilis standar Jira dengan deteksi tiket belum selesai dan opsi target migrasi
+  - `components/issue/IssueMetaSidebar.vue` : Dropdown atribut `Fix Version (Rilis)` pada pembuatan tiket baru dan panel detail tiket
+  - `components/kanban/KanbanCard.vue` : Badge visual rilis (indigo pill `🚀 v1.0.0`) pada kartu Kanban
+  - `components/common/ViewTabs.vue` : Tab navigasi "Rilis" dan dropdown filter cepat berdasarkan Fix Version
+  - `components/list/ListView.vue` : Kolom versi rilis dengan inline selector dan ekspor CSV yang menyertakan data Fix Version
+  - `components/common/Sidebar.vue` : Pintasan "Rilis & Versi" pada sidebar proyek
 
 ---
 
-*(Catatan: Bagian 4 s.d. 8 akan dilanjutkan secara berurutan sesuai prioritas).*
+### 4. Board Swimlanes (Grouping Horizontal) (⚪ NEXT UP)
+* **Tujuan:** Mengelompokkan kartu Kanban secara horizontal berdasarkan dimensi tertentu (Assignee, Epic, Priority/Expedite) untuk meningkatkan visibilitas beban kerja dan pemblokir kritis.
+* **Dimensi Swimlane:**
+  1. **Tanpa Swimlane (Default):** Tampilan kolom Kanban standar.
+  2. **Berdasarkan Assignee:** Baris horizontal terpisah untuk setiap anggota tim + baris "Belum Ditugaskan".
+  3. **Berdasarkan Epic:** Baris horizontal untuk setiap Epic aktif + baris "Isu Tanpa Epic".
+  4. **Berdasarkan Prioritas (Expedite):** Baris teratas khusus untuk tiket dengan prioritas `HIGHEST` (jalur cepat darurat), diikuti oleh prioritas lainnya.
+* **Rencana Implementasi:**
+  - State `swimlaneMode` di `projectStore.js` (`'none' | 'assignee' | 'epic' | 'priority'`).
+  - Dropdown selector Swimlane di toolbar `ViewTabs.vue` atau header Kanban.
+  - Sub-komponen `KanbanSwimlaneRow.vue` dengan collapse/expand per baris dan dropzone per kolom dalam setiap swimlane.
+
+---
+
+*(Catatan: Bagian 5 s.d. 8 akan dilanjutkan secara berurutan sesuai prioritas).*
