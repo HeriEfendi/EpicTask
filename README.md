@@ -140,7 +140,7 @@ EpicTask terus mengadopsi standar industri terbaik dari **Atlassian Jira Softwar
 | **2** | **Components (Sub-Sistem / Modul)** | P0 (Kritis) | 🟢 **Selesai** | `handlers/components.rs`<br>`ComponentManagerModal.vue`<br>`stores/component.js` | Pemecahan modul teknis proyek, penunjukan *Component Lead*, penugasan komponen pada tiket, filter cepat, dan visual badge `🧩`. |
 | **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | 🟢 **Selesai** | `handlers/versions.rs`<br>`components/releases/*`<br>`stores/version.js` | Pelacakan versi rilis software (`UNRELEASED`, `RELEASED`, `ARCHIVED`), target tanggal rilis, progress bar 3-fase, modal rilis dengan migrasi isu belum selesai, dan filter Fix Version di board & list. |
 | **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | 🟢 **Selesai** | `components/kanban/*`<br>`stores/project.js` | Pembagian horizontal Kanban: *Group by Assignee*, *Group by Epic*, atau *Group by Priority (Expedite)* dengan baris collapsible, roll-up story point, dan header kolom sticky. |
-| **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Planned* | `models/label.rs`<br>`handlers/labels.rs` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter terintegrasi. |
+| **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | 🟢 **Selesai** | `handlers/labels.rs`<br>`IssueLabelsEditor.vue`<br>`stores/label.js` | Tag bebas lintas tiket dengan autocomplete interaktif, chips badge warna-warni di Kanban & Backlog, filter label di ViewTabs, dan kolom + ekspor CSV di ListView. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Planned* | Field `resolution` pada issues | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`) untuk audit QA. |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Planned* | `components/common/` | Filter 1-klik di toolbar atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan". |
 | **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Planned* | `models/watcher.rs`<br>`handlers/watchers.rs` | Fitur pengamat (*watcher*) tiket untuk menerima notifikasi otomatis pembaruan tanpa harus menjadi Assignee/Reporter. |
@@ -244,11 +244,13 @@ EpicTask/
 │       │   ├── sprint.rs            # Struct model & payload siklus Sprint (Scrum)
 │       │   ├── component.rs         # Struct model subsistem & modul proyek
 │       │   ├── version.rs           # Struct model versi software & rilis
-│       │   └── issue.rs             # Model tiket dengan sprint_id, component_id & fix_version_id
+│       │   ├── label.rs             # Struct model label & ad-hoc tags
+│       │   └── issue.rs             # Model tiket dengan sprint_id, component_id, fix_version_id & labels
 │       ├── handlers/                # HTTP Controller handlers
 │       │   ├── sprints.rs           # Siklus sprint, start/complete, 3-pill story point rollup
 │       │   ├── components.rs        # CRUD komponen & kepemilikan Component Lead
 │       │   ├── versions.rs          # Release Hub, lifecycle versi & issue migration
+│       │   ├── labels.rs            # Manajemen label & sinkronisasi multi-tag
 │       │   ├── auth.rs              # Login, Register, Me
 │       │   ├── workspaces.rs        # Workspace & Member management
 │       │   ├── projects.rs          # Project, Statuses, Workflow transitions
@@ -286,6 +288,7 @@ EpicTask/
     │   │   ├── sprint.js            # State sprint aktif, terencana, selesai & live WS
     │   │   ├── component.js         # State subsistem proyek & lead
     │   │   ├── version.js           # State versi rilis software & Release Hub
+    │   │   ├── label.js             # State label & ad-hoc tag proyek
     │   │   ├── project.js           # State papan, multi-assignee filter, DnD, & isu aktif
     │   │   ├── report.js            # State analytics, velocity, CFD, & timesheet
     │   │   ├── automation.js        # State rule otomasi
@@ -332,7 +335,8 @@ EpicTask/
     │       │   └── WorkflowModal.vue   # Manajemen kolom & transition guards
     │       ├── issue/
     │       │   ├── IssueDetailModal.vue # Modal terpadu (Create + Edit), subtask, komentar, time log
-    │       │   └── IssueMetaSidebar.vue # Atribut tiket: tipe, status, priority, sprint, component
+    │       │   ├── IssueMetaSidebar.vue # Atribut tiket: tipe, status, priority, sprint, component, labels
+    │       │   └── IssueLabelsEditor.vue # Multi-tag input dengan autocomplete pintar & pastel badges
     │       ├── notification/
     │       │   └── NotificationPopover.vue # Popover notifikasi interaktif
     │       └── auth/

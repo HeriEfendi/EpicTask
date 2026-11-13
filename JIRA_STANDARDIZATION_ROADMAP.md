@@ -17,8 +17,8 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 | **2** | **Components (Sub-Sistem / Modul)** | P0 (Kritis) | 🟢 **Done** | `models/component.rs`<br>`handlers/components.rs` | `components/backlog/ComponentManagerModal.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`stores/component.js` | Modul fungsional proyek, Component Lead, filter komponen di Backlog, penugasan komponen pada tiket & badge visual pada kartu Kanban. |
 | **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | 🟢 **Done** | `models/version.rs`<br>`handlers/versions.rs` | `components/releases/*`<br>`stores/version.js` | Pelacakan rilis software (UNRELEASED, RELEASED, ARCHIVED), target tanggal rilis, progress bar 3-fase (Done, In Progress, To Do), modal rilis dengan migrasi isu belum selesai, filter rilis di ViewTabs & ListView, badge rilis pada kartu Kanban. |
 | **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | 🟢 **Done** | N/A (Frontend Agregasi) | `components/kanban/*`<br>`stores/project.js` | Pembagian horizontal Kanban: Group by Assignee, Group by Epic, Group by Priority (Expedite row darurat), header sticky kolom, roll-up story point per baris, dan dropzone sel mandiri. |
-| **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Next (Planned)* | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter. |
-| **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Planned* | Kolom `resolution` pada issues | `components/issue/` | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`). |
+| **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | 🟢 **Done** | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/IssueLabelsEditor.vue`<br>`stores/label.js` | Tagging bebas lintas tiket dengan autocomplete interaktif, chips badge warna-warni di Kanban & Backlog, filter label di ViewTabs, dan kolom + ekspor CSV di ListView. |
+| **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Next (Planned)* | Kolom `resolution` pada issues | `components/issue/` | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`). |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Planned* | N/A (Frontend Client) | `components/common/` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan". |
 | **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Planned* | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/` | Fitur "Watch" tiket untuk notifikasi otomatis pembaruan tiket ke anggota terkait. |
 
@@ -140,16 +140,47 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 
 ---
 
-### 5. Issue Labels (Tagging Fleksibel) (⚪ NEXT UP)
+### 5. Issue Labels (Tagging Fleksibel) (🟢 SELESAI)
 * **Tujuan:** Tagging bebas lintas tiket dan tipe (contoh: `security`, `frontend`, `hotfix`, `ux`, `api`) untuk kategorisasi ad-hoc tanpa membatasi hierarki modul atau versi.
 * **Database Schema (MariaDB):**
-  - Tabel `labels` (`id`, `project_id`, `name`, `color`, `created_at`)
-  - Tabel pivot `issue_labels` (`issue_id`, `label_id`, `PRIMARY KEY (issue_id, label_id)`)
-* **Rencana Implementasi:**
-  - `models/label.rs` & `handlers/labels.rs` (CRUD label, autocomplete suggestions, add/remove label pada issue)
-  - Autocomplete multi-badge selector pada `IssueDetailModal.vue` / `IssueMetaSidebar.vue`
-  - Tag chips pada `KanbanCard.vue`, `BacklogIssueItem.vue`, dan filter chip pada `ViewTabs.vue`.
+  - Tabel `labels`:
+    - `id BIGINT AUTO_INCREMENT PRIMARY KEY`
+    - `project_id BIGINT NOT NULL (FK projects.id)`
+    - `name VARCHAR(50) NOT NULL`
+    - `color VARCHAR(20) DEFAULT '#6366f1'`
+    - `created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+    - `UNIQUE KEY uk_project_label (project_id, name)`
+  - Tabel pivot `issue_labels`:
+    - `issue_id BIGINT NOT NULL (FK issues.id ON DELETE CASCADE)`
+    - `label_id BIGINT NOT NULL (FK labels.id ON DELETE CASCADE)`
+    - `PRIMARY KEY (issue_id, label_id)`
+* **Backend Endpoints:**
+  - `GET /api/projects/:pid/labels` : Daftar seluruh label aktif di proyek dengan jumlah tiket yang menggunakannya
+  - `POST /api/projects/:pid/labels` : Membuat label baru atau mengembalikan label yang sudah ada
+  - `DELETE /api/labels/:id` : Menghapus label (otomatis membersihkan referensi `issue_labels`)
+  - `GET /api/issues/:id/labels` : Mengambil daftar label yang terpasang pada satu tiket
+  - `POST /api/issues/:id/labels` : Menyinkronkan (bulk set) seluruh label pada tiket dengan auto-creation label baru jika belum ada
+* **Frontend Modules & Components:**
+  - `stores/label.js` : Pinia store reaktif untuk label dengan WebSocket sync
+  - `components/issue/IssueLabelsEditor.vue` : Komponen atomik input multi-tag dengan autocomplete suggestions real-time, opsi "+ Buat label baru", tombol hapus cepat, dan warna pastel dinamis
+  - `components/issue/IssueMetaSidebar.vue` : Integrasi editor label pada mode pembuatan tiket dan mode detail
+  - `components/kanban/KanbanCard.vue` : Tampilan chips label (`🏷️ label`) pada kartu board
+  - `components/backlog/BacklogIssueItem.vue` : Tampilan chips label pada baris item backlog
+  - `components/common/ViewTabs.vue` : Dropdown filter label cepat di toolbar board
+  - `components/list/ListView.vue` : Kolom data label dan ekspor CSV yang menyertakan informasi label
 
 ---
 
-*(Catatan: Bagian 6 s.d. 8 akan dilanjutkan secara berurutan sesuai prioritas).*
+### 6. Issue Resolution (Alasan Selesai) (⚪ NEXT UP)
+* **Tujuan:** Standar audit mutu software Jira — membedakan kapan suatu tiket masuk status berkategori `DONE` dengan alasan resolusi spesifik (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`, `Incomplete`).
+* **Database Schema (MariaDB):**
+  - Kolom `resolution VARCHAR(50) DEFAULT NULL` pada tabel `issues`
+  - Kolom `resolved_at TIMESTAMP DEFAULT NULL` pada tabel `issues`
+* **Rencana Implementasi:**
+  - `models/issue.rs` & `handlers/issues/transition.rs` (update transition logic untuk mengisi/menghapus resolution saat berpindah ke/dari status kategori DONE)
+  - Modal atau dropdown pemilihan resolusi saat kartu digeser ke kolom DONE
+  - Tampilan badge resolusi dan coret teks key (strikethrough `~~KEY-123~~`) saat tiket sudah memiliki resolution (standar Jira).
+
+---
+
+*(Catatan: Bagian 7 s.d. 8 akan dilanjutkan secara berurutan sesuai prioritas).*
