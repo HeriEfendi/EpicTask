@@ -299,38 +299,38 @@ onBeforeUnmount(() => {
 <template>
   <!-- Backdrop Overlay -->
   <div
-    class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-slate-950/60 backdrop-blur-xs transition-opacity animate-fade-in"
+    class="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-slate-900/40 backdrop-blur-xs transition-opacity animate-fade-in"
     @click.self="emit('close')"
   >
-    <!-- Modal Card (Jira Dark Theme Styled as per reference Image 2) -->
+    <!-- Modal Card (Crisp Light Theme matching EpicTask) -->
     <div
-      class="w-[740px] max-w-[95vw] h-[540px] max-h-[85vh] bg-slate-900 text-slate-100 rounded-2xl border border-slate-700/80 shadow-2xl flex flex-col overflow-hidden animate-slide-up"
+      class="w-[740px] max-w-[95vw] h-[540px] max-h-[85vh] bg-white text-slate-800 rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-slide-up"
     >
       <!-- 1. Top Header -->
-      <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/90">
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/80">
         <!-- Mode Tabs -->
-        <div class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60">
+        <div class="flex items-center gap-1 bg-slate-200/70 p-1 rounded-xl border border-slate-300/60">
           <button
             @click="activeTab = 'basic'"
             class="px-3 py-1 rounded-lg text-xs font-semibold transition"
-            :class="activeTab === 'basic' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+            :class="activeTab === 'basic' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
           >
             Basic
           </button>
           <button
             @click="activeTab = 'advanced'"
             class="px-3 py-1 rounded-lg text-xs font-semibold transition"
-            :class="activeTab === 'advanced' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+            :class="activeTab === 'advanced' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
           >
             Advanced
           </button>
           <button
             @click="activeTab = 'jql'"
             class="px-3 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1"
-            :class="activeTab === 'jql' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+            :class="activeTab === 'jql' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'"
           >
             <span>JQL</span>
-            <span class="text-[9px] px-1 py-0.2 rounded bg-blue-500/30 text-blue-300 font-mono">beta</span>
+            <span class="text-[9px] px-1 py-0.2 rounded bg-blue-100 text-blue-700 font-mono font-bold">beta</span>
           </button>
         </div>
 
@@ -340,48 +340,48 @@ onBeforeUnmount(() => {
           <div class="relative">
             <button
               @click="isSavedFiltersOpen = !isSavedFiltersOpen"
-              class="flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 border border-slate-700/70 transition"
+              class="flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 bg-white border border-slate-200 shadow-2xs transition"
             >
-              <Bookmark class="w-3.5 h-3.5 text-blue-400" />
-              <span>Saved filters</span>
+              <Bookmark class="w-3.5 h-3.5 text-blue-600" />
+              <span class="font-medium">Saved filters</span>
               <ChevronDown class="w-3 h-3 text-slate-400" />
             </button>
 
             <!-- Dropdown Menu -->
             <div
               v-if="isSavedFiltersOpen"
-              class="absolute right-0 top-full mt-1.5 w-56 bg-slate-850 rounded-xl border border-slate-700 shadow-xl z-50 p-1 text-xs text-slate-200"
+              class="absolute right-0 top-full mt-1.5 w-56 bg-white rounded-xl border border-slate-200 shadow-xl z-50 p-1 text-xs text-slate-700"
             >
               <div class="px-2.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Preset Standar Jira
               </div>
               <button
                 @click="applyPreset('my_open')"
-                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-750 flex items-center gap-2"
+                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center gap-2 transition"
               >
                 <span>👤</span>
-                <span>Tiket Saya Belum Selesai</span>
+                <span class="font-medium">Tiket Saya Belum Selesai</span>
               </button>
               <button
                 @click="applyPreset('bugs')"
-                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-750 flex items-center gap-2"
+                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center gap-2 transition"
               >
                 <span>🐞</span>
-                <span>Semua Bug Aktif</span>
+                <span class="font-medium">Semua Bug Aktif</span>
               </button>
               <button
                 @click="applyPreset('high_priority')"
-                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-750 flex items-center gap-2"
+                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center gap-2 transition"
               >
                 <span>🔥</span>
-                <span>Prioritas Kritis & Tinggi</span>
+                <span class="font-medium">Prioritas Kritis & Tinggi</span>
               </button>
               <button
                 @click="applyPreset('done_recently')"
-                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-750 flex items-center gap-2"
+                class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-100 flex items-center gap-2 transition"
               >
                 <span>✅</span>
-                <span>Isu Selesai (Done)</span>
+                <span class="font-medium">Isu Selesai (Done)</span>
               </button>
             </div>
           </div>
@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
           <!-- Close Modal -->
           <button
             @click="emit('close')"
-            class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
             title="Tutup (Esc)"
           >
             <X class="w-4 h-4" />
@@ -397,10 +397,10 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- 2. Body View: BASIC (2-Column Layout matching Image 2) -->
+      <!-- 2. Body View: BASIC (2-Column Layout matching Image 2 in Crisp Light Mode) -->
       <div v-if="activeTab === 'basic'" class="flex-1 flex overflow-hidden">
         <!-- LEFT SIDEBAR: Dimensions list -->
-        <div class="w-56 border-r border-slate-800 flex flex-col justify-between shrink-0 bg-slate-900/60">
+        <div class="w-56 border-r border-slate-200 flex flex-col justify-between shrink-0 bg-slate-50/70">
           <!-- Scrollable Dimension Buttons -->
           <div class="py-2 overflow-y-auto flex-1 space-y-0.5">
             <template v-for="dim in allDimensions" :key="dim.id">
@@ -409,8 +409,8 @@ onBeforeUnmount(() => {
                 @click="activeDimension = dim.id"
                 class="w-full flex items-center justify-between px-3.5 py-2 text-xs transition text-left group"
                 :class="activeDimension === dim.id
-                  ? 'border-l-2 border-blue-500 bg-slate-800/80 text-white font-medium'
-                  : 'text-slate-300 hover:bg-slate-800/40 hover:text-slate-100'"
+                  ? 'border-l-2 border-blue-600 bg-white text-blue-700 font-semibold shadow-2xs'
+                  : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'"
               >
                 <span class="truncate">{{ dim.label }}</span>
                 <!-- Count Badge (matching Image 2) -->
@@ -427,7 +427,7 @@ onBeforeUnmount(() => {
             <div class="relative px-3 pt-2">
               <button
                 @click="isAddFieldOpen = !isAddFieldOpen"
-                class="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition py-1 font-medium"
+                class="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 transition py-1 font-semibold"
               >
                 <Plus class="w-3.5 h-3.5" />
                 <span>Add field</span>
@@ -436,7 +436,7 @@ onBeforeUnmount(() => {
               <!-- Add Field Popover Menu -->
               <div
                 v-if="isAddFieldOpen"
-                class="absolute left-3 top-full mt-1 w-48 bg-slate-850 rounded-xl border border-slate-700 shadow-xl z-50 p-1 text-xs text-slate-200 max-h-56 overflow-y-auto"
+                class="absolute left-3 top-full mt-1 w-48 bg-white rounded-xl border border-slate-200 shadow-xl z-50 p-1 text-xs text-slate-700 max-h-56 overflow-y-auto"
               >
                 <div class="px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                   Tampilkan Field
@@ -444,13 +444,13 @@ onBeforeUnmount(() => {
                 <label
                   v-for="d in allDimensions"
                   :key="d.id"
-                  class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-750 cursor-pointer"
+                  class="flex items-center gap-2 px-2 py-1 rounded hover:bg-slate-100 cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     :checked="visibleDimensionIds.includes(d.id)"
                     @change="toggleFieldVisibility(d.id)"
-                    class="rounded border-slate-600 text-blue-600 focus:ring-0"
+                    class="rounded border-slate-300 text-blue-600 focus:ring-0"
                   />
                   <span>{{ d.label }}</span>
                 </label>
@@ -459,14 +459,14 @@ onBeforeUnmount(() => {
           </div>
 
           <!-- Bottom Left: Clear All Button -->
-          <div class="p-3 border-t border-slate-800/80 bg-slate-900/80">
+          <div class="p-3 border-t border-slate-200 bg-slate-50">
             <button
               @click="clearAll"
               :disabled="totalActiveDimensions === 0"
               class="text-xs transition font-semibold"
               :class="totalActiveDimensions > 0
-                ? 'text-red-400 hover:text-red-300'
-                : 'text-slate-500 cursor-not-allowed'"
+                ? 'text-red-600 hover:text-red-800'
+                : 'text-slate-400 cursor-not-allowed'"
             >
               Clear all
             </button>
@@ -474,22 +474,22 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- RIGHT PANEL: Checkbox List for Current Dimension -->
-        <div class="flex-1 flex flex-col justify-between overflow-hidden bg-slate-900">
+        <div class="flex-1 flex flex-col justify-between overflow-hidden bg-white">
           <!-- Search input at top (matching Image 2) -->
-          <div class="p-3.5 border-b border-slate-800">
+          <div class="p-3.5 border-b border-slate-100 bg-white">
             <div class="relative">
               <Search class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 v-model="dimensionSearch"
                 type="text"
                 :placeholder="`Search ${allDimensions.find(d => d.id === activeDimension)?.label.toLowerCase()}...`"
-                class="w-full bg-slate-800/80 border border-slate-700 rounded-lg pl-9 pr-8 py-1.5 text-xs text-slate-100
-                       placeholder-slate-400 focus:outline-none focus:border-blue-500 transition"
+                class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-8 py-1.5 text-xs text-slate-800
+                       placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 shadow-2xs transition"
               />
               <button
                 v-if="dimensionSearch"
                 @click="dimensionSearch = ''"
-                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
               >
                 <X class="w-3.5 h-3.5" />
               </button>
@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
           <div class="flex-1 overflow-y-auto p-2 space-y-1">
             <div
               v-if="filteredOptions.length === 0"
-              class="py-12 text-center text-xs text-slate-500"
+              class="py-12 text-center text-xs text-slate-400"
             >
               Tidak ada opsi yang cocok dengan pencarian "{{ dimensionSearch }}"
             </div>
@@ -508,8 +508,8 @@ onBeforeUnmount(() => {
             <label
               v-for="opt in filteredOptions"
               :key="opt.id ?? 'unassigned'"
-              class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-800/70 transition group select-none"
-              :class="isSelected(opt.id) ? 'bg-slate-800/50' : ''"
+              class="flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer hover:bg-slate-50 transition group select-none"
+              :class="isSelected(opt.id) ? 'bg-blue-50/50' : ''"
               @click.prevent="toggleOption(opt.id)"
             >
               <!-- Checkbox (matching Image 2) -->
@@ -517,7 +517,7 @@ onBeforeUnmount(() => {
                 class="w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all"
                 :class="isSelected(opt.id)
                   ? 'bg-blue-600 border-blue-600 text-white'
-                  : 'border-slate-600 bg-slate-800 group-hover:border-slate-400'"
+                  : 'border-slate-300 bg-white group-hover:border-slate-400'"
               >
                 <Check v-if="isSelected(opt.id)" class="w-3 h-3 stroke-[3]" />
               </div>
@@ -543,29 +543,29 @@ onBeforeUnmount(() => {
                 >
                   {{ opt.id }}
                 </span>
-                <span class="text-xs text-slate-300">{{ opt.desc }}</span>
+                <span class="text-xs text-slate-600">{{ opt.desc }}</span>
               </div>
 
               <!-- 3. Assignee Dimension -->
               <div v-else-if="activeDimension === 'assignee'" class="flex items-center gap-2.5 flex-1 min-w-0">
                 <template v-if="opt.isUnassigned">
-                  <div class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center text-[10px] text-slate-400 shrink-0">
+                  <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500 shrink-0">
                     👤
                   </div>
-                  <span class="text-xs font-medium text-slate-300">Belum Ditugaskan (Unassigned)</span>
+                  <span class="text-xs font-medium text-slate-700">Belum Ditugaskan (Unassigned)</span>
                 </template>
                 <template v-else>
                   <img
                     :src="opt.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${opt.label}`"
-                    class="w-6 h-6 rounded-full border border-slate-700 bg-slate-800 shrink-0"
+                    class="w-6 h-6 rounded-full border border-slate-200 bg-slate-100 shrink-0"
                     alt=""
                   />
                   <div class="flex items-center gap-2 truncate">
-                    <span class="text-xs font-medium text-slate-200 truncate">{{ opt.label }}</span>
-                    <span v-if="opt.isMe" class="px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold">
+                    <span class="text-xs font-medium text-slate-800 truncate">{{ opt.label }}</span>
+                    <span v-if="opt.isMe" class="px-1.5 py-0.2 rounded bg-blue-100 text-blue-700 text-[10px] font-bold">
                       Saya
                     </span>
-                    <span class="text-[11px] text-slate-500 truncate">{{ opt.email }}</span>
+                    <span class="text-[11px] text-slate-400 truncate">{{ opt.email }}</span>
                   </div>
                 </template>
               </div>
@@ -575,37 +575,37 @@ onBeforeUnmount(() => {
                 <span class="text-sm shrink-0">{{ opt.icon }}</span>
                 <span
                   class="px-1.5 py-0.5 rounded text-[11px] font-bold tracking-wider shrink-0"
-                  :style="{ backgroundColor: opt.color + '22', color: opt.color }"
+                  :style="{ backgroundColor: opt.color + '18', color: opt.color }"
                 >
                   {{ opt.id }}
                 </span>
-                <span class="text-xs text-slate-400 truncate">{{ opt.desc }}</span>
+                <span class="text-xs text-slate-500 truncate">{{ opt.desc }}</span>
               </div>
 
               <!-- 5. Priority Dimension -->
               <div v-else-if="activeDimension === 'priority'" class="flex items-center gap-2.5 flex-1 min-w-0">
                 <span class="text-sm shrink-0">{{ opt.icon }}</span>
-                <span class="text-xs font-semibold text-slate-200">{{ opt.label }}</span>
+                <span class="text-xs font-semibold text-slate-800">{{ opt.label }}</span>
                 <span class="text-[11px] text-slate-400 truncate">({{ opt.desc }})</span>
               </div>
 
               <!-- 6. Epic Dimension -->
               <div v-else-if="activeDimension === 'epic'" class="flex items-center gap-2 flex-1 min-w-0">
-                <span class="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] shrink-0">
+                <span class="px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-mono text-[10px] shrink-0 font-bold">
                   {{ opt.key }}
                 </span>
-                <span class="text-xs font-medium text-slate-200 truncate">{{ opt.label }}</span>
+                <span class="text-xs font-medium text-slate-800 truncate">{{ opt.label }}</span>
               </div>
 
               <!-- 7. Sprint Dimension -->
               <div v-else-if="activeDimension === 'sprint'" class="flex items-center gap-2 flex-1 min-w-0">
-                <span class="text-xs font-medium text-slate-200 truncate">{{ opt.label }}</span>
+                <span class="text-xs font-medium text-slate-800 truncate">{{ opt.label }}</span>
                 <span
                   class="px-1.5 py-0.2 rounded text-[10px] font-bold uppercase tracking-wider shrink-0"
                   :class="{
-                    'bg-emerald-500/20 text-emerald-300': opt.status === 'ACTIVE',
-                    'bg-amber-500/20 text-amber-300': opt.status === 'PLANNED',
-                    'bg-slate-700 text-slate-300': opt.status === 'COMPLETED'
+                    'bg-emerald-100 text-emerald-700': opt.status === 'ACTIVE',
+                    'bg-amber-100 text-amber-700': opt.status === 'PLANNED',
+                    'bg-slate-100 text-slate-600': opt.status === 'COMPLETED'
                   }"
                 >
                   {{ opt.status }}
@@ -614,7 +614,7 @@ onBeforeUnmount(() => {
 
               <!-- 8. Component Dimension -->
               <div v-else-if="activeDimension === 'component'" class="flex items-center gap-2 flex-1 min-w-0">
-                <span class="text-xs font-medium text-slate-200 truncate">🧩 {{ opt.label }}</span>
+                <span class="text-xs font-medium text-slate-800 truncate">🧩 {{ opt.label }}</span>
                 <span v-if="opt.leadName" class="text-[11px] text-slate-400 truncate">
                   (Lead: {{ opt.leadName }})
                 </span>
@@ -622,13 +622,13 @@ onBeforeUnmount(() => {
 
               <!-- 9. Version Dimension -->
               <div v-else-if="activeDimension === 'version'" class="flex items-center gap-2 flex-1 min-w-0">
-                <span class="text-xs font-medium text-slate-200 truncate">🚀 {{ opt.label }}</span>
+                <span class="text-xs font-medium text-slate-800 truncate">🚀 {{ opt.label }}</span>
                 <span
                   class="px-1.5 py-0.2 rounded text-[10px] font-bold uppercase tracking-wider shrink-0"
                   :class="{
-                    'bg-blue-500/20 text-blue-300': opt.status === 'UNRELEASED',
-                    'bg-emerald-500/20 text-emerald-300': opt.status === 'RELEASED',
-                    'bg-slate-700 text-slate-300': opt.status === 'ARCHIVED'
+                    'bg-blue-100 text-blue-700': opt.status === 'UNRELEASED',
+                    'bg-emerald-100 text-emerald-700': opt.status === 'RELEASED',
+                    'bg-slate-100 text-slate-600': opt.status === 'ARCHIVED'
                   }"
                 >
                   {{ opt.status }}
@@ -647,25 +647,25 @@ onBeforeUnmount(() => {
 
               <!-- 11. Resolution Dimension -->
               <div v-else-if="activeDimension === 'resolution'" class="flex items-center gap-2 flex-1 min-w-0">
-                <span class="text-xs font-semibold text-slate-200">✓ {{ opt.label }}</span>
+                <span class="text-xs font-semibold text-slate-800">✓ {{ opt.label }}</span>
                 <span class="text-[11px] text-slate-400 truncate">({{ opt.desc }})</span>
               </div>
             </label>
           </div>
 
           <!-- Bottom Right Footer (matching Image 2) -->
-          <div class="p-3 border-t border-slate-800 flex items-center justify-between shrink-0 bg-slate-900/80">
+          <div class="p-3 border-t border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/80">
             <button
               @click="clearCurrentDimension"
               :disabled="getDimensionCount(activeDimension) === 0"
               class="text-xs transition font-semibold"
               :class="getDimensionCount(activeDimension) > 0
-                ? 'text-blue-400 hover:text-blue-300'
-                : 'text-slate-500 cursor-not-allowed'"
+                ? 'text-blue-600 hover:text-blue-800'
+                : 'text-slate-400 cursor-not-allowed'"
             >
               Clear
             </button>
-            <span class="text-xs text-slate-400">
+            <span class="text-xs text-slate-500 font-medium">
               {{ filteredOptions.length }} of {{ rawOptions.length }}
             </span>
           </div>
@@ -673,15 +673,15 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- 3. Body View: ADVANCED (Quick Filters Matrix) -->
-      <div v-else-if="activeTab === 'advanced'" class="flex-1 p-5 overflow-y-auto space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div v-else-if="activeTab === 'advanced'" class="flex-1 p-5 overflow-y-auto space-y-4 bg-white">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
           <div>
-            <h3 class="text-sm font-bold text-slate-100">Jira Quick Filter Dimensions</h3>
+            <h3 class="text-sm font-bold text-slate-800">Jira Quick Filter Dimensions</h3>
             <p class="text-xs text-slate-400 mt-0.5">Toggle filter instan satu-klik lintas papan</p>
           </div>
           <button
             @click="projectStore.clearQuickFilters()"
-            class="text-xs text-red-400 hover:text-red-300 font-semibold"
+            class="text-xs text-red-600 hover:text-red-700 font-semibold"
           >
             Reset Quick Filters
           </button>
@@ -699,16 +699,16 @@ onBeforeUnmount(() => {
             ]"
             :key="qf.key"
             @click="projectStore.toggleQuickFilter(qf.key)"
-            class="flex items-start gap-3 p-3 rounded-xl border text-left transition"
+            class="flex items-start gap-3 p-3 rounded-xl border text-left transition shadow-2xs"
             :class="projectStore.isQuickFilterActive(qf.key)
-              ? 'bg-blue-600/20 border-blue-500 text-white shadow-xs'
-              : 'bg-slate-800/50 border-slate-700/80 text-slate-300 hover:bg-slate-800 hover:text-white'"
+              ? 'bg-blue-50 border-blue-400 text-blue-900'
+              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'"
           >
             <span class="text-xl shrink-0">{{ qf.icon }}</span>
             <div class="min-w-0">
               <div class="flex items-center gap-1.5 font-semibold text-xs">
                 <span>{{ qf.label }}</span>
-                <Check v-if="projectStore.isQuickFilterActive(qf.key)" class="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                <Check v-if="projectStore.isQuickFilterActive(qf.key)" class="w-3.5 h-3.5 text-blue-600 shrink-0" />
               </div>
               <p class="text-[11px] text-slate-400 mt-0.5 leading-snug">{{ qf.desc }}</p>
             </div>
@@ -717,9 +717,9 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- 4. Body View: JQL (Query Bar) -->
-      <div v-else-if="activeTab === 'jql'" class="flex-1 p-5 overflow-y-auto space-y-4">
+      <div v-else-if="activeTab === 'jql'" class="flex-1 p-5 overflow-y-auto space-y-4 bg-white">
         <div>
-          <h3 class="text-sm font-bold text-slate-100">Jira Query Language (JQL) Search</h3>
+          <h3 class="text-sm font-bold text-slate-800">Jira Query Language (JQL) Search</h3>
           <p class="text-xs text-slate-400 mt-0.5">Ketik pencarian kata kunci atau query terstruktur</p>
         </div>
 
@@ -730,14 +730,14 @@ onBeforeUnmount(() => {
               @keydown.enter="applyJql"
               type="text"
               placeholder="e.g. project = EPIC AND status = Done AND priority = High"
-              class="w-full bg-slate-950 font-mono border border-slate-700 rounded-xl px-4 py-3 text-xs text-blue-300 placeholder-slate-500 focus:outline-none focus:border-blue-500 shadow-inner"
+              class="w-full bg-slate-50 font-mono border border-slate-300 rounded-xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 shadow-inner"
             />
           </div>
           <div class="flex items-center justify-between text-[11px] text-slate-400">
-            <span>Tekan <strong class="text-slate-200">Enter</strong> untuk mengeksekusi pencarian</span>
+            <span>Tekan <strong class="text-slate-700">Enter</strong> untuk mengeksekusi pencarian</span>
             <button
               @click="applyJql"
-              class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition"
+              class="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition shadow-2xs"
             >
               Cari JQL
             </button>
@@ -745,8 +745,8 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Syntax hints -->
-        <div class="bg-slate-800/40 rounded-xl p-3 border border-slate-800 text-[11px] text-slate-400 space-y-1.5">
-          <p class="font-bold text-slate-300 text-xs">💡 Contoh Sintaks JQL Populer:</p>
+        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-[11px] text-slate-600 space-y-1.5">
+          <p class="font-bold text-slate-800 text-xs">💡 Contoh Sintaks JQL Populer:</p>
           <p>• <code>status IN ('To Do', 'In Progress')</code></p>
           <p>• <code>priority = 'HIGH' AND assignee = currentUser()</code></p>
           <p>• <code>type = 'BUG' AND resolution IS EMPTY</code></p>
