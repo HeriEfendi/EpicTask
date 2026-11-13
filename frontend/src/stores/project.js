@@ -14,6 +14,7 @@ export const useProjectStore = defineStore('project', () => {
   const transitions = ref([]);
   const issues = ref([]);
   const activeView = ref('kanban'); // 'kanban' | 'timeline' | 'list' | 'reports' | 'backlog'
+  const swimlaneMode = ref('none'); // 'none' | 'assignee' | 'epic' | 'priority'
   const loading = ref(false);
   const error = ref(null);
 
@@ -374,6 +375,7 @@ export const useProjectStore = defineStore('project', () => {
     issuesByStatus,
     epics,
     activeView,
+    swimlaneMode,
     loading,
     error,
     searchQuery,
