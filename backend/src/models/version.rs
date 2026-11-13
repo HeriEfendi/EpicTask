@@ -43,3 +43,4 @@ pub struct ReleaseVersionPayload {
     pub release_date: Option<NaiveDate>,
     pub move_unreleased_to_version_id: Option<i64>, // None means leave unreleased issues
 }
+

@@ -192,3 +192,4 @@ const totalStoryPoints = computed(() => {
     </div>
   </div>
 </template>
+

@@ -82,3 +82,4 @@ const emit = defineEmits(['dragover', 'dragleave', 'drop', 'create-issue']);
     </div>
   </div>
 </template>
+
