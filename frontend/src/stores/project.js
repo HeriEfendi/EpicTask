@@ -33,6 +33,19 @@ export const useProjectStore = defineStore('project', () => {
   const filterLabel = ref(null); // null = all, string = specific label name
   const quickFilters = ref([]); // array of active keys: ['my_issues', 'only_bugs', 'highest_priority', 'unassigned', 'due_this_week', 'unresolved']
 
+  // Jira Enterprise Advanced Multi-Dimension Filters
+  const filterStatuses = ref([]);       // status IDs e.g. [1, 2]
+  const filterCategories = ref([]);     // category strings e.g. ['TODO', 'IN_PROGRESS']
+  const filterPriorities = ref([]);     // priority strings e.g. ['HIGH', 'HIGHEST']
+  const filterTypes = ref([]);          // issue_type strings e.g. ['BUG', 'TASK']
+  const filterEpics = ref([]);          // epic IDs e.g. [18]
+  const filterSprints = ref([]);        // sprint IDs e.g. [1]
+  const filterComponents = ref([]);     // component IDs e.g. [2]
+  const filterVersions = ref([]);       // version IDs e.g. [1]
+  const filterLabels = ref([]);         // label strings e.g. ['frontend']
+  const filterResolutions = ref([]);    // resolution strings e.g. ['Fixed', 'UNRESOLVED']
+  const isFilterModalOpen = ref(false);
+
   // Legacy single-assignee alias (backward compat for old code)
   const filterAssignee = ref(null);
 
@@ -59,38 +72,81 @@ export const useProjectStore = defineStore('project', () => {
         const matchesKey = issue.key.toLowerCase().includes(q);
         if (!matchesSummary && !matchesKey) return false;
       }
-      // Multi-assignee filter (new)
+      // Status filter
+      if (filterStatuses.value.length > 0) {
+        if (!filterStatuses.value.includes(issue.status_id)) return false;
+      }
+      // Status category filter
+      if (filterCategories.value.length > 0) {
+        if (!filterCategories.value.includes(issue.status_category)) return false;
+      }
+      // Multi-assignee filter
       if (filterAssignees.value.length > 0) {
         if (!filterAssignees.value.includes(issue.assignee_id)) return false;
       } else if (filterAssignee.value && issue.assignee_id !== filterAssignee.value) {
-        // Legacy single-assignee fallback
         return false;
       }
-      if (filterPriority.value && issue.priority !== filterPriority.value) {
+      // Priority filter
+      if (filterPriorities.value.length > 0) {
+        if (!filterPriorities.value.includes(issue.priority)) return false;
+      } else if (filterPriority.value && issue.priority !== filterPriority.value) {
         return false;
       }
-      if (filterType.value && issue.issue_type !== filterType.value) {
+      // Work type / Issue type filter
+      if (filterTypes.value.length > 0) {
+        if (!filterTypes.value.includes(issue.issue_type)) return false;
+      } else if (filterType.value && issue.issue_type !== filterType.value) {
         return false;
       }
-      if (filterEpic.value && issue.epic_id !== filterEpic.value) {
+      // Parent / Epic filter
+      if (filterEpics.value.length > 0) {
+        if (!filterEpics.value.includes(issue.epic_id)) return false;
+      } else if (filterEpic.value && issue.epic_id !== filterEpic.value) {
         return false;
       }
-      if (filterSprint.value !== null && filterSprint.value !== undefined) {
+      // Sprint filter
+      if (filterSprints.value.length > 0) {
+        if (!filterSprints.value.includes(issue.sprint_id)) return false;
+      } else if (filterSprint.value !== null && filterSprint.value !== undefined) {
         if (issue.sprint_id !== filterSprint.value) return false;
       }
-      if (filterComponent.value && issue.component_id !== filterComponent.value) {
+      // Component filter
+      if (filterComponents.value.length > 0) {
+        if (!filterComponents.value.includes(issue.component_id)) return false;
+      } else if (filterComponent.value && issue.component_id !== filterComponent.value) {
         return false;
       }
-      if (filterVersion.value && issue.fix_version_id !== filterVersion.value) {
+      // Fix version / release filter
+      if (filterVersions.value.length > 0) {
+        if (!filterVersions.value.includes(issue.fix_version_id)) return false;
+      } else if (filterVersion.value && issue.fix_version_id !== filterVersion.value) {
         return false;
       }
-      if (filterLabel.value) {
+      // Label filter
+      if (filterLabels.value.length > 0) {
+        const issueLabels = issue.labels
+          ? issue.labels.split(',').map((l) => l.trim().toLowerCase())
+          : [];
+        const hasMatch = filterLabels.value.some((lbl) =>
+          issueLabels.includes(lbl.trim().toLowerCase())
+        );
+        if (!hasMatch) return false;
+      } else if (filterLabel.value) {
         const issueLabels = issue.labels
           ? issue.labels.split(',').map((l) => l.trim().toLowerCase())
           : [];
         if (!issueLabels.includes(filterLabel.value.toLowerCase())) {
           return false;
         }
+      }
+      // Resolution filter
+      if (filterResolutions.value.length > 0) {
+        const isUnresolved = issue.resolution === null || issue.resolution === undefined;
+        const matches = filterResolutions.value.some((res) => {
+          if (res === 'UNRESOLVED') return isUnresolved;
+          return issue.resolution === res;
+        });
+        if (!matches) return false;
       }
 
       // Quick Filters (Jira Standard)
@@ -144,6 +200,103 @@ export const useProjectStore = defineStore('project', () => {
   function clearQuickFilters() {
     quickFilters.value = [];
   }
+
+  function toggleFilterItem(dimensionKey, value) {
+    let arr = null;
+    switch (dimensionKey) {
+      case 'status': arr = filterStatuses.value; break;
+      case 'category': arr = filterCategories.value; break;
+      case 'assignee': arr = filterAssignees.value; break;
+      case 'priority': arr = filterPriorities.value; break;
+      case 'type': arr = filterTypes.value; break;
+      case 'epic': arr = filterEpics.value; break;
+      case 'sprint': arr = filterSprints.value; break;
+      case 'component': arr = filterComponents.value; break;
+      case 'version': arr = filterVersions.value; break;
+      case 'label': arr = filterLabels.value; break;
+      case 'resolution': arr = filterResolutions.value; break;
+    }
+    if (!arr) return;
+    const idx = arr.indexOf(value);
+    if (idx === -1) {
+      arr.push(value);
+    } else {
+      arr.splice(idx, 1);
+    }
+  }
+
+  function isFilterItemSelected(dimensionKey, value) {
+    switch (dimensionKey) {
+      case 'status': return filterStatuses.value.includes(value);
+      case 'category': return filterCategories.value.includes(value);
+      case 'assignee': return filterAssignees.value.includes(value);
+      case 'priority': return filterPriorities.value.includes(value);
+      case 'type': return filterTypes.value.includes(value);
+      case 'epic': return filterEpics.value.includes(value);
+      case 'sprint': return filterSprints.value.includes(value);
+      case 'component': return filterComponents.value.includes(value);
+      case 'version': return filterVersions.value.includes(value);
+      case 'label': return filterLabels.value.includes(value);
+      case 'resolution': return filterResolutions.value.includes(value);
+      default: return false;
+    }
+  }
+
+  function clearDimensionFilter(dimensionKey) {
+    switch (dimensionKey) {
+      case 'status': filterStatuses.value = []; break;
+      case 'category': filterCategories.value = []; break;
+      case 'assignee': filterAssignees.value = []; filterAssignee.value = null; break;
+      case 'priority': filterPriorities.value = []; filterPriority.value = null; break;
+      case 'type': filterTypes.value = []; filterType.value = null; break;
+      case 'epic': filterEpics.value = []; filterEpic.value = null; break;
+      case 'sprint': filterSprints.value = []; filterSprint.value = null; break;
+      case 'component': filterComponents.value = []; filterComponent.value = null; break;
+      case 'version': filterVersions.value = []; filterVersion.value = null; break;
+      case 'label': filterLabels.value = []; filterLabel.value = null; break;
+      case 'resolution': filterResolutions.value = []; break;
+    }
+  }
+
+  function clearAllAdvancedFilters() {
+    searchQuery.value = '';
+    filterStatuses.value = [];
+    filterCategories.value = [];
+    filterAssignees.value = [];
+    filterAssignee.value = null;
+    filterPriorities.value = [];
+    filterPriority.value = null;
+    filterTypes.value = [];
+    filterType.value = null;
+    filterEpics.value = [];
+    filterEpic.value = null;
+    filterSprints.value = [];
+    filterSprint.value = null;
+    filterComponents.value = [];
+    filterComponent.value = null;
+    filterVersions.value = [];
+    filterVersion.value = null;
+    filterLabels.value = [];
+    filterLabel.value = null;
+    filterResolutions.value = [];
+    quickFilters.value = [];
+  }
+
+  const activeFilterDimensionsCount = computed(() => {
+    let count = 0;
+    if (filterStatuses.value.length > 0) count++;
+    if (filterCategories.value.length > 0) count++;
+    if (filterAssignees.value.length > 0 || filterAssignee.value) count++;
+    if (filterPriorities.value.length > 0 || filterPriority.value) count++;
+    if (filterTypes.value.length > 0 || filterType.value) count++;
+    if (filterEpics.value.length > 0 || filterEpic.value) count++;
+    if (filterSprints.value.length > 0 || (filterSprint.value !== null && filterSprint.value !== undefined)) count++;
+    if (filterComponents.value.length > 0 || filterComponent.value) count++;
+    if (filterVersions.value.length > 0 || filterVersion.value) count++;
+    if (filterLabels.value.length > 0 || filterLabel.value) count++;
+    if (filterResolutions.value.length > 0) count++;
+    return count;
+  });
 
   // Issues grouped by status column for Kanban
   const issuesByStatus = computed(() => {
@@ -459,6 +612,22 @@ export const useProjectStore = defineStore('project', () => {
     filterComponent,
     filterVersion,
     filterLabel,
+    filterStatuses,
+    filterCategories,
+    filterPriorities,
+    filterTypes,
+    filterEpics,
+    filterSprints,
+    filterComponents,
+    filterVersions,
+    filterLabels,
+    filterResolutions,
+    isFilterModalOpen,
+    toggleFilterItem,
+    isFilterItemSelected,
+    clearDimensionFilter,
+    clearAllAdvancedFilters,
+    activeFilterDimensionsCount,
     quickFilters,
     toggleQuickFilter,
     isQuickFilterActive,
