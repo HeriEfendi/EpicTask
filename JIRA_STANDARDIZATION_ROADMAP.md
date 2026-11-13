@@ -18,8 +18,8 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 | **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | 🟢 **Done** | `models/version.rs`<br>`handlers/versions.rs` | `components/releases/*`<br>`stores/version.js` | Pelacakan rilis software (UNRELEASED, RELEASED, ARCHIVED), target tanggal rilis, progress bar 3-fase (Done, In Progress, To Do), modal rilis dengan migrasi isu belum selesai, filter rilis di ViewTabs & ListView, badge rilis pada kartu Kanban. |
 | **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | 🟢 **Done** | N/A (Frontend Agregasi) | `components/kanban/*`<br>`stores/project.js` | Pembagian horizontal Kanban: Group by Assignee, Group by Epic, Group by Priority (Expedite row darurat), header sticky kolom, roll-up story point per baris, dan dropzone sel mandiri. |
 | **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | 🟢 **Done** | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/IssueLabelsEditor.vue`<br>`stores/label.js` | Tagging bebas lintas tiket dengan autocomplete interaktif, chips badge warna-warni di Kanban & Backlog, filter label di ViewTabs, dan kolom + ekspor CSV di ListView. |
-| **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Next (Planned)* | Kolom `resolution` pada issues | `components/issue/` | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`). |
-| **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Planned* | N/A (Frontend Client) | `components/common/` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan". |
+| **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | 🟢 **Done** | `models/issue.rs`<br>`handlers/issues/transition.rs`<br>`handlers/issues/query.rs` | `components/issue/ResolutionModal.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`components/kanban/KanbanCard.vue`<br>`components/list/ListView.vue` | Standar audit Jira: kolom `resolution` & `resolved_at`, modal pemilihan resolusi saat geser ke status DONE, badge resolusi, strikethrough key `~~KEY-123~~`, dan ekspor CSV. |
+| **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Next (Planned)* | N/A (Frontend Client) | `components/kanban/KanbanToolbar.vue`<br>`components/common/ViewTabs.vue` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan", "Due This Week". |
 | **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Planned* | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/` | Fitur "Watch" tiket untuk notifikasi otomatis pembaruan tiket ke anggota terkait. |
 
 ---
@@ -171,15 +171,32 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 
 ---
 
-### 6. Issue Resolution (Alasan Selesai) (⚪ NEXT UP)
-* **Tujuan:** Standar audit mutu software Jira — membedakan kapan suatu tiket masuk status berkategori `DONE` dengan alasan resolusi spesifik (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`, `Incomplete`).
+### 6. Issue Resolution (Alasan Selesai) (🟢 SELESAI)
+* **Tujuan:** Standar audit mutu software Jira — mencatat dan membedakan alasan kapan dan mengapa suatu tiket ditutup saat masuk status berkategori `DONE` (`Fixed`, `Done`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`, `Incomplete`), serta membersihkan resolusi jika tiket dibuka kembali (*reopened*).
 * **Database Schema (MariaDB):**
   - Kolom `resolution VARCHAR(50) DEFAULT NULL` pada tabel `issues`
   - Kolom `resolved_at TIMESTAMP DEFAULT NULL` pada tabel `issues`
+* **Backend Endpoints & Logic:**
+  - `models/issue.rs` : Penambahan kolom `resolution` dan `resolved_at` pada struct `Issue`, `CreateIssuePayload`, `UpdateIssuePayload`, dan `MoveIssuePayload`.
+  - `handlers/issues/transition.rs` : Logika otomatis transisi alur kerja:
+    - Menetapkan resolusi dan mencatat `resolved_at = NOW()` saat tiket bergerak ke status kategori `DONE`.
+    - Mengosongkan resolusi (`resolution = NULL, resolved_at = NULL`) saat tiket dipindahkan kembali ke status kategori `TODO` atau `IN_PROGRESS`.
+    - Mendukung penyesuaian resolusi langsung lewat API payload.
+  - `handlers/issues/query.rs` & `helpers.rs` : Seleksi atribut resolusi pada daftar tiket, rincian isu, subtask, dan filter query `?resolution=...` (termasuk deteksi `unresolved`).
+* **Frontend Modules & Components:**
+  - `components/issue/ResolutionModal.vue` : Modal pop-up transisi Jira yang muncul otomatis saat kartu digeser ke kolom status berkategori `DONE`, menampilkan opsi resolusi interaktif lengkap dengan penjelasan peruntukan dan pintasan keyboard (Enter / Esc).
+  - `components/issue/IssueMetaSidebar.vue` : Bagian atribut Resolusi interaktif dengan selektor alasan penyelesaian dan penanda waktu penyelesaian aktual (`✓ formatDateTime(resolved_at)`).
+  - `components/kanban/KanbanCard.vue` : Tampilan standar coret teks key (strikethrough `~~KEY-123~~`) dan badge pill resolusi hijau (`✓ Fixed`, `✓ Done`, dll.) pada kartu board.
+  - `components/backlog/BacklogIssueItem.vue` : Tampilan coret teks key dan badge resolusi pada item backlog.
+  - `components/list/ListView.vue` : Kolom data Resolusi dengan inline selector dinamis, indikator `Unresolved`, dan ekspor data CSV yang memuat status resolusi.
+
+---
+
+### 7. Quick Filter Bar di Atas Board (⚪ NEXT UP)
+* **Tujuan:** Panel pintasan filter 1-klik di atas board untuk mempercepat penelusuran tiket tanpa harus membuka menu filter kompleks ("Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan", "Due This Week").
 * **Rencana Implementasi:**
-  - `models/issue.rs` & `handlers/issues/transition.rs` (update transition logic untuk mengisi/menghapus resolution saat berpindah ke/dari status kategori DONE)
-  - Modal atau dropdown pemilihan resolusi saat kartu digeser ke kolom DONE
-  - Tampilan badge resolusi dan coret teks key (strikethrough `~~KEY-123~~`) saat tiket sudah memiliki resolution (standar Jira).
+  - Penambahan tombol pill multi-select interaktif pada `components/kanban/KanbanToolbar.vue` dan `components/common/ViewTabs.vue`.
+  - State filter aktif di Pinia `project.js` dengan kalkulasi instan.
 
 ---
 
