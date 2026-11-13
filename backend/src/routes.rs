@@ -7,7 +7,7 @@ use tower_http::cors::{Any, CorsLayer};
 use crate::{
     handlers::{
         activities, auth, automation, comments, components, issues, notifications, projects,
-        reports, seed, sprints, time_logs, workspaces,
+        reports, seed, sprints, time_logs, versions, workspaces,
     },
     ws::ws_handler,
     AppState,
@@ -52,6 +52,11 @@ pub fn create_router(state: AppState) -> Router {
         // Component routes (Project Subsystems)
         .route("/api/projects/:pid/components", get(components::list_project_components).post(components::create_component))
         .route("/api/components/:id", put(components::update_component).delete(components::delete_component))
+        // Version routes (Releases & Versions)
+        .route("/api/projects/:pid/versions", get(versions::list_project_versions).post(versions::create_version))
+        .route("/api/versions/:id", put(versions::update_version).delete(versions::delete_version))
+        .route("/api/versions/:id/release", post(versions::release_version))
+        .route("/api/versions/:id/archive", post(versions::archive_version))
         // Time Log routes
         .route("/api/issues/:id/timelogs", get(time_logs::list_time_logs).post(time_logs::create_time_log))
         // Comment routes

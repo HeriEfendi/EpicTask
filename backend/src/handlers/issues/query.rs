@@ -25,6 +25,7 @@ pub struct IssueFilterParams {
     pub sprint_id: Option<i64>,
     pub is_backlog: Option<bool>,
     pub component_id: Option<i64>,
+    pub fix_version_id: Option<i64>,
 }
 
 pub async fn list_project_issues(
@@ -36,7 +37,7 @@ pub async fn list_project_issues(
     let mut sql = String::from(
         "SELECT i.id, i.project_id, i.parent_id, i.epic_id, i.`key`, i.summary, i.description, \
                 i.issue_type, i.status_id, i.priority, i.assignee_id, i.reporter_id, i.story_points, \
-                i.start_date, i.due_date, i.position, i.sprint_id, i.component_id, i.created_at, i.updated_at, \
+                i.start_date, i.due_date, i.position, i.sprint_id, i.component_id, i.fix_version_id, i.created_at, i.updated_at, \
                 s.name AS status_name, s.category AS status_category, s.color AS status_color, \
                 ua.full_name AS assignee_name, ua.avatar_url AS assignee_avatar, \
                 ur.full_name AS reporter_name, \
@@ -44,6 +45,7 @@ pub async fn list_project_issues(
                 p.`key` AS parent_key, p.summary AS parent_summary, \
                 sp.name AS sprint_name, \
                 comp.name AS component_name, \
+                ver.name AS fix_version_name, \
                 (SELECT COUNT(*) FROM issues sub WHERE sub.parent_id = i.id) AS subtask_count, \
                 (SELECT COUNT(*) FROM issues sub JOIN statuses subs ON sub.status_id = subs.id WHERE sub.parent_id = i.id AND subs.category = 'DONE') AS subtask_done_count \
          FROM issues i \
@@ -54,6 +56,7 @@ pub async fn list_project_issues(
          LEFT JOIN issues p ON i.parent_id = p.id \
          LEFT JOIN sprints sp ON i.sprint_id = sp.id \
          LEFT JOIN components comp ON i.component_id = comp.id \
+         LEFT JOIN versions ver ON i.fix_version_id = ver.id \
          WHERE i.project_id = ?"
     );
 
@@ -93,6 +96,9 @@ pub async fn list_project_issues(
     if let Some(component_id) = params.component_id {
         sql.push_str(&format!(" AND i.component_id = {}", component_id));
     }
+    if let Some(fix_version_id) = params.fix_version_id {
+        sql.push_str(&format!(" AND i.fix_version_id = {}", fix_version_id));
+    }
 
     sql.push_str(" ORDER BY s.position ASC, i.position ASC, i.id DESC");
 
@@ -126,11 +132,12 @@ pub async fn get_issue(
     let subtasks = sqlx::query_as::<_, Issue>(
         "SELECT i.id, i.project_id, i.parent_id, i.epic_id, i.`key`, i.summary, i.description, \
                 i.issue_type, i.status_id, i.priority, i.assignee_id, i.reporter_id, i.story_points, \
-                i.start_date, i.due_date, i.position, i.created_at, i.updated_at, \
+                i.start_date, i.due_date, i.position, i.sprint_id, i.component_id, i.fix_version_id, i.created_at, i.updated_at, \
                 s.name AS status_name, s.category AS status_category, s.color AS status_color, \
                 ua.full_name AS assignee_name, ua.avatar_url AS assignee_avatar, \
                 ur.full_name AS reporter_name, \
                 NULL AS epic_summary, NULL AS parent_key, NULL AS parent_summary, \
+                NULL AS sprint_name, NULL AS component_name, NULL AS fix_version_name, \
                 0 AS subtask_count, 0 AS subtask_done_count \
          FROM issues i \
          JOIN statuses s ON i.status_id = s.id \

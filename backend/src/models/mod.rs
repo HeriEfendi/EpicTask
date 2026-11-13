@@ -8,6 +8,7 @@ pub mod project;
 pub mod sprint;
 pub mod time_log;
 pub mod user;
+pub mod version;
 pub mod workspace;
 
 pub use activity::*;
@@ -20,4 +21,5 @@ pub use project::*;
 pub use sprint::*;
 pub use time_log::*;
 pub use user::*;
+pub use version::*;
 pub use workspace::*;

@@ -68,6 +68,10 @@ pub async fn update_issue(
         Some(val) => val,
         None => current_issue.component_id,
     };
+    let fix_version_id = match payload.fix_version_id {
+        Some(val) => val,
+        None => current_issue.fix_version_id,
+    };
     let story_points = payload.story_points.or(current_issue.story_points);
     let start_date = match payload.start_date {
         Some(val) => val,
@@ -80,7 +84,7 @@ pub async fn update_issue(
     let position = payload.position.or(current_issue.position);
 
     sqlx::query(
-        "UPDATE issues SET summary = ?, description = ?, issue_type = ?, status_id = ?, priority = ?, assignee_id = ?, parent_id = ?, epic_id = ?, story_points = ?, start_date = ?, due_date = ?, position = ?, sprint_id = ?, component_id = ? \
+        "UPDATE issues SET summary = ?, description = ?, issue_type = ?, status_id = ?, priority = ?, assignee_id = ?, parent_id = ?, epic_id = ?, story_points = ?, start_date = ?, due_date = ?, position = ?, sprint_id = ?, component_id = ?, fix_version_id = ? \
          WHERE id = ?"
     )
     .bind(&summary)
@@ -97,6 +101,7 @@ pub async fn update_issue(
     .bind(position)
     .bind(sprint_id)
     .bind(component_id)
+    .bind(fix_version_id)
     .bind(issue_id)
     .execute(&state.db)
     .await

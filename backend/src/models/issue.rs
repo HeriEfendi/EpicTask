@@ -22,6 +22,7 @@ pub struct Issue {
     pub position: Option<i32>,
     pub sprint_id: Option<i64>,
     pub component_id: Option<i64>,
+    pub fix_version_id: Option<i64>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
 
@@ -37,6 +38,7 @@ pub struct Issue {
     pub parent_summary: Option<String>,
     pub sprint_name: Option<String>,
     pub component_name: Option<String>,
+    pub fix_version_name: Option<String>,
     pub subtask_count: Option<i64>,
     pub subtask_done_count: Option<i64>,
 }
@@ -53,6 +55,7 @@ pub struct CreateIssuePayload {
     pub epic_id: Option<i64>,
     pub sprint_id: Option<i64>,
     pub component_id: Option<i64>,
+    pub fix_version_id: Option<i64>,
     pub story_points: Option<i32>,
     pub start_date: Option<NaiveDate>,
     pub due_date: Option<NaiveDate>,
@@ -75,6 +78,8 @@ pub struct UpdateIssuePayload {
     pub sprint_id: Option<Option<i64>>,
     #[serde(default)]
     pub component_id: Option<Option<i64>>,
+    #[serde(default)]
+    pub fix_version_id: Option<Option<i64>>,
     pub story_points: Option<i32>,
     #[serde(default)]
     pub start_date: Option<Option<NaiveDate>>,

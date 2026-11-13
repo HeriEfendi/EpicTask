@@ -10,4 +10,5 @@ pub mod reports;
 pub mod seed;
 pub mod sprints;
 pub mod time_logs;
+pub mod versions;
 pub mod workspaces;
