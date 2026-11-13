@@ -19,8 +19,8 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 | **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | 🟢 **Done** | N/A (Frontend Agregasi) | `components/kanban/*`<br>`stores/project.js` | Pembagian horizontal Kanban: Group by Assignee, Group by Epic, Group by Priority (Expedite row darurat), header sticky kolom, roll-up story point per baris, dan dropzone sel mandiri. |
 | **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | 🟢 **Done** | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/IssueLabelsEditor.vue`<br>`stores/label.js` | Tagging bebas lintas tiket dengan autocomplete interaktif, chips badge warna-warni di Kanban & Backlog, filter label di ViewTabs, dan kolom + ekspor CSV di ListView. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | 🟢 **Done** | `models/issue.rs`<br>`handlers/issues/transition.rs`<br>`handlers/issues/query.rs` | `components/issue/ResolutionModal.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`components/kanban/KanbanCard.vue`<br>`components/list/ListView.vue` | Standar audit Jira: kolom `resolution` & `resolved_at`, modal pemilihan resolusi saat geser ke status DONE, badge resolusi, strikethrough key `~~KEY-123~~`, dan ekspor CSV. |
-| **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Next (Planned)* | N/A (Frontend Client) | `components/kanban/KanbanToolbar.vue`<br>`components/common/ViewTabs.vue` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan", "Due This Week". |
-| **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Planned* | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/` | Fitur "Watch" tiket untuk notifikasi otomatis pembaruan tiket ke anggota terkait. |
+| **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | 🟢 **Done** | N/A (Frontend Client) | `components/kanban/KanbanQuickFilters.vue`<br>`components/kanban/KanbanToolbar.vue`<br>`stores/project.js` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tinggi", "Belum Ditugaskan", "Due Minggu Ini", "Belum Selesai", tombol Reset, dan multi-select toggle. |
+| **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Next (Planned)* | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/IssueWatchers.vue`<br>`components/issue/IssueMetaSidebar.vue` | Fitur "Watch" tiket untuk notifikasi otomatis pembaruan tiket ke anggota terkait. |
 
 ---
 
@@ -192,12 +192,35 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 
 ---
 
-### 7. Quick Filter Bar di Atas Board (⚪ NEXT UP)
-* **Tujuan:** Panel pintasan filter 1-klik di atas board untuk mempercepat penelusuran tiket tanpa harus membuka menu filter kompleks ("Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan", "Due This Week").
-* **Rencana Implementasi:**
-  - Penambahan tombol pill multi-select interaktif pada `components/kanban/KanbanToolbar.vue` dan `components/common/ViewTabs.vue`.
-  - State filter aktif di Pinia `project.js` dengan kalkulasi instan.
+### 7. Quick Filter Bar di Atas Board (🟢 SELESAI)
+* **Tujuan:** Standar navigasi board Jira Enterprise — panel pintasan filter 1-klik di atas board untuk mempercepat penelusuran tiket tanpa harus membuka menu dropdown filter kompleks.
+* **Fitur Quick Filters:**
+  1. **Tiket Saya (`my_issues`):** Otomatis memfilter tiket yang ditugaskan ke pengguna yang sedang login (`assignee_id === authStore.user.id`).
+  2. **Hanya Bug (`only_bugs`):** Menampilkan isu bertipe `BUG`.
+  3. **Prioritas Tinggi (`highest_priority`):** Menampilkan isu berkategori darurat/kritis (`HIGHEST` atau `HIGH`).
+  4. **Belum Ditugaskan (`unassigned`):** Menampilkan isu yang belum memiliki assignee (`assignee_id === null`).
+  5. **Due Minggu Ini (`due_this_week`):** Menampilkan tiket dengan tenggat waktu jatuh tempo dalam minggu berjalan (Senin s.d. Minggu).
+  6. **Belum Selesai (`unresolved`):** Menampilkan tiket yang belum terselesaikan (`resolution === null` atau status bukan `DONE`).
+  7. **Multi-Selection & Reset:** Mendukung pemilihan beberapa filter cepat secara bersamaan (kombinasi filter) dan tombol 1-klik *Reset* untuk mengembalikan tampilan semula.
+* **Frontend Modules & Components:**
+  - `stores/project.js` : State `quickFilters` reaktif, metode `toggleQuickFilter(key)`, `isQuickFilterActive(key)`, `clearQuickFilters()`, dan kalkulasi instan pada `filteredIssues`.
+  - `components/kanban/KanbanQuickFilters.vue` : Komponen atomik chip pill responsif dengan icon, indikator centang aktif, styling warna kontekstual, dan tombol reset.
+  - `components/kanban/KanbanToolbar.vue` : Integrasi baris toolbar header di atas papan Kanban.
+  - `components/common/ViewTabs.vue` : Terhubung dengan indikator `hasActiveFilters` dan tombol global pembersihan filter.
 
 ---
 
-*(Catatan: Bagian 7 s.d. 8 akan dilanjutkan secara berurutan sesuai prioritas).*
+### 8. Issue Watchers (Pengamat Tiket) (⚪ NEXT UP)
+* **Tujuan:** Fitur pengamat (*watcher*) tiket untuk menerima notifikasi otomatis atas setiap perubahan status, pengeditan, atau komentar baru tanpa harus terdaftar sebagai Assignee atau Reporter (standar kolaborasi Jira).
+* **Database Schema (MariaDB):**
+  - Tabel `issue_watchers`:
+    - `issue_id BIGINT NOT NULL (FK issues.id ON DELETE CASCADE)`
+    - `user_id BIGINT NOT NULL (FK users.id ON DELETE CASCADE)`
+    - `created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
+    - `PRIMARY KEY (issue_id, user_id)`
+* **Rencana Implementasi:**
+  - `models/watcher.rs` & `handlers/watchers.rs` (`GET /api/issues/:id/watchers`, `POST /api/issues/:id/watchers`, `DELETE /api/issues/:id/watchers/:uid`)
+  - Komponen atomik `IssueWatchers.vue` pada sidebar detail tiket dengan toggle 1-klik "Watch / Berhenti Mengamati", hitungan total pengamat, dan popover daftar nama pengamat.
+  - Integrasi pengiriman notifikasi/WebSocket ke daftar watchers saat ada aktivitas baru pada tiket.
+
+---
