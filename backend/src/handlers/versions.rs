@@ -21,9 +21,9 @@ pub async fn list_project_versions(
     let sql = "SELECT v.id, v.project_id, v.name, v.description, v.start_date, v.release_date, \
                       v.status, v.created_at, v.updated_at, \
                       COUNT(i.id) AS total_issues, \
-                      COALESCE(SUM(CASE WHEN st.category = 'TODO' THEN 1 ELSE 0 END), 0) AS todo_issues, \
-                      COALESCE(SUM(CASE WHEN st.category = 'IN_PROGRESS' THEN 1 ELSE 0 END), 0) AS in_progress_issues, \
-                      COALESCE(SUM(CASE WHEN st.category = 'DONE' THEN 1 ELSE 0 END), 0) AS done_issues \
+                      COUNT(CASE WHEN st.category = 'TODO' THEN 1 END) AS todo_issues, \
+                      COUNT(CASE WHEN st.category = 'IN_PROGRESS' THEN 1 END) AS in_progress_issues, \
+                      COUNT(CASE WHEN st.category = 'DONE' THEN 1 END) AS done_issues \
                FROM versions v \
                LEFT JOIN issues i ON i.fix_version_id = v.id \
                LEFT JOIN statuses st ON i.status_id = st.id \

@@ -24,9 +24,9 @@ pub async fn list_project_sprints(
     let sql = "SELECT sp.id, sp.project_id, sp.name, sp.goal, sp.status, \
                       sp.start_date, sp.end_date, sp.created_at, sp.updated_at, \
                       COUNT(i.id) AS total_issues, \
-                      COALESCE(SUM(CASE WHEN st.category = 'TODO' THEN COALESCE(i.story_points, 0) ELSE 0 END), 0) AS todo_points, \
-                      COALESCE(SUM(CASE WHEN st.category = 'IN_PROGRESS' THEN COALESCE(i.story_points, 0) ELSE 0 END), 0) AS in_progress_points, \
-                      COALESCE(SUM(CASE WHEN st.category = 'DONE' THEN COALESCE(i.story_points, 0) ELSE 0 END), 0) AS done_points \
+                      CAST(COALESCE(SUM(CASE WHEN st.category = 'TODO' THEN COALESCE(i.story_points, 0) ELSE 0 END), 0) AS SIGNED) AS todo_points, \
+                      CAST(COALESCE(SUM(CASE WHEN st.category = 'IN_PROGRESS' THEN COALESCE(i.story_points, 0) ELSE 0 END), 0) AS SIGNED) AS in_progress_points, \
+                      CAST(COALESCE(SUM(CASE WHEN st.category = 'DONE' THEN COALESCE(i.story_points, 0) ELSE 0 END), 0) AS SIGNED) AS done_points \
                FROM sprints sp \
                LEFT JOIN issues i ON i.sprint_id = sp.id \
                LEFT JOIN statuses st ON i.status_id = st.id \
