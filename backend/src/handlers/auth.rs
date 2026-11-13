@@ -232,3 +232,46 @@ pub async fn list_users(
 
     Ok(Json(users))
 }
+
+#[derive(Debug, serde::Deserialize)]
+pub struct UpdateProfilePayload {
+    pub full_name: Option<String>,
+    pub avatar_url: Option<String>,
+}
+
+pub async fn update_profile(
+    auth: AuthUser,
+    State(state): State<AppState>,
+    Json(payload): Json<UpdateProfilePayload>,
+) -> Result<impl IntoResponse, (StatusCode, Json<serde_json::Value>)> {
+    if let Some(ref avatar) = payload.avatar_url {
+        sqlx::query("UPDATE users SET avatar_url = ? WHERE id = ?")
+            .bind(avatar)
+            .bind(auth.user_id)
+            .execute(&state.db)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+    }
+
+    if let Some(ref name) = payload.full_name {
+        let trimmed = name.trim();
+        if !trimmed.is_empty() {
+            sqlx::query("UPDATE users SET full_name = ? WHERE id = ?")
+                .bind(trimmed)
+                .bind(auth.user_id)
+                .execute(&state.db)
+                .await
+                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+        }
+    }
+
+    let user = sqlx::query_as::<_, UserPublic>(
+        "SELECT id, email, full_name, avatar_url FROM users WHERE id = ?"
+    )
+    .bind(auth.user_id)
+    .fetch_one(&state.db)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, Json(json!({ "error": e.to_string() }))))?;
+
+    Ok(Json(user))
+}

@@ -97,6 +97,23 @@ export const useAuthStore = defineStore('auth', () => {
     return ws;
   }
 
+  async function updateProfile({ fullName, avatarUrl }) {
+    loading.value = true;
+    try {
+      const updated = await api.put('/auth/profile', {
+        full_name: fullName,
+        avatar_url: avatarUrl,
+      });
+      user.value = updated;
+      return updated;
+    } catch (err) {
+      error.value = err.message || 'Gagal memperbarui profil';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function logout() {
     token.value = null;
     user.value = null;
@@ -122,6 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchAllUsers,
     selectWorkspace,
     createWorkspace,
+    updateProfile,
     logout,
   };
 });

@@ -29,7 +29,7 @@ pub async fn init_db(pool: &MySqlPool) -> Result<(), Box<dyn std::error::Error>>
             email VARCHAR(255) UNIQUE NOT NULL,
             password_hash VARCHAR(255) NOT NULL,
             full_name VARCHAR(100) NOT NULL,
-            avatar_url VARCHAR(500) DEFAULT NULL,
+            avatar_url MEDIUMTEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;"
     )

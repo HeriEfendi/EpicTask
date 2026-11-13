@@ -26,6 +26,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/auth/register", post(auth::register))
         .route("/api/auth/login", post(auth::login))
         .route("/api/auth/me", get(auth::me))
+        .route("/api/auth/profile", put(auth::update_profile))
         .route("/api/users", get(auth::list_users))
         // Workspace routes
         .route("/api/workspaces", get(workspaces::list_workspaces).post(workspaces::create_workspace))
