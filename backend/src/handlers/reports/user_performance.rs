@@ -101,6 +101,8 @@ pub async fn get_user_performance(
                 "SELECT 
                     CAST(COUNT(*) AS SIGNED) as total_assigned,
                     CAST(COUNT(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{start}' AND '{end}' THEN 1 END) AS SIGNED) as completed_count,
+                    CAST(COUNT(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{start}' AND '{end}' AND (i.due_date IS NULL OR DATE(COALESCE(i.resolved_at, i.updated_at)) <= i.due_date) THEN 1 END) AS SIGNED) as on_time_count,
+                    CAST(COUNT(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{start}' AND '{end}' AND i.due_date IS NOT NULL AND DATE(COALESCE(i.resolved_at, i.updated_at)) > i.due_date THEN 1 END) AS SIGNED) as overdue_count,
                     CAST(COUNT(CASE WHEN s.category = 'IN_PROGRESS' THEN 1 END) AS SIGNED) as in_progress_count,
                     CAST(COUNT(CASE WHEN s.category = 'TODO' THEN 1 END) AS SIGNED) as todo_count,
                     CAST(COALESCE(SUM(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{start}' AND '{end}' THEN i.story_points ELSE 0 END), 0) AS SIGNED) as completed_story_points,
@@ -153,7 +155,7 @@ pub async fn get_user_performance(
             format!(
                 "SELECT 
                     i.id, i.project_id, i.`key`, i.summary, i.issue_type, i.priority, i.status_id,
-                    i.story_points, i.resolution, i.resolved_at, i.created_at, i.updated_at,
+                    i.story_points, i.due_date, i.resolution, i.resolved_at, i.created_at, i.updated_at,
                     s.name AS status_name, s.category AS status_category, s.color AS status_color,
                     comp.name AS component_name,
                     ver.name AS fix_version_name,
@@ -183,6 +185,8 @@ pub async fn get_user_performance(
             "SELECT 
                 CAST(COUNT(*) AS SIGNED) as total_assigned,
                 CAST(COUNT(CASE WHEN s.category = 'DONE' THEN 1 END) AS SIGNED) as completed_count,
+                CAST(COUNT(CASE WHEN s.category = 'DONE' AND (i.due_date IS NULL OR DATE(COALESCE(i.resolved_at, i.updated_at)) <= i.due_date) THEN 1 END) AS SIGNED) as on_time_count,
+                CAST(COUNT(CASE WHEN s.category = 'DONE' AND i.due_date IS NOT NULL AND DATE(COALESCE(i.resolved_at, i.updated_at)) > i.due_date THEN 1 END) AS SIGNED) as overdue_count,
                 CAST(COUNT(CASE WHEN s.category = 'IN_PROGRESS' THEN 1 END) AS SIGNED) as in_progress_count,
                 CAST(COUNT(CASE WHEN s.category = 'TODO' THEN 1 END) AS SIGNED) as todo_count,
                 CAST(COALESCE(SUM(CASE WHEN s.category = 'DONE' THEN i.story_points ELSE 0 END), 0) AS SIGNED) as completed_story_points,
@@ -219,7 +223,7 @@ pub async fn get_user_performance(
              ORDER BY total DESC".to_string(),
             "SELECT 
                 i.id, i.project_id, i.`key`, i.summary, i.issue_type, i.priority, i.status_id,
-                i.story_points, i.resolution, i.resolved_at, i.created_at, i.updated_at,
+                i.story_points, i.due_date, i.resolution, i.resolved_at, i.created_at, i.updated_at,
                 s.name AS status_name, s.category AS status_category, s.color AS status_color,
                 comp.name AS component_name,
                 ver.name AS fix_version_name,
@@ -250,6 +254,8 @@ pub async fn get_user_performance(
 
     let total_assigned: i64 = stats_row.try_get("total_assigned").unwrap_or(0);
     let completed_count: i64 = stats_row.try_get("completed_count").unwrap_or(0);
+    let on_time_count: i64 = stats_row.try_get("on_time_count").unwrap_or(0);
+    let overdue_count: i64 = stats_row.try_get("overdue_count").unwrap_or(0);
     let in_progress_count: i64 = stats_row.try_get("in_progress_count").unwrap_or(0);
     let todo_count: i64 = stats_row.try_get("todo_count").unwrap_or(0);
     let completed_story_points: i64 = stats_row.try_get("completed_story_points").unwrap_or(0);
@@ -258,6 +264,12 @@ pub async fn get_user_performance(
 
     let completion_rate = if total_assigned > 0 {
         ((completed_count as f64) / (total_assigned as f64)) * 100.0
+    } else {
+        0.0
+    };
+
+    let on_time_rate = if completed_count > 0 {
+        ((on_time_count as f64) / (completed_count as f64)) * 100.0
     } else {
         0.0
     };
@@ -347,6 +359,7 @@ pub async fn get_user_performance(
         let status_color: Option<String> = row.try_get("status_color").ok();
         let resolution: Option<String> = row.try_get("resolution").ok();
         let story_points: Option<i32> = row.try_get("story_points").ok();
+        let due_date: Option<chrono::NaiveDate> = row.try_get("due_date").ok();
         let comp_name: Option<String> = row.try_get("component_name").ok();
         let ver_name: Option<String> = row.try_get("fix_version_name").ok();
         let sp_name: Option<String> = row.try_get("sprint_name").ok();
@@ -360,6 +373,33 @@ pub async fn get_user_performance(
             .map(|s| s.split(',').filter(|x| !x.is_empty()).map(|x| x.to_string()).collect())
             .unwrap_or_default();
 
+        let is_done = status_cat.as_deref() == Some("DONE") || resolution.is_some();
+        let (is_overdue, is_on_time, days_overdue) = if is_done {
+            let res_date = resolved_at.or(updated_at).map(|dt| dt.date_naive());
+            match (res_date, due_date) {
+                (Some(res), Some(due)) => {
+                    if res > due {
+                        let diff = (res - due).num_days();
+                        (true, false, Some(diff))
+                    } else {
+                        (false, true, Some(0))
+                    }
+                }
+                _ => (false, true, None),
+            }
+        } else {
+            let today = chrono::Utc::now().date_naive();
+            if let Some(due) = due_date {
+                if today > due {
+                    (true, false, Some((today - due).num_days()))
+                } else {
+                    (false, false, None)
+                }
+            } else {
+                (false, false, None)
+            }
+        };
+
         issues.push(json!({
             "id": id,
             "key": key,
@@ -372,6 +412,11 @@ pub async fn get_user_performance(
             "status_color": status_color.unwrap_or_else(|| "#64748b".to_string()),
             "resolution": resolution,
             "story_points": story_points,
+            "due_date": due_date,
+            "is_done": is_done,
+            "is_overdue": is_overdue,
+            "is_on_time": is_on_time,
+            "days_overdue": days_overdue,
             "component_name": comp_name,
             "fix_version_name": ver_name,
             "sprint_name": sp_name,
@@ -393,9 +438,18 @@ pub async fn get_user_performance(
             "end_date": if has_date_filter { Some(end_date) } else { None },
             "is_filtered": has_date_filter
         },
+        "performance_summary": {
+            "done_count": completed_count,
+            "on_time_count": on_time_count,
+            "overdue_count": overdue_count,
+            "on_time_rate": on_time_rate
+        },
         "stats": {
             "total_assigned": total_assigned,
             "completed_count": completed_count,
+            "on_time_count": on_time_count,
+            "overdue_count": overdue_count,
+            "on_time_rate": on_time_rate,
             "in_progress_count": in_progress_count,
             "todo_count": todo_count,
             "completion_rate": completion_rate,

@@ -22,15 +22,19 @@ const props = defineProps({
 
 const projectStore = useProjectStore();
 
-const activeFilter = ref('ALL'); // 'ALL', 'DONE', 'IN_PROGRESS', 'TODO'
+const activeFilter = ref('ALL'); // 'ALL', 'DONE', 'ON_TIME', 'OVERDUE', 'IN_PROGRESS', 'TODO'
 const searchQuery = ref('');
 
 const filteredIssues = computed(() => {
   let list = props.issues || [];
 
-  // Filter by status category
+  // Filter by status category or timeliness
   if (activeFilter.value === 'DONE') {
-    list = list.filter((i) => i.status_category === 'DONE' || i.resolution);
+    list = list.filter((i) => i.status_category === 'DONE' || i.resolution || i.is_done);
+  } else if (activeFilter.value === 'ON_TIME') {
+    list = list.filter((i) => (i.status_category === 'DONE' || i.resolution || i.is_done) && i.is_on_time);
+  } else if (activeFilter.value === 'OVERDUE') {
+    list = list.filter((i) => (i.status_category === 'DONE' || i.resolution || i.is_done) && i.is_overdue);
   } else if (activeFilter.value === 'IN_PROGRESS') {
     list = list.filter((i) => i.status_category === 'IN_PROGRESS');
   } else if (activeFilter.value === 'TODO') {
@@ -57,10 +61,13 @@ const filteredIssues = computed(() => {
 
 const counts = computed(() => {
   const all = props.issues.length;
-  const done = props.issues.filter((i) => i.status_category === 'DONE' || i.resolution).length;
+  const doneIssues = props.issues.filter((i) => i.status_category === 'DONE' || i.resolution || i.is_done);
+  const done = doneIssues.length;
+  const onTime = doneIssues.filter((i) => i.is_on_time).length;
+  const overdue = doneIssues.filter((i) => i.is_overdue).length;
   const inProgress = props.issues.filter((i) => i.status_category === 'IN_PROGRESS').length;
   const todo = props.issues.filter((i) => i.status_category === 'TODO').length;
-  return { all, done, inProgress, todo };
+  return { all, done, onTime, overdue, inProgress, todo };
 });
 
 function formatDate(d) {
@@ -132,7 +139,7 @@ function getPriorityBadgeClass(prio) {
         </div>
 
         <!-- Filter Sub-Tabs -->
-        <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200/80 text-xs font-semibold">
+        <div class="flex flex-wrap items-center space-x-1 bg-slate-100 p-1 rounded-lg border border-slate-200/80 text-xs font-semibold">
           <button
             @click="activeFilter = 'ALL'"
             class="px-2.5 py-1 rounded-md transition"
@@ -146,6 +153,21 @@ function getPriorityBadgeClass(prio) {
             :class="activeFilter === 'DONE' ? 'bg-white text-emerald-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
           >
             Selesai ({{ counts.done }})
+          </button>
+          <button
+            @click="activeFilter = 'ON_TIME'"
+            class="px-2.5 py-1 rounded-md transition flex items-center space-x-1"
+            :class="activeFilter === 'ON_TIME' ? 'bg-white text-emerald-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+          >
+            <span>✓ Tepat Waktu ({{ counts.onTime }})</span>
+          </button>
+          <button
+            v-if="counts.overdue > 0"
+            @click="activeFilter = 'OVERDUE'"
+            class="px-2.5 py-1 rounded-md transition flex items-center space-x-1"
+            :class="activeFilter === 'OVERDUE' ? 'bg-white text-rose-700 shadow-2xs font-bold' : 'text-rose-600 hover:text-rose-800'"
+          >
+            <span>⚠️ Overdue ({{ counts.overdue }})</span>
           </button>
           <button
             @click="activeFilter = 'IN_PROGRESS'"
@@ -223,6 +245,26 @@ function getPriorityBadgeClass(prio) {
             >
               🏃 {{ issue.sprint_name }}
             </span>
+
+            <!-- Timeliness Badge (On-Time vs Overdue) -->
+            <span
+              v-if="issue.is_done && issue.is_overdue"
+              class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200"
+            >
+              ⚠️ Overdue +{{ issue.days_overdue }} hari
+            </span>
+            <span
+              v-else-if="issue.is_done && issue.is_on_time"
+              class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200"
+            >
+              ✓ Selesai Tepat Waktu
+            </span>
+            <span
+              v-else-if="!issue.is_done && issue.is_overdue"
+              class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200"
+            >
+              ⏳ Melewati Tenggat (+{{ issue.days_overdue }}h)
+            </span>
           </div>
 
           <!-- Summary Title -->
@@ -251,6 +293,9 @@ function getPriorityBadgeClass(prio) {
               </span>
               <span v-else-if="issue.updated_at">
                 Diperbarui: <strong class="text-slate-600 font-semibold">{{ formatDate(issue.updated_at) }}</strong>
+              </span>
+              <span v-if="issue.due_date" class="ml-2 pl-2 border-l border-slate-200 text-slate-500">
+                Tenggat: <strong :class="issue.is_overdue ? 'text-rose-600' : 'text-slate-600'">{{ formatDate(issue.due_date) }}</strong>
               </span>
             </div>
           </div>

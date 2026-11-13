@@ -104,6 +104,8 @@ pub async fn show_user_performance(
                 "SELECT 
                     CAST(COUNT(*) AS SIGNED) as total_assigned,
                     CAST(COUNT(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{s}' AND '{e}' THEN 1 END) AS SIGNED) as completed_count,
+                    CAST(COUNT(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{s}' AND '{e}' AND (i.due_date IS NULL OR DATE(COALESCE(i.resolved_at, i.updated_at)) <= i.due_date) THEN 1 END) AS SIGNED) as on_time_count,
+                    CAST(COUNT(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{s}' AND '{e}' AND i.due_date IS NOT NULL AND DATE(COALESCE(i.resolved_at, i.updated_at)) > i.due_date THEN 1 END) AS SIGNED) as overdue_count,
                     CAST(COUNT(CASE WHEN s.category = 'IN_PROGRESS' THEN 1 END) AS SIGNED) as in_progress_count,
                     CAST(COUNT(CASE WHEN s.category = 'TODO' THEN 1 END) AS SIGNED) as todo_count,
                     CAST(COALESCE(SUM(CASE WHEN s.category = 'DONE' AND DATE(COALESCE(i.resolved_at, i.updated_at)) BETWEEN '{s}' AND '{e}' THEN i.story_points ELSE 0 END), 0) AS SIGNED) as completed_story_points,
@@ -131,6 +133,8 @@ pub async fn show_user_performance(
             "SELECT 
                 CAST(COUNT(*) AS SIGNED) as total_assigned,
                 CAST(COUNT(CASE WHEN s.category = 'DONE' THEN 1 END) AS SIGNED) as completed_count,
+                CAST(COUNT(CASE WHEN s.category = 'DONE' AND (i.due_date IS NULL OR DATE(COALESCE(i.resolved_at, i.updated_at)) <= i.due_date) THEN 1 END) AS SIGNED) as on_time_count,
+                CAST(COUNT(CASE WHEN s.category = 'DONE' AND i.due_date IS NOT NULL AND DATE(COALESCE(i.resolved_at, i.updated_at)) > i.due_date THEN 1 END) AS SIGNED) as overdue_count,
                 CAST(COUNT(CASE WHEN s.category = 'IN_PROGRESS' THEN 1 END) AS SIGNED) as in_progress_count,
                 CAST(COUNT(CASE WHEN s.category = 'TODO' THEN 1 END) AS SIGNED) as todo_count,
                 CAST(COALESCE(SUM(CASE WHEN s.category = 'DONE' THEN i.story_points ELSE 0 END), 0) AS SIGNED) as completed_story_points,
@@ -158,6 +162,8 @@ pub async fn show_user_performance(
 
     let total_assigned: i64 = s_row.try_get("total_assigned").unwrap_or(0);
     let completed_count: i64 = s_row.try_get("completed_count").unwrap_or(0);
+    let on_time_count: i64 = s_row.try_get("on_time_count").unwrap_or(0);
+    let overdue_count: i64 = s_row.try_get("overdue_count").unwrap_or(0);
     let in_progress_count: i64 = s_row.try_get("in_progress_count").unwrap_or(0);
     let todo_count: i64 = s_row.try_get("todo_count").unwrap_or(0);
     let completed_story_points: i64 = s_row.try_get("completed_story_points").unwrap_or(0);
@@ -181,6 +187,12 @@ pub async fn show_user_performance(
         0.0
     };
 
+    let on_time_rate = if completed_count > 0 {
+        ((on_time_count as f64) / (completed_count as f64)) * 100.0
+    } else {
+        0.0
+    };
+
     if as_json {
         println!("{}", serde_json::json!({
             "user": {
@@ -193,9 +205,18 @@ pub async fn show_user_performance(
                 "start": start_date,
                 "end": end_date,
             },
+            "performance_summary": {
+                "done_count": completed_count,
+                "on_time_count": on_time_count,
+                "overdue_count": overdue_count,
+                "on_time_rate": on_time_rate,
+            },
             "stats": {
                 "total_assigned": total_assigned,
                 "completed_count": completed_count,
+                "on_time_count": on_time_count,
+                "overdue_count": overdue_count,
+                "on_time_rate": on_time_rate,
                 "in_progress_count": in_progress_count,
                 "todo_count": todo_count,
                 "completion_rate": completion_rate,
@@ -217,8 +238,13 @@ pub async fn show_user_performance(
         println!("📅 Period: All-time");
     }
     println!("{:-<75}", "");
-    println!("  🎯 Completed Issues     : {} / {} ({:.1}%)", completed_count, total_assigned, completion_rate);
-    println!("  ⏳ In Progress / To Do  : {} active, {} todo", in_progress_count, todo_count);
+    println!("  🎯 Performance Summary :");
+    println!("     - Total Tiket Done   : {} tiket", completed_count);
+    println!("     - Selesai Sesuai Plan: {} tiket", on_time_count);
+    println!("     - Terlambat (Overdue): {} tiket", overdue_count);
+    println!("     - Ketepatan Waktu    : {:.1}%", on_time_rate);
+    println!("{:-<75}", "");
+    println!("  📋 Work Status Breakdown: {} assigned, {} active, {} todo ({:.1}% completed)", total_assigned, in_progress_count, todo_count, completion_rate);
     println!("  ⚡ Story Points Done    : {} / {} pts", completed_story_points, total_story_points);
     println!("  ⏱️  Total Time Logged    : {:.1} hours across {} worklogs", total_logged_hours, total_worklogs);
     println!("  🚀 Avg Cycle Velocity   : {:.1} hours ({:.1} days)", avg_cycle_hours, avg_cycle_hours / 24.0);

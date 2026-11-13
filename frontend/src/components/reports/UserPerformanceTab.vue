@@ -5,6 +5,7 @@ import { useReportStore } from '@/stores/report';
 import { RefreshCw, UserCheck } from 'lucide-vue-next';
 
 import UserPerformanceFilterBar from './user_performance/UserPerformanceFilterBar.vue';
+import UserPerformanceSummary from './user_performance/UserPerformanceSummary.vue';
 import UserPerformanceKpiGrid from './user_performance/UserPerformanceKpiGrid.vue';
 import UserPerformanceBreakdown from './user_performance/UserPerformanceBreakdown.vue';
 import UserPerformanceIssueList from './user_performance/UserPerformanceIssueList.vue';
@@ -72,18 +73,28 @@ function handleFilterChanged({ userId, startDate, endDate }) {
 
     <!-- Main Content -->
     <template v-else-if="reportStore.userPerformance">
-      <!-- 1. KPI Metric Grid -->
+      <!-- 1. Dedicated Performance Summary (Ketepatan Waktu & Target Selesai) -->
+      <UserPerformanceSummary
+        :summary="reportStore.userPerformance.performance_summary || {
+          done_count: reportStore.userPerformance.stats?.completed_count || 0,
+          on_time_count: reportStore.userPerformance.stats?.on_time_count || 0,
+          overdue_count: reportStore.userPerformance.stats?.overdue_count || 0,
+          on_time_rate: reportStore.userPerformance.stats?.on_time_rate || 0
+        }"
+      />
+
+      <!-- 2. KPI Metric Grid -->
       <UserPerformanceKpiGrid
         :stats="reportStore.userPerformance.stats || {}"
       />
 
-      <!-- 2. Visual Breakdowns by Type & Priority -->
+      <!-- 3. Visual Breakdowns by Type & Priority -->
       <UserPerformanceBreakdown
         :by-type="reportStore.userPerformance.by_type || []"
         :by-priority="reportStore.userPerformance.by_priority || []"
       />
 
-      <!-- 3. Worked-on & Completed Issues Cards List -->
+      <!-- 4. Worked-on & Completed Issues Cards List -->
       <UserPerformanceIssueList
         :issues="reportStore.userPerformance.issues || []"
       />
