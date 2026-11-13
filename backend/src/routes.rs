@@ -83,6 +83,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/api/projects/:pid/reports/cumulative-flow", get(reports::get_cumulative_flow))
         .route("/api/projects/:pid/reports/timesheet", get(reports::get_timesheet))
         .route("/api/projects/:pid/reports/epic-progress", get(reports::get_epic_progress))
+        .route("/api/projects/:pid/reports/user-performance", get(reports::get_user_performance))
         // Seed database
         .route("/api/seed", post(seed::seed_database))
         .layer(cors)

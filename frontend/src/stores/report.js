@@ -20,6 +20,8 @@ export const useReportStore = defineStore('report', () => {
   const cfd = ref(null);
   const timesheet = ref(null);
   const epicProgress = ref(null);
+  const userPerformance = ref(null);
+  const userPerformanceLoading = ref(false);
 
   async function fetchAllReports(projectId) {
     if (!projectId) return;
@@ -40,12 +42,79 @@ export const useReportStore = defineStore('report', () => {
       cfd.value = cfdData;
       timesheet.value = tsData;
       epicProgress.value = epData;
+
+      // Also trigger initial user performance if not loaded yet
+      if (!userPerformance.value) {
+        await fetchUserPerformance(projectId);
+      }
     } catch (err) {
       console.error('Failed to load project reports', err);
       error.value = err.message || 'Gagal memuat data laporan';
     } finally {
       loading.value = false;
     }
+  }
+
+  async function fetchUserPerformance(projectId, userId = null, startDate = null, endDate = null) {
+    if (!projectId) return;
+    userPerformanceLoading.value = true;
+    try {
+      const params = {};
+      if (userId) params.user_id = userId;
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+
+      const data = await api.get(`/projects/${projectId}/reports/user-performance`, params);
+      userPerformance.value = data;
+    } catch (err) {
+      console.error('Failed to load user performance report', err);
+    } finally {
+      userPerformanceLoading.value = false;
+    }
+  }
+
+  function exportUserPerformanceCsv() {
+    if (!userPerformance.value || !userPerformance.value.issues) return;
+    const issues = userPerformance.value.issues;
+    const user = userPerformance.value.selected_user;
+    const headers = [
+      'Key',
+      'Judul Tiket',
+      'Tipe',
+      'Prioritas',
+      'Status',
+      'Resolusi',
+      'Story Points',
+      'Jam Kerja User',
+      'Komponen',
+      'Fix Version',
+      'Sprint',
+      'Tanggal Selesai'
+    ];
+    const rows = issues.map((i) => [
+      `"${i.key}"`,
+      `"${(i.summary || '').replace(/"/g, '""')}"`,
+      i.issue_type,
+      i.priority,
+      `"${i.status_name}"`,
+      `"${i.resolution || '-'}"`,
+      i.story_points || 0,
+      (i.user_logged_hours || 0).toFixed(2),
+      `"${(i.component_name || '-').replace(/"/g, '""')}"`,
+      `"${(i.fix_version_name || '-').replace(/"/g, '""')}"`,
+      `"${(i.sprint_name || '-').replace(/"/g, '""')}"`,
+      i.resolved_at ? new Date(i.resolved_at).toISOString().split('T')[0] : '-'
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    const userName = (user?.full_name || 'user').toLowerCase().replace(/\s+/g, '_');
+    link.setAttribute('download', `performa_${userName}_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   function exportTimesheetCsv() {
@@ -83,7 +152,11 @@ export const useReportStore = defineStore('report', () => {
     cfd,
     timesheet,
     epicProgress,
+    userPerformance,
+    userPerformanceLoading,
     fetchAllReports,
+    fetchUserPerformance,
     exportTimesheetCsv,
+    exportUserPerformanceCsv,
   };
 });

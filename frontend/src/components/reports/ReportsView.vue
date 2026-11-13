@@ -9,7 +9,8 @@ import {
   Layers,
   Calendar,
   Download,
-  RefreshCw
+  RefreshCw,
+  UserCheck
 } from 'lucide-vue-next';
 
 import OverviewTab from './OverviewTab.vue';
@@ -17,6 +18,7 @@ import VelocityTab from './VelocityTab.vue';
 import CumulativeFlowTab from './CumulativeFlowTab.vue';
 import TimesheetTab from './TimesheetTab.vue';
 import EpicProgressTab from './EpicProgressTab.vue';
+import UserPerformanceTab from './UserPerformanceTab.vue';
 
 const projectStore = useProjectStore();
 const reportStore = useReportStore();
@@ -130,6 +132,15 @@ watch(
           <Calendar class="w-3.5 h-3.5" />
           <span>Epic Progress</span>
         </button>
+
+        <button
+          @click="reportStore.activeTab = 'user-performance'"
+          class="px-3.5 py-2 rounded-lg flex items-center space-x-1.5 transition whitespace-nowrap"
+          :class="reportStore.activeTab === 'user-performance' ? 'bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'"
+        >
+          <UserCheck class="w-3.5 h-3.5" />
+          <span>Performa Anggota</span>
+        </button>
       </nav>
     </header>
 
@@ -147,6 +158,7 @@ watch(
       <CumulativeFlowTab v-else-if="reportStore.activeTab === 'cfd'" />
       <TimesheetTab v-else-if="reportStore.activeTab === 'timesheet'" />
       <EpicProgressTab v-else-if="reportStore.activeTab === 'epics'" />
+      <UserPerformanceTab v-else-if="reportStore.activeTab === 'user-performance'" />
     </main>
   </div>
 </template>

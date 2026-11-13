@@ -333,6 +333,17 @@ pub enum UserAction {
         /// User email or ID
         user: String,
     },
+    /// View performance metrics for a specific user
+    Performance {
+        /// User email or ID
+        user: String,
+        #[arg(short, long, default_value = "1", help = "Project ID")]
+        project: i64,
+        #[arg(long, help = "Start date YYYY-MM-DD")]
+        start: Option<String>,
+        #[arg(long, help = "End date YYYY-MM-DD")]
+        end: Option<String>,
+    },
 }
 
 pub async fn run_cli(cli: Cli, pool: &MySqlPool, jwt_secret: &str) -> Result<(), String> {
@@ -469,6 +480,12 @@ pub async fn run_cli(cli: Cli, pool: &MySqlPool, jwt_secret: &str) -> Result<(),
         Commands::Users(cmd) => match cmd.action {
             UserAction::List => users::list_users(pool, json).await,
             UserAction::Token { user } => users::generate_token(pool, &user, jwt_secret, json).await,
+            UserAction::Performance {
+                user,
+                project,
+                start,
+                end,
+            } => users::show_user_performance(pool, &user, project, start, end, json).await,
         },
         Commands::Doctor => doctor::run_doctor(pool, json).await,
         Commands::Seed => {
