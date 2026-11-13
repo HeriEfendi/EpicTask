@@ -331,7 +331,10 @@ function getPriorityBadgeClass(prio) {
             >
               {{ issue.status_name }}
             </span>
-            <div v-if="issue.resolution" class="text-[10px] text-emerald-600 font-bold mt-0.5">
+            <div
+              v-if="issue.resolution && issue.resolution.toLowerCase() !== (issue.status_name || '').toLowerCase()"
+              class="text-[10px] text-emerald-600 font-bold mt-0.5"
+            >
               ✓ {{ issue.resolution }}
             </div>
           </div>
