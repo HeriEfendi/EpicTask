@@ -20,7 +20,7 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 | **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | 🟢 **Done** | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/IssueLabelsEditor.vue`<br>`stores/label.js` | Tagging bebas lintas tiket dengan autocomplete interaktif, chips badge warna-warni di Kanban & Backlog, filter label di ViewTabs, dan kolom + ekspor CSV di ListView. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | 🟢 **Done** | `models/issue.rs`<br>`handlers/issues/transition.rs`<br>`handlers/issues/query.rs` | `components/issue/ResolutionModal.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`components/kanban/KanbanCard.vue`<br>`components/list/ListView.vue` | Standar audit Jira: kolom `resolution` & `resolved_at`, modal pemilihan resolusi saat geser ke status DONE, badge resolusi, strikethrough key `~~KEY-123~~`, dan ekspor CSV. |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | 🟢 **Done** | N/A (Frontend Client) | `components/kanban/KanbanQuickFilters.vue`<br>`components/kanban/KanbanToolbar.vue`<br>`stores/project.js` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tinggi", "Belum Ditugaskan", "Due Minggu Ini", "Belum Selesai", tombol Reset, dan multi-select toggle. |
-| **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Next (Planned)* | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/IssueWatchers.vue`<br>`components/issue/IssueMetaSidebar.vue` | Fitur "Watch" tiket untuk notifikasi otomatis pembaruan tiket ke anggota terkait. |
+| **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | 🟢 **Done** | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/IssueWatchers.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`stores/watcher.js` | Fitur pengamat tiket Jira: tabel DB `issue_watchers`, toggle 1-klik "Watch / Unwatch", counter badge `👁️`, popover daftar pengamat + opsi undang rekan tim, dan notifikasi komentar/status change. |
 
 ---
 
@@ -210,7 +210,7 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 
 ---
 
-### 8. Issue Watchers (Pengamat Tiket) (⚪ NEXT UP)
+### 8. Issue Watchers (Pengamat Tiket) (🟢 SELESAI)
 * **Tujuan:** Fitur pengamat (*watcher*) tiket untuk menerima notifikasi otomatis atas setiap perubahan status, pengeditan, atau komentar baru tanpa harus terdaftar sebagai Assignee atau Reporter (standar kolaborasi Jira).
 * **Database Schema (MariaDB):**
   - Tabel `issue_watchers`:
@@ -218,9 +218,26 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
     - `user_id BIGINT NOT NULL (FK users.id ON DELETE CASCADE)`
     - `created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`
     - `PRIMARY KEY (issue_id, user_id)`
-* **Rencana Implementasi:**
-  - `models/watcher.rs` & `handlers/watchers.rs` (`GET /api/issues/:id/watchers`, `POST /api/issues/:id/watchers`, `DELETE /api/issues/:id/watchers/:uid`)
-  - Komponen atomik `IssueWatchers.vue` pada sidebar detail tiket dengan toggle 1-klik "Watch / Berhenti Mengamati", hitungan total pengamat, dan popover daftar nama pengamat.
-  - Integrasi pengiriman notifikasi/WebSocket ke daftar watchers saat ada aktivitas baru pada tiket.
+* **Backend Endpoints & Notification Engine:**
+  - `models/watcher.rs` : Struct `IssueWatcher` dan payload `AddWatcherPayload`.
+  - `handlers/watchers.rs` :
+    - `GET /api/issues/:id/watchers` : Mengambil daftar seluruh pengamat tiket dengan detail profil user
+    - `POST /api/issues/:id/watchers` : Menambahkan pengamat (self-watch atau mengundang rekan tim) dengan broadcast WebSocket `WATCHER_ADDED`
+    - `DELETE /api/issues/:id/watchers/:uid` : Menghapus pengamat dengan broadcast WebSocket `WATCHER_REMOVED`
+  - `handlers/comments.rs` : Otomatis mengirimkan notifikasi instan ke seluruh watchers saat ada komentar baru pada tiket yang diamati.
+  - `handlers/issues/transition.rs` : Otomatis mengirimkan notifikasi instan ke seluruh watchers saat ada perpindahan status/workflow tiket.
+* **Frontend Modules & Components:**
+  - `stores/watcher.js` : Pinia store reaktif untuk watchers dengan live WebSocket synchronization dan optimasi update lokal counter.
+  - `components/issue/IssueWatchers.vue` : Komponen atomik pengamat tiket pada sidebar detail:
+    - Tombol utama toggle "Amati Tiket Ini (Watch)" / "Berhenti Mengamati (Watching)"
+    - Badge counter jumlah pengamat `👁️`
+    - Popover dropdown daftar pengamat lengkap dengan avatar, nama, email, dan tombol hapus
+    - Selector "+ Tambah Anggota Lain" untuk mengundang rekan kerja sebagai watcher
+  - `components/issue/IssueMetaSidebar.vue` : Terintegrasi mulus pada mode detail tiket.
+  - `components/kanban/KanbanCard.vue` & `components/backlog/BacklogIssueItem.vue` : Indikator visual badge jumlah pengamat `👁️ {{ issue.watcher_count }}`.
+  - `components/list/ListView.vue` : Ekspor CSV yang memuat jumlah pengamat tiket.
 
 ---
+
+## 🏆 Kesimpulan Standarisasi
+Seluruh **8 poin utama standarisasi Jira Software Enterprise** telah berhasil diimplementasikan 100% pada proyek EpicTask dengan mematuhi prinsip arsitektur Senior Software Architect: Zero God-File Policy, Single Responsibility Principle, Tailwind-Only Styling, dan database MariaDB production-grade.

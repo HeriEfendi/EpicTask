@@ -143,7 +143,7 @@ EpicTask terus mengadopsi standar industri terbaik dari **Atlassian Jira Softwar
 | **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | 🟢 **Selesai** | `handlers/labels.rs`<br>`IssueLabelsEditor.vue`<br>`stores/label.js` | Tag bebas lintas tiket dengan autocomplete interaktif, chips badge warna-warni di Kanban & Backlog, filter label di ViewTabs, dan kolom + ekspor CSV di ListView. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | 🟢 **Selesai** | `handlers/issues/transition.rs`<br>`ResolutionModal.vue`<br>`IssueMetaSidebar.vue` | Standar audit Jira: pembedaan status DONE dengan alasan resolusi (`Fixed`, `Done`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`, `Incomplete`), modal transisi otomatis saat geser ke DONE, coret teks key `~~KEY-123~~`, dan ekspor CSV. |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | 🟢 **Selesai** | `KanbanQuickFilters.vue`<br>`KanbanToolbar.vue`<br>`stores/project.js` | Filter 1-klik di toolbar atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tinggi", "Belum Ditugaskan", "Due Minggu Ini", "Belum Selesai", tombol Reset, dan multi-select toggle. |
-| **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Next* | `models/watcher.rs`<br>`handlers/watchers.rs` | Fitur pengamat (*watcher*) tiket untuk menerima notifikasi otomatis pembaruan tanpa harus menjadi Assignee/Reporter. |
+| **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | 🟢 **Selesai** | `models/watcher.rs`<br>`handlers/watchers.rs`<br>`IssueWatchers.vue`<br>`stores/watcher.js` | Fitur pengamat tiket Jira: tabel DB `issue_watchers`, toggle 1-klik "Watch / Unwatch", counter badge `👁️`, popover daftar pengamat + opsi undang rekan tim, dan notifikasi komentar/status change. |
 
 ---
 
