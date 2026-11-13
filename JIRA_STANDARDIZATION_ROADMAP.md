@@ -21,6 +21,7 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | 🟢 **Done** | `models/issue.rs`<br>`handlers/issues/transition.rs`<br>`handlers/issues/query.rs` | `components/issue/ResolutionModal.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`components/kanban/KanbanCard.vue`<br>`components/list/ListView.vue` | Standar audit Jira: kolom `resolution` & `resolved_at`, modal pemilihan resolusi saat geser ke status DONE, badge resolusi, strikethrough key `~~KEY-123~~`, dan ekspor CSV. |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | 🟢 **Done** | N/A (Frontend Client) | `components/kanban/KanbanQuickFilters.vue`<br>`components/kanban/KanbanToolbar.vue`<br>`stores/project.js` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tinggi", "Belum Ditugaskan", "Due Minggu Ini", "Belum Selesai", tombol Reset, dan multi-select toggle. |
 | **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | 🟢 **Done** | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/IssueWatchers.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`stores/watcher.js` | Fitur pengamat tiket Jira: tabel DB `issue_watchers`, toggle 1-klik "Watch / Unwatch", counter badge `👁️`, popover daftar pengamat + opsi undang rekan tim, dan notifikasi komentar/status change. |
+| **9** | **Developer & Agent CLI Tool (`epictask-cli`)** | P1 (Tinggi) | 🟢 **Done** | `bin/cli.rs`<br>`cli/*` | N/A (CLI Interface) | Perkakas native CLI untuk inspeksi data, mutasi data pengujian, token generator, dan audit diagnostik otomatis 100% fitur Jira via terminal. |
 
 ---
 
@@ -239,5 +240,21 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 
 ---
 
+### 9. Developer & AI Agent CLI Tool (`epictask-cli`) (🟢 SELESAI)
+* **Tujuan:** Menyediakan antarmuka baris perintah (CLI) yang cepat, modular, dan ramah agen AI coding untuk inspeksi data, mutasi data, pembuatan token JWT, serta audit diagnostik fitur Jira.
+* **Fitur Utama CLI:**
+  - `doctor`: Audit otomatis diagnostik kesehatan database dan ke-8 fitur Jira Enterprise.
+  - `projects`: List proyek dan status workflows.
+  - `issues`: List dengan multi-filter (`--status`, `--type`, `--priority`, `--resolution`, `--sprint`, `--component`, `--label`, `--search`, `--limit`, `--offset`), detail tiket lengkap (`get`), buat tiket (`create`), transisi alur kerja (`move`), dan hapus tiket (`delete`).
+  - `sprints`: List dengan agregasi 3-pill story points (To Do / In Progress / Done), buat sprint (`create`), mulai sprint dengan durasi/goal (`start`), dan selesaikan sprint dengan rollover tiket (`complete`).
+  - `components`: List subsistem dan issue count, buat komponen baru (`create`), hapus komponen (`delete`).
+  - `versions`: List Release Hub dengan rasio progres done/in_prog/todo, buat versi rilis (`create`), rilis versi (`release`), dan arsipkan versi (`archive`).
+  - `labels`: List label proyek beserta jumlah tiket terpasang, pasang label (`add`), lepas label (`remove`).
+  - `watchers`: List watchers per tiket, tambahkan pengamat (`add`), hapus pengamat (`remove`).
+  - `users`: List pengguna, generate token JWT development instan untuk pengujian REST API/cURL (`token`).
+* **Format Output:** Output tabel visual berwarna human-friendly dan format raw `--json` untuk integrasi agentic AI workflow.
+
+---
+
 ## 🏆 Kesimpulan Standarisasi
-Seluruh **8 poin utama standarisasi Jira Software Enterprise** telah berhasil diimplementasikan 100% pada proyek EpicTask dengan mematuhi prinsip arsitektur Senior Software Architect: Zero God-File Policy, Single Responsibility Principle, Tailwind-Only Styling, dan database MariaDB production-grade.
+Seluruh **8 poin utama standarisasi Jira Software Enterprise** beserta perkakas **Developer & AI Agent CLI (`epictask-cli`)** telah berhasil diimplementasikan 100% pada proyek EpicTask dengan mematuhi prinsip arsitektur Senior Software Architect: Zero God-File Policy, Single Responsibility Principle, Tailwind-Only Styling, dan database MariaDB production-grade.
