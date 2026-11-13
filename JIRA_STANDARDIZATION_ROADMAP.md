@@ -16,8 +16,8 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 | **1** | **Scrum Backlog & Sprint Management** | P0 (Kritis) | 🟢 **Done** | `models/sprint.rs`<br>`handlers/sprints.rs` | `components/backlog/*`<br>`stores/sprint.js` | Siklus sprint (PLANNED, ACTIVE, COMPLETED), Backlog View, Start/Complete/Create Sprint modal, roll-up Story Points 3-pill (To Do, In Progress, Done), drag-and-drop tiket antar sprint/backlog. |
 | **2** | **Components (Sub-Sistem / Modul)** | P0 (Kritis) | 🟢 **Done** | `models/component.rs`<br>`handlers/components.rs` | `components/backlog/ComponentManagerModal.vue`<br>`components/issue/IssueMetaSidebar.vue`<br>`stores/component.js` | Modul fungsional proyek, Component Lead, filter komponen di Backlog, penugasan komponen pada tiket & badge visual pada kartu Kanban. |
 | **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | 🟢 **Done** | `models/version.rs`<br>`handlers/versions.rs` | `components/releases/*`<br>`stores/version.js` | Pelacakan rilis software (UNRELEASED, RELEASED, ARCHIVED), target tanggal rilis, progress bar 3-fase (Done, In Progress, To Do), modal rilis dengan migrasi isu belum selesai, filter rilis di ViewTabs & ListView, badge rilis pada kartu Kanban. |
-| **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | ⚪ *Next (Planned)* | N/A (Frontend Agregasi) | `components/kanban/` | Pembagian horizontal Kanban: Group by Assignee, Epic, atau Priority (Expedite). |
-| **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Planned* | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter. |
+| **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | 🟢 **Done** | N/A (Frontend Agregasi) | `components/kanban/*`<br>`stores/project.js` | Pembagian horizontal Kanban: Group by Assignee, Group by Epic, Group by Priority (Expedite row darurat), header sticky kolom, roll-up story point per baris, dan dropzone sel mandiri. |
+| **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Next (Planned)* | `models/label.rs`<br>`handlers/labels.rs` | `components/issue/` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Planned* | Kolom `resolution` pada issues | `components/issue/` | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`). |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Planned* | N/A (Frontend Client) | `components/common/` | Filter 1-klik di atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan". |
 | **8** | **Issue Watchers (Pengamat Tiket)** | P3 (Pelengkap) | ⚪ *Planned* | `models/watcher.rs`<br>`handlers/watchers.rs` | `components/issue/` | Fitur "Watch" tiket untuk notifikasi otomatis pembaruan tiket ke anggota terkait. |
@@ -123,18 +123,33 @@ Dokumen ini berfungsi sebagai *living document* dan *single source of truth* unt
 
 ---
 
-### 4. Board Swimlanes (Grouping Horizontal) (⚪ NEXT UP)
-* **Tujuan:** Mengelompokkan kartu Kanban secara horizontal berdasarkan dimensi tertentu (Assignee, Epic, Priority/Expedite) untuk meningkatkan visibilitas beban kerja dan pemblokir kritis.
+### 4. Board Swimlanes (Grouping Horizontal) (🟢 SELESAI)
+* **Tujuan:** Mengelompokkan kartu Kanban secara horizontal berdasarkan dimensi tertentu (Assignee, Epic, Priority/Expedite) untuk meningkatkan visibilitas beban kerja dan pemblokir kritis sesuai standar papan Jira Software.
 * **Dimensi Swimlane:**
-  1. **Tanpa Swimlane (Default):** Tampilan kolom Kanban standar.
-  2. **Berdasarkan Assignee:** Baris horizontal terpisah untuk setiap anggota tim + baris "Belum Ditugaskan".
-  3. **Berdasarkan Epic:** Baris horizontal untuk setiap Epic aktif + baris "Isu Tanpa Epic".
-  4. **Berdasarkan Prioritas (Expedite):** Baris teratas khusus untuk tiket dengan prioritas `HIGHEST` (jalur cepat darurat), diikuti oleh prioritas lainnya.
-* **Rencana Implementasi:**
-  - State `swimlaneMode` di `projectStore.js` (`'none' | 'assignee' | 'epic' | 'priority'`).
-  - Dropdown selector Swimlane di toolbar `ViewTabs.vue` atau header Kanban.
-  - Sub-komponen `KanbanSwimlaneRow.vue` dengan collapse/expand per baris dan dropzone per kolom dalam setiap swimlane.
+  1. **Tanpa Swimlane (Default):** Kolom alur kerja vertikal standar.
+  2. **Berdasarkan Assignee:** Baris horizontal terpisah untuk setiap anggota tim beserta avatar dan jumlah tiket + baris penampung "Belum Ditugaskan (Unassigned)".
+  3. **Berdasarkan Epic:** Baris horizontal untuk setiap Epic aktif + baris "Tiket Tanpa Epic".
+  4. **Berdasarkan Prioritas (Expedite):** Baris teratas dengan styling visual khusus *rose/red alert* (`🚨 Expedite`) untuk tiket `HIGHEST` (jalur cepat tanggap darurat), disusul baris Prioritas Tinggi, Sedang, dan Rendah.
+* **Frontend Modules & Components:**
+  - `stores/project.js` : State `swimlaneMode` reaktif (`'none' | 'assignee' | 'epic' | 'priority'`).
+  - `components/kanban/KanbanToolbar.vue` : Toolbar header board dengan penghitung tiket dan dropdown switcher swimlane 1-klik.
+  - `components/kanban/KanbanColumn.vue` : Komponen kolom vertikal atomik untuk mode standar (bebas god-file).
+  - `components/kanban/KanbanSwimlaneView.vue` : Orkestrator swimlane dengan header kolom sticky di bagian atas (menjaga label kolom tetap terlihat saat scroll ke bawah) dan grouping dinamis.
+  - `components/kanban/KanbanSwimlaneRow.vue` : Baris swimlane horizontal yang dapat di-*collapse/expand*, menampilkan avatar/icon grup, badge judul, penghitung tiket, kalkulasi akumulasi Story Points per baris, dan sel dropzone mandiri per status.
+  - `components/kanban/KanbanBoard.vue` : Integrasi terpusat dengan deteksi drag-and-drop antar sel swimlane dan alert penjaga workflow transition guard.
 
 ---
 
-*(Catatan: Bagian 5 s.d. 8 akan dilanjutkan secara berurutan sesuai prioritas).*
+### 5. Issue Labels (Tagging Fleksibel) (⚪ NEXT UP)
+* **Tujuan:** Tagging bebas lintas tiket dan tipe (contoh: `security`, `frontend`, `hotfix`, `ux`, `api`) untuk kategorisasi ad-hoc tanpa membatasi hierarki modul atau versi.
+* **Database Schema (MariaDB):**
+  - Tabel `labels` (`id`, `project_id`, `name`, `color`, `created_at`)
+  - Tabel pivot `issue_labels` (`issue_id`, `label_id`, `PRIMARY KEY (issue_id, label_id)`)
+* **Rencana Implementasi:**
+  - `models/label.rs` & `handlers/labels.rs` (CRUD label, autocomplete suggestions, add/remove label pada issue)
+  - Autocomplete multi-badge selector pada `IssueDetailModal.vue` / `IssueMetaSidebar.vue`
+  - Tag chips pada `KanbanCard.vue`, `BacklogIssueItem.vue`, dan filter chip pada `ViewTabs.vue`.
+
+---
+
+*(Catatan: Bagian 6 s.d. 8 akan dilanjutkan secara berurutan sesuai prioritas).*

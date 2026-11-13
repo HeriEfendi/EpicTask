@@ -139,7 +139,7 @@ EpicTask terus mengadopsi standar industri terbaik dari **Atlassian Jira Softwar
 | **1** | **Scrum Backlog & Sprint Management** | P0 (Kritis) | 🟢 **Selesai** | `handlers/sprints.rs`<br>`components/backlog/*`<br>`stores/sprint.js` | Siklus sprint (PLANNED $\to$ ACTIVE $\to$ COMPLETED), Backlog View terdedikasi, Start/Complete Sprint modal, Story Points 3-Pill rollup, dan drag-and-drop antar sprint/backlog. |
 | **2** | **Components (Sub-Sistem / Modul)** | P0 (Kritis) | 🟢 **Selesai** | `handlers/components.rs`<br>`ComponentManagerModal.vue`<br>`stores/component.js` | Pemecahan modul teknis proyek, penunjukan *Component Lead*, penugasan komponen pada tiket, filter cepat, dan visual badge `🧩`. |
 | **3** | **Versions / Releases (Release Hub)** | P1 (Tinggi) | 🟢 **Selesai** | `handlers/versions.rs`<br>`components/releases/*`<br>`stores/version.js` | Pelacakan versi rilis software (`UNRELEASED`, `RELEASED`, `ARCHIVED`), target tanggal rilis, progress bar 3-fase, modal rilis dengan migrasi isu belum selesai, dan filter Fix Version di board & list. |
-| **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | ⚪ *Planned* | `components/kanban/` | Pembagian horizontal Kanban: *Group by Assignee*, *Group by Epic*, atau *Group by Priority (Expedite)*. |
+| **4** | **Board Swimlanes (Grouping Horizontal)** | P1 (Tinggi) | 🟢 **Selesai** | `components/kanban/*`<br>`stores/project.js` | Pembagian horizontal Kanban: *Group by Assignee*, *Group by Epic*, atau *Group by Priority (Expedite)* dengan baris collapsible, roll-up story point, dan header kolom sticky. |
 | **5** | **Issue Labels (Tagging Fleksibel)** | P2 (Menengah) | ⚪ *Planned* | `models/label.rs`<br>`handlers/labels.rs` | Tag bebas lintas tiket (contoh: `security`, `frontend`, `hotfix`, `ux`) dengan autocomplete & filter terintegrasi. |
 | **6** | **Issue Resolution (Alasan Selesai)** | P2 (Menengah) | ⚪ *Planned* | Field `resolution` pada issues | Pembedaan status DONE dengan Resolution (`Fixed`, `Won't Fix`, `Duplicate`, `Cannot Reproduce`) untuk audit QA. |
 | **7** | **Quick Filter Bar di Atas Board** | P2 (Menengah) | ⚪ *Planned* | `components/common/` | Filter 1-klik di toolbar atas board: "Tiket Saya", "Hanya Bug", "Prioritas Tertinggi", "Belum Ditugaskan". |
@@ -314,7 +314,11 @@ EpicTask/
     │       │   ├── CreateVersionModal.vue # Modal pembuatan & edit versi rilis
     │       │   └── ReleaseVersionModal.vue # Modal konfirmasi rilis & rollover tiket
     │       ├── kanban/
-    │       │   ├── KanbanBoard.vue  # Board kolom DnD & transition violation alert
+    │       │   ├── KanbanBoard.vue  # Board orkestrator (standard columns & swimlanes)
+    │       │   ├── KanbanToolbar.vue # Toolbar header board & dropdown switcher swimlane
+    │       │   ├── KanbanColumn.vue # Komponen kolom vertikal atomik
+    │       │   ├── KanbanSwimlaneView.vue # Orkestrator horizontal swimlane & header sticky
+    │       │   ├── KanbanSwimlaneRow.vue # Baris swimlane collapsible, roll-up point & sel dropzone
     │       │   └── KanbanCard.vue   # Kartu isu, subtask checklist bar, component & epic badges
     │       ├── timeline/
     │       │   └── TimelineView.vue # Horizontal Gantt chart interaktif
