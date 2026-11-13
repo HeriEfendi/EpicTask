@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# EpicTask CLI wrapper script
+# Enables running epictask-cli directly from the repository root:
+# Usage: ./epictask-cli [subcommands...] [--json]
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+BIN_PATH="$DIR/backend/target/debug/epictask-cli"
+
+if [ -f "$BIN_PATH" ]; then
+    exec "$BIN_PATH" "$@"
+else
+    cargo run --quiet --manifest-path "$DIR/backend/Cargo.toml" --bin epictask-cli -- "$@"
+fi

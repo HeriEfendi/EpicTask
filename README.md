@@ -352,7 +352,102 @@ EpicTask/
 
 ---
 
-## 🧪 Pengujian API Backend (CLI Curl Reference)
+## 🛠️ EpicTask Developer & AI Agent CLI Tool (`epictask-cli`)
+
+EpicTask menyediakan perkakas command-line interface native (`epictask-cli` / `./epictask-cli`) yang dirancang khusus untuk pengembang, skrip CI/CD, dan agen AI coding (seperti Antigravity, Claude Code, Cursor, dll.) agar dapat dengan cepat mengecek data, mengubah data, dan mengaudit seluruh fitur Jira enterprise tanpa overhead browser.
+
+### 1. Eksekusi Dasar & Format JSON
+Semua perintah mendukung flag `--json` untuk menghasilkan output JSON terstruktur yang deterministik untuk agen atau integrasi skrip otomatis:
+
+```bash
+# Menjalankan dari root repositori:
+./epictask-cli <subcommand> [flags] [--json]
+
+# Atau via Cargo langsung:
+cargo run --bin epictask-cli -- <subcommand> [flags] [--json]
+```
+
+### 2. Diagnosis Sistem & Fitur Jira (`doctor`)
+Audit otomatis menyeluruh terhadap konektivitas basis data dan integritas 8 fitur enterprise Jira:
+```bash
+./epictask-cli doctor
+# Output JSON terstruktur untuk agen AI:
+./epictask-cli doctor --json
+```
+
+### 3. Manajemen Isu & Tiket (`issues`)
+```bash
+# Daftar isu dengan filter (status, tipe, prioritas, resolusi, sprint, komponen, label, pencarian teks)
+./epictask-cli issues list EPIC --limit 10
+./epictask-cli issues list EPIC --type BUG --priority HIGH
+./epictask-cli issues list EPIC --resolution unresolved
+
+# Dapatkan detail lengkap satu tiket (deskripsi, subtask, watchers, label)
+./epictask-cli issues get EPIC-163
+./epictask-cli --json issues get EPIC-163
+
+# Buat tiket baru secara langsung
+./epictask-cli issues create EPIC --summary "Refaktor cache Redis" --type TASK --priority HIGH --points 5 --labels "backend,perf"
+
+# Geser status tiket melalui workflow transition & catat resolusi
+./epictask-cli issues move EPIC-164 --status "Done" --resolution "Fixed"
+
+# Hapus tiket pengembangan
+./epictask-cli issues delete EPIC-164
+```
+
+### 4. Manajemen Sprint & Backlog (`sprints`)
+```bash
+# Daftar sprint beserta estimasi 3-pill story points (To Do / In Progress / Done)
+./epictask-cli sprints list EPIC
+
+# Buat sprint baru
+./epictask-cli sprints create EPIC --name "Sprint 20" --goal "Rilis modul analytics v2"
+
+# Mulai sprint aktif (default 2 minggu atau durasi kustom)
+./epictask-cli sprints start 2 --weeks 2 --goal "Fokus pada kestabilan backend"
+
+# Selesaikan sprint dan pindahkan isu yang belum tuntas ke sprint berikutnya atau backlog
+./epictask-cli sprints complete 1 --move-to 2
+```
+
+### 5. Komponen Sub-Sistem & Release Hub (`components`, `versions`)
+```bash
+# Manajemen komponen & lead teknis
+./epictask-cli components list EPIC
+./epictask-cli components create EPIC --name "Mobile App" --description "React Native Client" --lead 2
+
+# Manajemen versi rilis perangkat lunak
+./epictask-cli versions list EPIC
+./epictask-cli versions create EPIC --name "v1.1.0-RC1" --date "2026-12-31"
+./epictask-cli versions release 1 --move-to 2
+./epictask-cli versions archive 1
+```
+
+### 6. Labels & Issue Watchers (`labels`, `watchers`)
+```bash
+# Daftar label dan pasang label ke tiket
+./epictask-cli labels list EPIC
+./epictask-cli labels add EPIC-163 --label "frontend" --color "#3b82f6"
+./epictask-cli labels remove EPIC-163 --label "frontend"
+
+# Pantau tiket sebagai collaborator observer (watchers)
+./epictask-cli watchers list EPIC-163
+./epictask-cli watchers add EPIC-163 --user 1
+./epictask-cli watchers remove EPIC-163 --user 1
+```
+
+### 7. Pengguna & Token Generator API (`users`)
+```bash
+# Daftar pengguna sistem
+./epictask-cli users list
+
+# Buat token JWT instan untuk pengujian REST API/cURL langsung dari CLI
+./epictask-cli users token sarah@epictask.dev
+./epictask-cli --json users token 1
+```
+
+---
 
 ### 1. Login & Ambil Token
 

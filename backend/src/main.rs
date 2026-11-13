@@ -1,27 +1,16 @@
 use std::{sync::Arc, time::Duration};
-use sqlx::MySqlPool;
 use tracing::{error, info};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-mod auth;
-mod automation;
-mod config;
-mod db;
-mod handlers;
-mod models;
-mod routes;
-mod ws;
-
-use automation::AutomationEngine;
-use config::Config;
-use ws::WsHub;
-
-#[derive(Clone)]
-pub struct AppState {
-    pub db: MySqlPool,
-    pub config: Config,
-    pub ws_hub: Arc<WsHub>,
-}
+use epictask_backend::{
+    automation::AutomationEngine,
+    config::Config,
+    db,
+    handlers,
+    routes,
+    ws::WsHub,
+    AppState,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
