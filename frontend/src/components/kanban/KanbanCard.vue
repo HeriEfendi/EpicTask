@@ -63,13 +63,16 @@ function handleDragEnd(e) {
     @click="projectStore.openIssueDetail(issue.id)"
     class="bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-slate-300 rounded-xl p-3.5 cursor-grab active:cursor-grabbing transition-card group select-none shadow-2xs hover:shadow-md relative"
   >
-    <!-- Epic & Component Badges -->
-    <div v-if="(issue.epic_summary && issue.issue_type !== 'EPIC') || issue.component_name" class="mb-2 flex flex-wrap gap-1.5 items-center">
+    <!-- Epic, Component & Release Badges -->
+    <div v-if="(issue.epic_summary && issue.issue_type !== 'EPIC') || issue.component_name || issue.fix_version_name" class="mb-2 flex flex-wrap gap-1.5 items-center">
       <span v-if="issue.epic_summary && issue.issue_type !== 'EPIC'" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 max-w-[180px] truncate">
         🟣 {{ issue.epic_summary }}
       </span>
       <span v-if="issue.component_name" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-800 border border-cyan-200 max-w-[150px] truncate">
         🧩 {{ issue.component_name }}
+      </span>
+      <span v-if="issue.fix_version_name" class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-800 border border-indigo-200 max-w-[150px] truncate">
+        🚀 {{ issue.fix_version_name }}
       </span>
     </div>
 

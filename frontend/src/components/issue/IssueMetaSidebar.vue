@@ -1,10 +1,12 @@
 <script setup>
-import { Layers, Flag, User, Hash, Calendar, Milestone, Boxes } from 'lucide-vue-next';
+import { Layers, Flag, User, Hash, Calendar, Milestone, Boxes, Rocket } from 'lucide-vue-next';
 import { useSprintStore } from '@/stores/sprint';
 import { useComponentStore } from '@/stores/component';
+import { useVersionStore } from '@/stores/version';
 
 const sprintStore = useSprintStore();
 const compStore = useComponentStore();
+const versionStore = useVersionStore();
 
 const props = defineProps({
   isCreateMode: {
@@ -273,6 +275,39 @@ function handleStatusSelect(e) {
         <option value="">Tanpa Komponen</option>
         <option v-for="c in compStore.components" :key="c.id" :value="c.id">
           🧩 {{ c.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Fix Version (Versi Rilis) -->
+    <div class="space-y-1.5">
+      <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1">
+        <Rocket class="w-3 h-3 text-slate-500" />
+        <span>Fix Version (Rilis)</span>
+      </label>
+
+      <!-- Create Mode Fix Version -->
+      <select
+        v-if="isCreateMode"
+        v-model="createForm.fixVersionId"
+        class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium"
+      >
+        <option :value="null">Tanpa Versi Rilis</option>
+        <option v-for="v in versionStore.versions" :key="v.id" :value="v.id">
+          🚀 {{ v.name }} ({{ v.status }})
+        </option>
+      </select>
+
+      <!-- Detail Mode Fix Version -->
+      <select
+        v-else-if="issue"
+        :value="issue.fix_version_id || ''"
+        @change="(e) => handleFieldUpdate({ fix_version_id: e.target.value ? Number(e.target.value) : null })"
+        class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none shadow-2xs font-medium cursor-pointer"
+      >
+        <option value="">Tanpa Versi Rilis</option>
+        <option v-for="v in versionStore.versions" :key="v.id" :value="v.id">
+          🚀 {{ v.name }} ({{ v.status }})
         </option>
       </select>
     </div>

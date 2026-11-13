@@ -44,6 +44,7 @@ const createForm = reactive({
   epicId: null,
   sprintId: null,
   componentId: null,
+  fixVersionId: null,
   storyPoints: 0,
   startDate: '',
   dueDate: ''
@@ -66,6 +67,7 @@ watch(
       createForm.epicId = null;
       createForm.sprintId = null;
       createForm.componentId = null;
+      createForm.fixVersionId = null;
       createForm.storyPoints = 0;
       createForm.startDate = '';
       createForm.dueDate = '';
@@ -115,6 +117,7 @@ async function handleCreateIssue() {
       epic_id: createForm.epicId ? Number(createForm.epicId) : null,
       sprint_id: createForm.sprintId ? Number(createForm.sprintId) : null,
       component_id: createForm.componentId ? Number(createForm.componentId) : null,
+      fix_version_id: createForm.fixVersionId ? Number(createForm.fixVersionId) : null,
       story_points: Number(createForm.storyPoints) || 0,
       start_date: createForm.startDate || null,
       due_date: createForm.dueDate || null,

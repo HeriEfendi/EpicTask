@@ -3,6 +3,8 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useProjectStore } from '@/stores/project';
 import { useAuthStore } from '@/stores/auth';
 import { useAutomationStore } from '@/stores/automation';
+import { useComponentStore } from '@/stores/component';
+import { useVersionStore } from '@/stores/version';
 import {
   Kanban,
   Layers,
@@ -15,6 +17,8 @@ import {
   Users,
   ChevronDown,
   Check,
+  Boxes,
+  Rocket
 } from 'lucide-vue-next';
 
 const emit = defineEmits(['open-workflow-modal']);
@@ -22,6 +26,8 @@ const emit = defineEmits(['open-workflow-modal']);
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
 const autoStore = useAutomationStore();
+const compStore = useComponentStore();
+const versionStore = useVersionStore();
 
 // Assignee dropdown state
 const isAssigneeDropdownOpen = ref(false);
@@ -76,7 +82,10 @@ const hasActiveFilters = computed(() => {
     !!projectStore.filterAssignee ||
     !!projectStore.filterPriority ||
     !!projectStore.filterEpic ||
-    !!projectStore.filterType
+    !!projectStore.filterType ||
+    !!projectStore.filterComponent ||
+    !!projectStore.filterVersion ||
+    !!projectStore.filterSprint
   );
 });
 
@@ -87,12 +96,16 @@ function clearFilters() {
   projectStore.filterPriority = null;
   projectStore.filterEpic = null;
   projectStore.filterType = null;
+  projectStore.filterComponent = null;
+  projectStore.filterVersion = null;
+  projectStore.filterSprint = null;
 }
 
 // View tabs definition
 const views = [
   { id: 'kanban',   label: 'Kanban',   icon: Kanban },
   { id: 'backlog',  label: 'Backlog',  icon: Layers },
+  { id: 'releases', label: 'Rilis',    icon: Rocket },
   { id: 'timeline', label: 'Timeline', icon: CalendarRange },
   { id: 'list',     label: 'List',     icon: ListTodo },
   { id: 'reports',  label: 'Laporan',  icon: BarChart3 },
@@ -278,6 +291,38 @@ const views = [
           <option :value="null">Semua Epic</option>
           <option v-for="epic in projectStore.epics" :key="epic.id" :value="epic.id">
             🟣 {{ epic.summary }}
+          </option>
+        </select>
+        <ChevronDown class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+      </div>
+
+      <!-- ④ Component Filter -->
+      <div class="relative" v-if="compStore.components.length > 0">
+        <select
+          v-model="projectStore.filterComponent"
+          class="bg-white border border-slate-300 hover:border-slate-400 rounded-lg pl-3 pr-7 py-1.5 text-xs text-slate-700
+                 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer shadow-2xs transition font-medium max-w-[180px]"
+          :class="projectStore.filterComponent ? 'border-cyan-400 bg-cyan-50 text-cyan-800 font-bold' : ''"
+        >
+          <option :value="null">Semua Komponen</option>
+          <option v-for="c in compStore.components" :key="c.id" :value="c.id">
+            🧩 {{ c.name }}
+          </option>
+        </select>
+        <ChevronDown class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+      </div>
+
+      <!-- ⑤ Fix Version Filter -->
+      <div class="relative" v-if="versionStore.versions.length > 0">
+        <select
+          v-model="projectStore.filterVersion"
+          class="bg-white border border-slate-300 hover:border-slate-400 rounded-lg pl-3 pr-7 py-1.5 text-xs text-slate-700
+                 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer shadow-2xs transition font-medium max-w-[180px]"
+          :class="projectStore.filterVersion ? 'border-indigo-400 bg-indigo-50 text-indigo-800 font-bold' : ''"
+        >
+          <option :value="null">Semua Versi Rilis</option>
+          <option v-for="v in versionStore.versions" :key="v.id" :value="v.id">
+            🚀 {{ v.name }}
           </option>
         </select>
         <ChevronDown class="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />

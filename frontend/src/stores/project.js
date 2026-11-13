@@ -5,6 +5,7 @@ import { wsClient } from '@/services/websocket';
 import { sendDesktopNotification } from '@/services/tauri';
 import { useSprintStore } from '@/stores/sprint';
 import { useComponentStore } from '@/stores/component';
+import { useVersionStore } from '@/stores/version';
 
 export const useProjectStore = defineStore('project', () => {
   const projects = ref([]);
@@ -24,6 +25,7 @@ export const useProjectStore = defineStore('project', () => {
   const filterType = ref(null);
   const filterSprint = ref(null); // null = all, number = specific sprint
   const filterComponent = ref(null); // null = all, number = specific component
+  const filterVersion = ref(null); // null = all, number = specific fix_version_id
 
   // Legacy single-assignee alias (backward compat for old code)
   const filterAssignee = ref(null);
@@ -71,6 +73,9 @@ export const useProjectStore = defineStore('project', () => {
         if (issue.sprint_id !== filterSprint.value) return false;
       }
       if (filterComponent.value && issue.component_id !== filterComponent.value) {
+        return false;
+      }
+      if (filterVersion.value && issue.fix_version_id !== filterVersion.value) {
         return false;
       }
       return true;
@@ -132,11 +137,13 @@ export const useProjectStore = defineStore('project', () => {
     localStorage.setItem('epictask_current_project', proj.id);
     const sprintStore = useSprintStore();
     const compStore = useComponentStore();
+    const versionStore = useVersionStore();
     await Promise.all([
       fetchProjectStatuses(proj.id),
       fetchIssues(proj.id),
       sprintStore.fetchSprints(proj.id),
       compStore.fetchComponents(proj.id),
+      versionStore.fetchVersions(proj.id),
     ]);
   }
 
@@ -377,6 +384,7 @@ export const useProjectStore = defineStore('project', () => {
     filterType,
     filterSprint,
     filterComponent,
+    filterVersion,
     activeIssue,
     activeIssueSubtasks,
     activeIssueLinks,

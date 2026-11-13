@@ -2,6 +2,8 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useProjectStore } from '@/stores/project';
 import { useAuthStore } from '@/stores/auth';
+import { useComponentStore } from '@/stores/component';
+import { useVersionStore } from '@/stores/version';
 import {
   ListTodo,
   Plus,
@@ -9,7 +11,8 @@ import {
   ExternalLink,
   ChevronDown,
   Loader2,
-  Download
+  Download,
+  Boxes
 } from 'lucide-vue-next';
 import { toast } from '@/utils/toast';
 
@@ -17,6 +20,8 @@ const PAGE_SIZE = 20;
 
 const projectStore = useProjectStore();
 const authStore = useAuthStore();
+const compStore = useComponentStore();
+const versionStore = useVersionStore();
 
 // --- Quick Add State ---
 const newIssueSummary = ref('');
@@ -50,11 +55,13 @@ function exportIssuesCsv() {
     toast.warning('Tidak ada tiket untuk diekspor');
     return;
   }
-  const headers = ['Key', 'Tipe', 'Ringkasan', 'Status', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
+  const headers = ['Key', 'Tipe', 'Ringkasan', 'Komponen', 'Fix Version', 'Status', 'Prioritas', 'Assignee', 'Story Points', 'Tenggat Waktu'];
   const rows = list.map((i) => [
     `"${i.key}"`,
     `"${i.issue_type}"`,
     `"${(i.summary || '').replace(/"/g, '""')}"`,
+    `"${(i.component_name || '').replace(/"/g, '""')}"`,
+    `"${(i.fix_version_name || '').replace(/"/g, '""')}"`,
     `"${i.status_name || ''}"`,
     `"${i.priority}"`,
     `"${(i.assignee_name || 'Unassigned').replace(/"/g, '""')}"`,
@@ -124,6 +131,28 @@ onUnmounted(() => {
     tableScrollRef.value.removeEventListener('scroll', handleScroll);
   }
 });
+
+async function handleComponentChange(issue, newComponentId) {
+  try {
+    await projectStore.updateIssue(issue.id, {
+      component_id: newComponentId ? Number(newComponentId) : null,
+    });
+    toast.success(`Komponen ${issue.key} diperbarui`);
+  } catch (e) {
+    toast.error(e.message || 'Gagal mengubah komponen');
+  }
+}
+
+async function handleVersionChange(issue, newVersionId) {
+  try {
+    await projectStore.updateIssue(issue.id, {
+      fix_version_id: newVersionId ? Number(newVersionId) : null,
+    });
+    toast.success(`Versi rilis ${issue.key} diperbarui`);
+  } catch (e) {
+    toast.error(e.message || 'Gagal mengubah versi rilis');
+  }
+}
 
 async function handleStatusChange(issue, newStatusId) {
   try {
@@ -218,6 +247,8 @@ async function handleDelete(issueId) {
             <th class="py-3 px-3.5 w-28">Key</th>
             <th class="py-3 px-3.5 w-28">Tipe</th>
             <th class="py-3 px-3.5 min-w-[300px]">Ringkasan Tiket</th>
+            <th class="py-3 px-3.5 w-36">Komponen</th>
+            <th class="py-3 px-3.5 w-36">Rilis</th>
             <th class="py-3 px-3.5 w-40">Status</th>
             <th class="py-3 px-3.5 w-36">Prioritas</th>
             <th class="py-3 px-3.5 w-44">Ditugaskan Ke</th>
@@ -238,7 +269,7 @@ async function handleDelete(issueId) {
                 TASK
               </span>
             </td>
-            <td class="py-2.5 px-3.5" colspan="6">
+            <td class="py-2.5 px-3.5" colspan="8">
               <input
                 v-model="newIssueSummary"
                 placeholder="+ Tambah tiket baru cepat... (Ketik judul lalu tekan Enter)"
@@ -298,6 +329,44 @@ async function handleDelete(issueId) {
                   {{ issue.epic_summary }}
                 </span>
               </div>
+            </td>
+
+            <!-- Component Dropdown -->
+            <td class="py-3 px-3.5">
+              <select
+                :value="issue.component_id || ''"
+                @change="(e) => handleComponentChange(issue, e.target.value)"
+                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer hover:bg-slate-50 max-w-[130px] truncate shadow-2xs font-medium"
+                :class="issue.component_id ? 'text-cyan-800 font-semibold bg-cyan-50/50' : 'text-slate-500'"
+              >
+                <option value="">- Tanpa -</option>
+                <option
+                  v-for="c in compStore.components"
+                  :key="c.id"
+                  :value="c.id"
+                >
+                  🧩 {{ c.name }}
+                </option>
+              </select>
+            </td>
+
+            <!-- Fix Version Dropdown -->
+            <td class="py-3 px-3.5">
+              <select
+                :value="issue.fix_version_id || ''"
+                @change="(e) => handleVersionChange(issue, e.target.value)"
+                class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none focus:border-blue-600 cursor-pointer hover:bg-slate-50 max-w-[130px] truncate shadow-2xs font-medium"
+                :class="issue.fix_version_id ? 'text-indigo-800 font-semibold bg-indigo-50/50' : 'text-slate-500'"
+              >
+                <option value="">- Tanpa -</option>
+                <option
+                  v-for="v in versionStore.versions"
+                  :key="v.id"
+                  :value="v.id"
+                >
+                  🚀 {{ v.name }}
+                </option>
+              </select>
             </td>
 
             <!-- Status Dropdown -->
